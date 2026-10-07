@@ -32,3 +32,7 @@ Smoke memakai folder userData sementara sendiri agar tidak mengubah sesi/pengatu
 ## Pembaruan 0.1.3
 
 Smoke About: versi yang tampil sesuai app.getVersion(), kredit pembuat dan URL website sesuai permintaan, tidak ada akses Node, IPC About hanya dapat dipakai jendela About: lulus. Dialog mengikuti tema browser dan dapat dibuka melalui tombol About di bawah saat header tersembunyi. Tautan membuka URL tetap di browser OS. Navigasi dan popup dalam dialog ditolak.
+
+## Pembaruan 0.1.4
+
+Build AppImage memakai logo DuoChat sendiri melalui konfigurasi icon electron-builder, bukan ikon Electron bawaan. Logo ditampilkan pada header dan About serta diberikan pada BrowserWindow utama/About. Smoke aplikasi dan inspeksi tampilan About lulus.

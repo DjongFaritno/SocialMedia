@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Install DuoChat for the current Fedora user; no sudo or FUSE required.
 set -euo pipefail
-expected_sha='2d173b50ca8849080437687ef6b7725994cdcdc45816777e3bfd4d6c4e314990'
-app_name='DuoChat-0.1.3.AppImage'
+expected_sha='8c36925607e13963f44536d47faa31e37511fe4b1ff23ed6313f4a387abc19ca'
+app_name='DuoChat-0.1.4.AppImage'
 
 if [[ "$(id -u)" == 0 ]]; then
   printf 'Jalankan sebagai pengguna biasa, tanpa sudo.\n' >&2
@@ -47,9 +47,9 @@ if [[ "$actual_sha" != "$expected_sha" ]]; then
   exit 1
 fi
 install_parent="$HOME/.local/opt/duochat"
-install_dir="$install_parent/0.1.3"
+install_dir="$install_parent/0.1.4"
 if [[ -e "$install_dir" ]]; then
-  printf 'DuoChat 0.1.3 sudah ada di %s. Instalasi tidak ditimpa.\n' "$install_dir"
+  printf 'DuoChat 0.1.4 sudah ada di %s. Instalasi tidak ditimpa.\n' "$install_dir"
   exit 1
 fi
 mkdir -p -- "$install_parent"

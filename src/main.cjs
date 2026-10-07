@@ -8,6 +8,7 @@ if (smoke) app.setPath('userData', fs.mkdtempSync(path.join(require('node:os').t
 let win, aboutWindow, settings, settingsPath, saveTimer;
 let fullscreenHeaderVisible = false;
 const views = {}, statuses = {};
+const iconPath = path.join(__dirname, 'assets', 'duochat-icon.png');
 const authorWebsite = 'https://djongfaritno.github.io/';
 const aboutURL = pathToFileURL(path.join(__dirname, 'about.html')).href;
 const uiURL = pathToFileURL(path.join(__dirname, 'index.html')).href;
@@ -37,7 +38,7 @@ function updatePresentation() {
 function showAbout() {
   if (aboutWindow && !aboutWindow.isDestroyed()) { aboutWindow.focus(); return; }
   aboutWindow = new BrowserWindow({
-    width: 480, height: 420, resizable: false, title: 'About DuoChat', parent: win, modal: true,
+    icon: iconPath, width: 480, height: 420, resizable: false, title: 'About DuoChat', parent: win, modal: true,
     backgroundColor: nativeTheme.shouldUseDarkColors ? '#1c2622' : '#fafcfb',
     webPreferences: { preload: path.join(__dirname, 'preload.cjs'), sandbox: true, contextIsolation: true, nodeIntegration: false }
   });
@@ -138,7 +139,7 @@ app.whenReady().then(async () => {
   settingsPath = path.join(app.getPath('userData'), 'settings.json');
   try { settings = cleanSettings(JSON.parse(fs.readFileSync(settingsPath, 'utf8'))); } catch { settings = cleanSettings(); }
   nativeTheme.themeSource = settings.theme === 'auto' ? 'system' : settings.theme;
-  win = new BrowserWindow({ width: settings.width, height: settings.height, minWidth: 1000, minHeight: 650, title: 'DuoChat', backgroundColor: '#edf2f1', webPreferences: { preload: path.join(__dirname, 'preload.cjs'), sandbox: true, contextIsolation: true, nodeIntegration: false } });
+  win = new BrowserWindow({ icon: iconPath, width: settings.width, height: settings.height, minWidth: 1000, minHeight: 650, title: 'DuoChat', backgroundColor: '#edf2f1', webPreferences: { preload: path.join(__dirname, 'preload.cjs'), sandbox: true, contextIsolation: true, nodeIntegration: false } });
   Menu.setApplicationMenu(Menu.buildFromTemplate([{ label: 'DuoChat', submenu: [{ label: 'About DuoChat', click: showAbout }, { role: 'quit' }] }, { label: 'Edit', submenu: [{ role: 'undo' }, { role: 'redo' }, { type: 'separator' }, { role: 'cut' }, { role: 'copy' }, { role: 'paste' }, { role: 'selectAll' }] }, { label: 'Window', submenu: [{ role: 'minimize' }, { role: 'zoom' }, { type: 'separator' }, { label: 'Layar penuh (F11)', click: () => windowAction('fullscreen') }, { label: 'Tampilkan/sembunyikan header (Ctrl+Shift+H)', click: () => windowAction('header') }] }]));
   nativeTheme.on('updated', () => { if (win && !win.isDestroyed()) updateColors(); });
   updateColors();

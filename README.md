@@ -19,7 +19,7 @@ Login langsung ke layanan pada panel masing-masing. WhatsApp: tautkan perangkat 
 
 Gunakan slider atau pembatas untuk mengubah ukuran. Pembatas mendukung tombol panah kiri/kanan dan Home untuk kembali ke 65:35. **Muat ulang** memuat kembali layanan tanpa menghapus sesi. **↗** membuka layanan di browser setelah konfirmasi.
 
-## Status dan batas versi 0.1.3
+## Status dan batas versi 0.1.4
 
 - Panel memakai layanan web asli, bukan tampilan chat buatan.
 - Sesi login memakai partisi persisten terpisah. Cookie/data disimpan oleh Electron di folder data aplikasi OS, bukan di repo; folder ini tetap berisi data sensitif. Logout menggunakan menu resmi layanan.
@@ -65,3 +65,7 @@ Panel layanan menggunakan identitas browser Chromium standar dengan versi mesin 
 Buka menu DuoChat → About DuoChat atau tombol About di bagian bawah. Versi diambil langsung dari aplikasi. Kredit: **by Codex · prompt by Faritno**. Link website: https://djongfaritno.github.io/.
 
 “WhatsApp di kiri, Telegram di kanan. Biar ngobrol tetap nyambung tanpa bolak-balik jendela. Atur tampilannya sesukamu, lalu lanjut chat dengan santai.”
+
+## Logo — versi 0.1.4
+
+Dua gelembung chat mint dan biru di atas hijau tua menggambarkan dua percakapan dalam satu ruang kerja. Logo asli PNG: [src/assets/duochat-icon.png](src/assets/duochat-icon.png). Dipakai pada ikon aplikasi, header, dan About; electron-builder menghasilkan ukuran ikon platform dari PNG tersebut.
