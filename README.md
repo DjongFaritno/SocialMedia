@@ -69,3 +69,13 @@ Buka menu DuoChat → About DuoChat atau tombol About di bagian bawah. Versi dia
 ## Logo — versi 0.1.4
 
 Dua gelembung chat mint dan biru di atas hijau tua menggambarkan dua percakapan dalam satu ruang kerja. Logo asli PNG: [src/assets/duochat-icon.png](src/assets/duochat-icon.png). Dipakai pada ikon aplikasi, header, dan About; electron-builder menghasilkan ukuran ikon platform dari PNG tersebut.
+
+## Windows dan macOS
+
+Workflow [Build desktop installers](.github/workflows/desktop-build.yml) membangun Windows x64 NSIS dan macOS universal DMG/ZIP pada runner OS masing-masing. Setelah pemeriksaan paket dan smoke aplikasi lulus, workflow membuat GitHub prerelease dengan installer serta SHA256SUMS.
+
+Build ini belum ditandatangani/notarized. Windows dapat menampilkan SmartScreen; macOS dapat meminta persetujuan melalui System Settings → Privacy & Security → Open Anyway. Verifikasi sumber dan checksum sebelum membuka. Tidak perlu menonaktifkan perlindungan OS secara global.
+
+Untuk build lokal: `npm ci`, lalu `npm run dist:windows` pada Windows atau `npm run dist:mac` pada macOS. Smoke GitHub Actions memakai fixture lokal; login dan panggilan tetap perlu diuji di perangkat pengguna.
+
+Release memakai tag `v<version>`. Sebelum menerbitkan perubahan berikutnya, naikkan versi di package.json agar tag versi yang sudah diterbitkan tidak dipakai ulang untuk commit lain.

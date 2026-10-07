@@ -36,3 +36,13 @@ Versi 0.1.4 menyediakan fullscreen F11, sembunyikan/tampilkan header Ctrl+Shift+
 About menampilkan versi aplikasi, kredit by Codex · prompt by Faritno, deskripsi singkat, dan link website Faritno. Buka lewat menu DuoChat atau tombol About di bagian bawah, termasuk saat header disembunyikan.
 
 Logo baru tersedia pada launcher Linux, header dan About. File logo PNG asli tersedia di `src/assets/duochat-icon.png`.
+
+## Windows dan macOS
+
+Installer tersedia di [GitHub Release v0.1.4](https://github.com/DjongFaritno/SocialMedia/releases/tag/v0.1.4). Repository private: login ke akun GitHub yang memiliki akses.
+
+- Windows x64: `DuoChat-0.1.4-Windows-x64-Setup.exe`; unduh dan jalankan installer.
+- macOS Intel/Apple Silicon: `DuoChat-0.1.4-macOS-universal.dmg`; buka DMG dan seret DuoChat ke Applications. ZIP aplikasi juga tersedia.
+- `SHA256SUMS.txt` tersedia untuk pemeriksaan integritas.
+
+Paket prototipe belum menggunakan tanda tangan digital/notarization. OS dapat menampilkan peringatan kepercayaan. Di macOS, jika diblokir gunakan System Settings → Privacy & Security → Open Anyway setelah memastikan sumber dan checksum. Login/panggilan layanan perlu diuji dengan akun nyata pada perangkat masing-masing.

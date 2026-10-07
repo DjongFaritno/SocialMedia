@@ -36,3 +36,12 @@ Smoke About: versi yang tampil sesuai app.getVersion(), kredit pembuat dan URL w
 ## Pembaruan 0.1.4
 
 Build AppImage memakai logo DuoChat sendiri melalui konfigurasi icon electron-builder, bukan ikon Electron bawaan. Logo ditampilkan pada header dan About serta diberikan pada BrowserWindow utama/About. Smoke aplikasi dan inspeksi tampilan About lulus.
+
+## Build Windows/macOS — 7 Oktober 2026
+
+[GitHub Actions run 37611373652](https://github.com/DjongFaritno/SocialMedia/actions/runs/37611373652) membangun source commit `927a11b620506729848bfa1053bfd936f8e3e26b`:
+
+- Windows Server 2025 x64: pemeriksaan sintaks/unit, build NSIS, header PE dan ukuran installer, serta menjalankan aplikasi packaged dengan fixture lokal: lulus.
+- macOS 15 Apple Silicon: pemeriksaan sintaks/unit, DMG/ZIP universal, trailer DMG, format executable universal, serta smoke aplikasi packaged: lulus. Smoke berjalan pada Apple Silicon; executable Intel disertakan tetapi tidak dijalankan pada hardware Intel dalam run ini.
+- Installer serta SHA256SUMS sudah terunggah ke prerelease [v0.1.4](https://github.com/DjongFaritno/SocialMedia/releases/tag/v0.1.4).
+- Build tanpa sertifikat signing/notarization. Kepercayaan OS, instalasi di perangkat pengguna, login, notifikasi nyata, dan panggilan masih memerlukan pengujian pengguna.
