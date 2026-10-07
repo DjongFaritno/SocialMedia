@@ -15,7 +15,7 @@ Jika FUSE tidak tersedia:
 ./DuoChat-0.1.4.AppImage --appimage-extract-and-run
 ```
 
-Installer ini prototipe. Login, notifikasi nyata, telepon dan video call masih perlu diuji dengan akun sendiri. Windows/macOS belum dibangun atau diverifikasi. Jangan menambahkan `--no-sandbox` untuk penggunaan sehari-hari.
+Installer ini prototipe. Login, notifikasi nyata, telepon dan video call masih perlu diuji dengan akun sendiri. Paket Windows/macOS sudah dibangun dan diuji membuka aplikasi melalui GitHub Actions. Jangan menambahkan `--no-sandbox` untuk penggunaan sehari-hari.
 
 ## Instalasi Fedora
 
@@ -46,3 +46,7 @@ Installer tersedia di [GitHub Release v0.1.4](https://github.com/DjongFaritno/So
 - `SHA256SUMS.txt` tersedia untuk pemeriksaan integritas.
 
 Paket prototipe belum menggunakan tanda tangan digital/notarization. OS dapat menampilkan peringatan kepercayaan. Di macOS, jika diblokir gunakan System Settings → Privacy & Security → Open Anyway setelah memastikan sumber dan checksum. Login/panggilan layanan perlu diuji dengan akun nyata pada perangkat masing-masing.
+
+### Panduan macOS langkah demi langkah
+
+Saat muncul **“DuoChat” Not Opened**, pilih **Done**, lalu buka **System Settings → Privacy & Security → Open Anyway**. Konfirmasikan **Open Anyway** lagi pada dialog berikutnya dan gunakan **Touch ID** atau **Use Password…** jika diminta. Baca [panduan macOS lengkap](../docs/install-macos.md) untuk urutan instalasi dan cara mulai memakai aplikasi.

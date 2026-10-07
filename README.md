@@ -79,3 +79,7 @@ Build ini belum ditandatangani/notarized. Windows dapat menampilkan SmartScreen;
 Untuk build lokal: `npm ci`, lalu `npm run dist:windows` pada Windows atau `npm run dist:mac` pada macOS. Smoke GitHub Actions memakai fixture lokal; login dan panggilan tetap perlu diuji di perangkat pengguna.
 
 Release memakai tag `v<version>`. Sebelum menerbitkan perubahan berikutnya, naikkan versi di package.json agar tag versi yang sudah diterbitkan tidak dipakai ulang untuk commit lain.
+
+## Instalasi dan penggunaan macOS
+
+Lihat [panduan macOS lengkap](docs/install-macos.md). Jika muncul **“DuoChat” Not Opened**, pilih **Done**, lalu buka **System Settings → Privacy & Security → Open Anyway**. Konfirmasikan **Open Anyway** pada dialog berikutnya dan autentikasi memakai **Touch ID** atau **Use Password…** jika diminta.
