@@ -29,6 +29,6 @@ Jika menu panggilan tidak tersedia di layanan web, tandai **tidak didukung**. Ja
 
 Tes unit mencakup batas origin, geometri panel, dan pemulihan pengaturan rusak. Smoke desktop menggunakan fixture lokal, tanpa login atau panggilan. Build/tes akun pada dua OS lainnya tidak dapat digantikan pengujian Linux.
 
-## Tampilan 0.1.2
+## Tampilan
 
 Uji F11/Esc saat fokus berada di setiap panel. Header/menu harus menghilang, panggilan/chat tetap aktif, dan ukuran panel menyesuaikan. Uji Ctrl+Shift+H serta tombol Tampilkan header di bagian bawah. Tutup/buka aplikasi untuk memeriksa preferensi header/tema. Uji Dark/White/Auto; jika layanan memakai tema manual, pilih System/Auto dari pengaturan layanan untuk mengikuti browser.

@@ -4,7 +4,7 @@ WhatsApp Web dan Telegram Web dalam satu jendela Electron. Kedua panel hidup ber
 
 ## Installer Linux
 
-Paket terbaru tersedia di [Release v0.1.5](https://github.com/DjongFaritno/SocialMedia/releases/tag/v0.1.5), termasuk AppImage, .deb, dan installer Fedora. Paket lama tetap ada di [folder downloads](downloads/README.md), disimpan melalui Git LFS. Jika meng-clone repo untuk mengambil installer, pasang Git LFS dan jalankan `git lfs pull`. Source code dapat dijalankan tanpa mengambil installer.
+Paket terbaru tersedia di [Release v0.1.6](https://github.com/DjongFaritno/SocialMedia/releases/tag/v0.1.6), termasuk AppImage, .deb, dan installer Fedora. [Folder downloads](downloads/README.md) hanya berisi panduan. Semua installer dan checksum berada di GitHub Releases. Source code dapat dijalankan tanpa mengunduh installer atau mengambil file Git LFS.
 
 ## Menjalankan
 
@@ -19,7 +19,7 @@ Login langsung ke layanan pada panel masing-masing. WhatsApp: tautkan perangkat 
 
 Gunakan slider atau pembatas untuk mengubah ukuran. Pembatas mendukung tombol panah kiri/kanan dan Home untuk kembali ke 65:35. **Muat ulang** memuat kembali layanan tanpa menghapus sesi. **↗** membuka layanan di browser setelah konfirmasi.
 
-## Status dan batas versi 0.1.5
+## Status dan batas versi 0.1.6
 
 - Panel memakai layanan web asli, bukan tampilan chat buatan.
 - Sesi login memakai partisi persisten terpisah. Cookie/data disimpan oleh Electron di folder data aplikasi OS, bukan di repo; folder ini tetap berisi data sensitif. Logout menggunakan menu resmi layanan.
@@ -47,11 +47,11 @@ Build installer pada OS target: Windows menghasilkan NSIS, macOS DMG, Linux AppI
 
 Data aplikasi biasanya ada di `%APPDATA%/duochat-desktop`, `~/Library/Application Support/duochat-desktop`, atau `~/.config/duochat-desktop`. Cadangkan hanya jika perlu; jangan membagikan folder sesi.
 
-## Perbaikan 0.1.1
+## Identitas browser
 
 Panel layanan menggunakan identitas browser Chromium standar dengan versi mesin yang sebenarnya, tanpa token aplikasi/Electron. Perubahan ini menangani dugaan penyebab halaman WhatsApp yang meminta Chrome 100+ meskipun mesin aplikasinya Chromium 152. Tes lokal memeriksa identitas browser di kedua panel. Akses langsung ke WhatsApp dari cloud belum tersedia, sehingga login tetap perlu diuji pada perangkat pengguna.
 
-## Tampilan — versi 0.1.2
+## Tampilan
 
 - **F11**: masuk/keluar fullscreen. Menu dan header DuoChat otomatis disembunyikan saat masuk fullscreen.
 - **Esc**: keluar fullscreen.
@@ -60,13 +60,13 @@ Panel layanan menggunakan identitas browser Chromium standar dengan versi mesin 
 - Pilihan **Tema** di bawah: Dark, White, Auto. Auto mengikuti tema OS; pilihan tersimpan. Preferensi warna browser juga diteruskan ke kedua layanan. Jika layanan memilih tema manual sendiri, ubah pengaturan temanya menjadi System/Auto untuk mengikuti DuoChat.
 - Keluar fullscreen mengembalikan pilihan header jendela biasa. Fullscreen tidak dipaksakan saat membuka aplikasi berikutnya.
 
-## About — versi 0.1.3
+## About
 
 Buka menu DuoChat → About DuoChat atau tombol About di bagian bawah. Versi diambil langsung dari aplikasi. Kredit: **by Codex · prompt by TjongFaritno**. Link website: https://djongfaritno.github.io/.
 
 “WhatsApp di kiri, Telegram di kanan. Biar ngobrol tetap nyambung tanpa bolak-balik jendela. Atur tampilannya sesukamu, lalu lanjut chat dengan santai.”
 
-## Logo — versi 0.1.4
+## Logo
 
 Dua gelembung chat mint dan biru di atas hijau tua menggambarkan dua percakapan dalam satu ruang kerja. Logo asli PNG: [src/assets/duochat-icon.png](src/assets/duochat-icon.png). Dipakai pada ikon aplikasi, header, dan About; electron-builder menghasilkan ukuran ikon platform dari PNG tersebut.
 

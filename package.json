@@ -1,6 +1,6 @@
 {
   "name": "duochat-desktop",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "WhatsApp dan Telegram dalam satu ruang kerja desktop",
   "main": "src/main.cjs",
   "author": "DuoChat",
@@ -8,7 +8,7 @@
   "scripts": {
     "start": "electron .",
     "test": "node --test test/*.test.cjs",
-    "check": "node --check src/main.cjs && node --check src/preload.cjs && node --check src/renderer.js && node --check src/about.js && node --check src/permissions.cjs",
+    "check": "node --check src/main.cjs && node --check src/preload.cjs && node --check src/renderer.js && node --check src/about.js && node --check src/permissions.cjs && node --check scripts/prepare-linux-release.cjs && node scripts/check-release-docs.cjs",
     "dist": "electron-builder",
     "pack": "electron-builder --dir",
     "smoke": "electron . --smoke",
