@@ -11,3 +11,11 @@
 - Windows/macOS: konfigurasi target tersedia; build dan uji perangkat belum dijalankan.
 
 Smoke memakai folder userData sementara sendiri agar tidak mengubah sesi/pengaturan pengguna.
+
+## Pembaruan 0.1.1
+
+- Mesin runtime diverifikasi: Electron 44.6.0, Chromium 152.0.7977.130.
+- User-Agent dibersihkan dari token Electron/aplikasi, mempertahankan versi Chromium dan platform asli.
+- Empat tes unit lulus, termasuk identitas browser Linux/Windows/macOS.
+- Smoke desktop memverifikasi `navigator.userAgent` dan session User-Agent di kedua panel, tidak mengandung token Electron/aplikasi, serta sesuai versi mesin asli.
+- Hasil halaman/login WhatsApp sesungguhnya belum terverifikasi di lingkungan cloud.

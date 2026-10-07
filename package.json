@@ -1,6 +1,6 @@
 {
   "name": "duochat-desktop",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "WhatsApp dan Telegram dalam satu ruang kerja desktop",
   "main": "src/main.cjs",
   "author": "DuoChat",

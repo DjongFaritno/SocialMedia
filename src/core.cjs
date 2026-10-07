@@ -14,4 +14,9 @@ function cleanSettings(raw = {}) {
   if (!raw || typeof raw !== 'object') raw = {};
   return { ratio: ratio(raw.ratio), width: Math.max(1000, Math.min(3000, Number(raw.width) || 1440)), height: Math.max(650, Math.min(2000, Number(raw.height) || 900)), permissions: { whatsapp: raw.permissions?.whatsapp === true, telegram: raw.permissions?.telegram === true } };
 }
-module.exports = { SERVICES, trusted, ratio, layout, cleanSettings };
+// Keep Chromium's actual version and platform; remove Electron/app product tokens.
+function browserUserAgent(original, appName = 'duochat-desktop') {
+  const products = new Set(['Electron', 'DuoChat', appName]);
+  return original.split(' ').filter(token => !products.has(token.split('/')[0])).join(' ');
+}
+module.exports = { SERVICES, trusted, ratio, layout, cleanSettings, browserUserAgent };

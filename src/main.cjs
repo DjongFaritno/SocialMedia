@@ -2,7 +2,7 @@ const { app, BrowserWindow, WebContentsView, ipcMain, dialog, shell, Menu, sessi
 const fs = require('node:fs');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
-const { SERVICES, trusted, ratio, layout, cleanSettings } = require('./core.cjs');
+const { SERVICES, trusted, ratio, layout, cleanSettings, browserUserAgent } = require('./core.cjs');
 const smoke = process.argv.includes('--smoke');
 if (smoke) app.setPath('userData', fs.mkdtempSync(path.join(require('node:os').tmpdir(), 'duochat-smoke-')));
 let win, settings, settingsPath, saveTimer;
@@ -35,6 +35,7 @@ function protect(contents, id) {
 }
 function addService(id) {
   const ses = session.fromPartition(`persist:${id}`);
+  ses.setUserAgent(app.userAgentFallback);
   const permitted = (wc, permission, origin) => ['media', 'notifications'].includes(permission) && settings.permissions[id] && trusted(id, origin) && wc && trusted(id, wc.getURL());
   ses.setPermissionCheckHandler((wc, permission, origin) => Boolean(permitted(wc, permission, origin)));
   ses.setPermissionRequestHandler((wc, permission, callback, details) => callback(Boolean(permitted(wc, permission, details.requestingUrl))));
@@ -68,6 +69,7 @@ ipcMain.handle('service:action', async (event, id, action) => {
   }
 });
 app.whenReady().then(async () => {
+  app.userAgentFallback = browserUserAgent(app.userAgentFallback, app.getName());
   settingsPath = path.join(app.getPath('userData'), 'settings.json');
   try { settings = cleanSettings(JSON.parse(fs.readFileSync(settingsPath, 'utf8'))); } catch { settings = cleanSettings(); }
   win = new BrowserWindow({ width: settings.width, height: settings.height, minWidth: 1000, minHeight: 650, title: 'DuoChat', backgroundColor: '#edf2f1', webPreferences: { preload: path.join(__dirname, 'preload.cjs'), sandbox: true, contextIsolation: true, nodeIntegration: false } });
@@ -83,6 +85,15 @@ app.whenReady().then(async () => {
       try {
         const assert = require('node:assert/strict');
         assert.equal(Object.keys(views).length, 2);
+        console.log(`Runtime: Electron ${process.versions.electron}; Chromium ${process.versions.chrome}`);
+        for (const view of Object.values(views)) {
+          const ua = await view.webContents.executeJavaScript('navigator.userAgent');
+          assert.equal(ua, app.userAgentFallback);
+          assert.ok(ua.includes(`Chrome/${process.versions.chrome}`));
+          assert.ok(!ua.includes('Electron/') && !ua.includes('duochat-desktop/'));
+          assert.equal(view.webContents.session.getUserAgent(), ua);
+        }
+        console.log(`Browser identity: ${app.userAgentFallback}`);
         assert.notEqual(views.whatsapp.webContents.session, views.telegram.webContents.session);
         await win.webContents.executeJavaScript('window.duo.setRatio(0.6)');
         assert.equal(settings.ratio, .6);

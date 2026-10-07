@@ -1,6 +1,6 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const { trusted, ratio, layout, cleanSettings } = require('../src/core.cjs');
+const { trusted, ratio, layout, cleanSettings, browserUserAgent } = require('../src/core.cjs');
 test('only exact HTTPS service origins are trusted', () => {
   assert.equal(trusted('whatsapp', 'https://web.whatsapp.com/'), true);
   assert.equal(trusted('telegram', 'https://web.telegram.org/a/'), true);
@@ -20,4 +20,13 @@ test('corrupted settings fail closed for permissions and clamp dimensions', () =
   assert.equal(s.ratio, .65); assert.equal(s.width, 1000); assert.equal(s.height, 2000);
   assert.deepEqual(s.permissions, { whatsapp: false, telegram: true });
   assert.equal(ratio(-10), .3); assert.equal(ratio(99), .75);
+});
+
+test('browser identity keeps real Chromium version and platform without Electron tokens', () => {
+  for (const platform of ['X11; Linux x86_64', 'Windows NT 10.0; Win64; x64', 'Macintosh; Intel Mac OS X 10_15_7']) {
+    const chrome = `Mozilla/5.0 (${platform}) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/152.0.1.2 Safari/537.36`;
+    const electron = chrome.replace(' Chrome/', ' duochat-desktop/0.1.1 Chrome/') + ' Electron/44.6.0';
+    assert.equal(browserUserAgent(electron), chrome);
+    assert.equal(browserUserAgent(chrome), chrome);
+  }
 });
