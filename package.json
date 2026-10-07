@@ -51,11 +51,13 @@
         "AppImage",
         "deb"
       ],
-      "category": "Network"
+      "category": "Network",
+      "maintainer": "TjongFaritno"
     },
     "icon": "src/assets/duochat-icon.png"
   },
   "engines": {
     "node": ">=24.0.0"
-  }
+  },
+  "homepage": "https://djongfaritno.github.io/duochat/"
 }
