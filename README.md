@@ -19,7 +19,7 @@ Login langsung ke layanan pada panel masing-masing. WhatsApp: tautkan perangkat 
 
 Gunakan slider atau pembatas untuk mengubah ukuran. Pembatas mendukung tombol panah kiri/kanan dan Home untuk kembali ke 65:35. **Muat ulang** memuat kembali layanan tanpa menghapus sesi. **↗** membuka layanan di browser setelah konfirmasi.
 
-## Status dan batas versi 0.1.2
+## Status dan batas versi 0.1.3
 
 - Panel memakai layanan web asli, bukan tampilan chat buatan.
 - Sesi login memakai partisi persisten terpisah. Cookie/data disimpan oleh Electron di folder data aplikasi OS, bukan di repo; folder ini tetap berisi data sensitif. Logout menggunakan menu resmi layanan.
@@ -59,3 +59,9 @@ Panel layanan menggunakan identitas browser Chromium standar dengan versi mesin 
 - Tombol **Tampilkan header** di bawah tetap tersedia saat header tersembunyi. Pembatas kedua panel tetap bisa digeser.
 - Pilihan **Tema** di bawah: Dark, White, Auto. Auto mengikuti tema OS; pilihan tersimpan. Preferensi warna browser juga diteruskan ke kedua layanan. Jika layanan memilih tema manual sendiri, ubah pengaturan temanya menjadi System/Auto untuk mengikuti DuoChat.
 - Keluar fullscreen mengembalikan pilihan header jendela biasa. Fullscreen tidak dipaksakan saat membuka aplikasi berikutnya.
+
+## About — versi 0.1.3
+
+Buka menu DuoChat → About DuoChat atau tombol About di bagian bawah. Versi diambil langsung dari aplikasi. Kredit: **by Codex · prompt by Faritno**. Link website: https://djongfaritno.github.io/.
+
+“WhatsApp di kiri, Telegram di kanan. Biar ngobrol tetap nyambung tanpa bolak-balik jendela. Atur tampilannya sesukamu, lalu lanjut chat dengan santai.”

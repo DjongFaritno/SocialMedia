@@ -28,3 +28,7 @@ Smoke memakai folder userData sementara sendiri agar tidak mengubah sesi/pengatu
 - Sesi dan web contents dipertahankan selama perubahan tampilan; halaman fixture tidak dimuat ulang.
 - Tema manual milik WhatsApp/Telegram dapat mengesampingkan preferensi browser; tampilan akun nyata belum diuji di cloud.
 - Smoke memakai `--no-sandbox` hanya untuk fixture di container sebagaimana catatan sebelumnya, bukan konfigurasi installer.
+
+## Pembaruan 0.1.3
+
+Smoke About: versi yang tampil sesuai app.getVersion(), kredit pembuat dan URL website sesuai permintaan, tidak ada akses Node, IPC About hanya dapat dipakai jendela About: lulus. Dialog mengikuti tema browser dan dapat dibuka melalui tombol About di bawah saat header tersembunyi. Tautan membuka URL tetap di browser OS. Navigasi dan popup dalam dialog ditolak.

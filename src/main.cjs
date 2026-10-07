@@ -5,9 +5,11 @@ const { pathToFileURL } = require('node:url');
 const { SERVICES, trusted, ratio, layout, cleanSettings, browserUserAgent } = require('./core.cjs');
 const smoke = process.argv.includes('--smoke');
 if (smoke) app.setPath('userData', fs.mkdtempSync(path.join(require('node:os').tmpdir(), 'duochat-smoke-')));
-let win, settings, settingsPath, saveTimer;
+let win, aboutWindow, settings, settingsPath, saveTimer;
 let fullscreenHeaderVisible = false;
 const views = {}, statuses = {};
+const authorWebsite = 'https://djongfaritno.github.io/';
+const aboutURL = pathToFileURL(path.join(__dirname, 'about.html')).href;
 const uiURL = pathToFileURL(path.join(__dirname, 'index.html')).href;
 function save() { clearTimeout(saveTimer); fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2), { mode: 0o600 }); }
 function queueSave() { clearTimeout(saveTimer); saveTimer = setTimeout(save, 250); }
@@ -32,7 +34,27 @@ function updatePresentation() {
   win.setMenuBarVisibility(!state().headerHidden);
   arrange();
 }
+function showAbout() {
+  if (aboutWindow && !aboutWindow.isDestroyed()) { aboutWindow.focus(); return; }
+  aboutWindow = new BrowserWindow({
+    width: 480, height: 420, resizable: false, title: 'About DuoChat', parent: win, modal: true,
+    backgroundColor: nativeTheme.shouldUseDarkColors ? '#1c2622' : '#fafcfb',
+    webPreferences: { preload: path.join(__dirname, 'preload.cjs'), sandbox: true, contextIsolation: true, nodeIntegration: false }
+  });
+  aboutWindow.setMenu(null);
+  aboutWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
+  aboutWindow.webContents.on('will-navigate', event => event.preventDefault());
+  aboutWindow.webContents.on('before-input-event', (event, input) => {
+    if (input.type === 'keyDown' && input.key === 'Escape') { event.preventDefault(); aboutWindow.close(); }
+  });
+  aboutWindow.on('closed', () => { aboutWindow = null; });
+  void aboutWindow.loadFile(path.join(__dirname, 'about.html'));
+}
+function ownAbout(event) {
+  return aboutWindow && event.sender === aboutWindow.webContents && event.senderFrame?.url === aboutURL;
+}
 function windowAction(action) {
+  if (action === 'about') showAbout();
   if (action === 'fullscreen') win.setFullScreen(!win.isFullScreen());
   if (action === 'header') {
     if (win.isFullScreen()) fullscreenHeaderVisible = !fullscreenHeaderVisible;
@@ -97,6 +119,8 @@ function addService(id) {
 }
 function ownUI(event) { return win && event.sender === win.webContents && event.senderFrame?.url === uiURL; }
 ipcMain.handle('state:get', event => ownUI(event) ? state() : null);
+ipcMain.handle('about:info', event => ownAbout(event) ? { version: app.getVersion() } : null);
+ipcMain.handle('about:website', event => { if (ownAbout(event)) return shell.openExternal(authorWebsite); });
 ipcMain.handle('theme:set', (event, value) => { if (ownUI(event)) setTheme(value); });
 ipcMain.handle('window:action', (event, action) => { if (ownUI(event)) windowAction(action); });
 ipcMain.handle('ratio:set', (event, value) => { if (!ownUI(event)) return; settings.ratio = ratio(value); arrange(); });
@@ -115,7 +139,7 @@ app.whenReady().then(async () => {
   try { settings = cleanSettings(JSON.parse(fs.readFileSync(settingsPath, 'utf8'))); } catch { settings = cleanSettings(); }
   nativeTheme.themeSource = settings.theme === 'auto' ? 'system' : settings.theme;
   win = new BrowserWindow({ width: settings.width, height: settings.height, minWidth: 1000, minHeight: 650, title: 'DuoChat', backgroundColor: '#edf2f1', webPreferences: { preload: path.join(__dirname, 'preload.cjs'), sandbox: true, contextIsolation: true, nodeIntegration: false } });
-  Menu.setApplicationMenu(Menu.buildFromTemplate([{ label: 'DuoChat', submenu: [{ role: 'about' }, { role: 'quit' }] }, { label: 'Edit', submenu: [{ role: 'undo' }, { role: 'redo' }, { type: 'separator' }, { role: 'cut' }, { role: 'copy' }, { role: 'paste' }, { role: 'selectAll' }] }, { label: 'Window', submenu: [{ role: 'minimize' }, { role: 'zoom' }, { type: 'separator' }, { label: 'Layar penuh (F11)', click: () => windowAction('fullscreen') }, { label: 'Tampilkan/sembunyikan header (Ctrl+Shift+H)', click: () => windowAction('header') }] }]));
+  Menu.setApplicationMenu(Menu.buildFromTemplate([{ label: 'DuoChat', submenu: [{ label: 'About DuoChat', click: showAbout }, { role: 'quit' }] }, { label: 'Edit', submenu: [{ role: 'undo' }, { role: 'redo' }, { type: 'separator' }, { role: 'cut' }, { role: 'copy' }, { role: 'paste' }, { role: 'selectAll' }] }, { label: 'Window', submenu: [{ role: 'minimize' }, { role: 'zoom' }, { type: 'separator' }, { label: 'Layar penuh (F11)', click: () => windowAction('fullscreen') }, { label: 'Tampilkan/sembunyikan header (Ctrl+Shift+H)', click: () => windowAction('header') }] }]));
   nativeTheme.on('updated', () => { if (win && !win.isDestroyed()) updateColors(); });
   updateColors();
   shortcuts(win.webContents);
@@ -198,6 +222,17 @@ app.whenReady().then(async () => {
         fs.mkdirSync(path.join(process.cwd(), 'artifacts'), { recursive: true });
         fs.writeFileSync(path.join(process.cwd(), 'artifacts', 'shell.png'), (await win.capturePage()).toPNG());
         if (process.argv.includes('--capture-root')) require('node:child_process').execFileSync('import', ['-window', 'root', path.join(process.cwd(), 'artifacts', 'smoke.png')]);
+        await win.webContents.executeJavaScript("window.duo.windowAction('about')");
+        if (aboutWindow.webContents.isLoading()) await new Promise(resolve => aboutWindow.webContents.once('did-finish-load', resolve));
+        await new Promise(resolve => setTimeout(resolve, 100));
+        assert.equal(await aboutWindow.webContents.executeJavaScript("document.querySelector('#version').textContent"), app.getVersion());
+        assert.equal(await aboutWindow.webContents.executeJavaScript("document.querySelector('#author-website').href"), authorWebsite);
+        assert.match(await aboutWindow.webContents.executeJavaScript('document.body.textContent'), /by Codex.*prompt by Faritno/);
+        assert.equal(await aboutWindow.webContents.executeJavaScript('typeof require'), 'undefined');
+        assert.equal(await win.webContents.executeJavaScript('window.duo.getAbout()'), null);
+        if (process.argv.includes('--capture-root')) require('node:child_process').execFileSync('import', ['-window', 'root', path.join(process.cwd(), 'artifacts', 'about.png')]);
+        aboutWindow.close();
+        console.log('ABOUT PASS: runtime version, author credit, website link, restricted IPC');
         console.log('SMOKE PASS: two loaded views, isolated sessions, IPC, bounds, Node isolation');
         app.exit(0);
       } catch (error) { console.error(error); app.exit(1); }

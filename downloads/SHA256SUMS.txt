@@ -1,1 +1,1 @@
-44f58e29758cc088de3fa163a4c51b2334fd0f355ec43bde58a5608b45371ed9  downloads/DuoChat-0.1.2.AppImage
+2d173b50ca8849080437687ef6b7725994cdcdc45816777e3bfd4d6c4e314990  downloads/DuoChat-0.1.3.AppImage
