@@ -1,6 +1,6 @@
 # Pasang DuoChat di macOS
 
-DuoChat bisa dipakai di Mac Intel dan Apple Silicon lewat installer universal yang sama. Paket awal ini belum ditandatangani/notarized oleh Apple, jadi saat pertama dibuka macOS akan meminta persetujuanmu.
+DuoChat bisa dipakai di Mac Intel dan Apple Silicon lewat installer universal yang sama. Paket awal ini menggunakan signature ad-hoc, belum memiliki sertifikat Developer ID/notarization Apple, jadi saat pertama dibuka macOS akan meminta persetujuanmu.
 
 ## Unduh dan pasang
 
@@ -43,3 +43,7 @@ Cocokkan hasilnya dengan baris DMG di `SHA256SUMS.txt`.
 by Codex · prompt by TjongFaritno
 
 [Mampir ke website Faritno](https://djongfaritno.github.io/)
+
+## Izin mikrofon, kamera, dan notifikasi
+
+Aktifkan Izin di panel layanan. DuoChat meminta izin mikrofon dan kamera melalui macOS. Jika ditolak, aktifkan DuoChat di System Settings → Privacy & Security → Microphone / Camera, lalu tutup dan buka kembali aplikasinya. Notifikasi juga memerlukan izin di layanan dan System Settings → Notifications → DuoChat. Jalankan dari Applications, bukan dari DMG. Uji panggilan nyata diperlukan setelah pemasangan; runner build tidak punya akun atau perangkat panggilan pengguna.

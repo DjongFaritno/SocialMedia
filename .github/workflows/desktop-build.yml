@@ -11,6 +11,7 @@ on:
       - 'src/**'
       - 'test/**'
       - 'scripts/**'
+      - 'build/**'
 
 permissions:
   contents: read
@@ -74,8 +75,13 @@ jobs:
         run: npm run dist:mac
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
-      - name: Verify packages
-        run: node scripts/verify-package.cjs macos
+      - name: Verify packages and macOS code signature
+        run: |
+          node scripts/verify-package.cjs macos
+          codesign --verify --deep --strict --verbose=2 dist/mac-universal/DuoChat.app
+          codesign -d --entitlements :- dist/mac-universal/DuoChat.app > /tmp/duochat-entitlements.plist
+          /usr/libexec/PlistBuddy -c 'Print :com.apple.security.device.audio-input' /tmp/duochat-entitlements.plist | grep true
+          /usr/libexec/PlistBuddy -c 'Print :com.apple.security.device.camera' /tmp/duochat-entitlements.plist | grep true
       - name: Smoke test packaged app
         timeout-minutes: 3
         run: ./dist/mac-universal/DuoChat.app/Contents/MacOS/DuoChat --smoke
@@ -116,7 +122,7 @@ jobs:
       - name: Smoke test packaged app
         timeout-minutes: 3
         # This flag is only for the disposable CI runner, never the installed launcher.
-        run: xvfb-run -a ./dist/linux-unpacked/duochat-desktop --no-sandbox --smoke
+        run: xvfb-run -a --server-args="-screen 0 1440x1000x24" ./dist/linux-unpacked/duochat-desktop --disable-gpu --no-sandbox --smoke --skip-capture
       - uses: actions/upload-artifact@v4
         with:
           name: duochat-linux-x64
