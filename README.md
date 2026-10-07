@@ -4,7 +4,7 @@ WhatsApp Web dan Telegram Web dalam satu jendela Electron. Kedua panel hidup ber
 
 ## Installer Linux
 
-Lihat [folder downloads](downloads/README.md). AppImage disimpan melalui Git LFS. Jika meng-clone repo untuk mengambil installer, pasang Git LFS dan jalankan `git lfs pull`. Source code dapat dijalankan tanpa mengambil installer.
+Paket terbaru tersedia di [Release v0.1.5](https://github.com/DjongFaritno/SocialMedia/releases/tag/v0.1.5), termasuk AppImage, .deb, dan installer Fedora. Paket lama tetap ada di [folder downloads](downloads/README.md), disimpan melalui Git LFS. Jika meng-clone repo untuk mengambil installer, pasang Git LFS dan jalankan `git lfs pull`. Source code dapat dijalankan tanpa mengambil installer.
 
 ## Menjalankan
 
@@ -19,7 +19,7 @@ Login langsung ke layanan pada panel masing-masing. WhatsApp: tautkan perangkat 
 
 Gunakan slider atau pembatas untuk mengubah ukuran. Pembatas mendukung tombol panah kiri/kanan dan Home untuk kembali ke 65:35. **Muat ulang** memuat kembali layanan tanpa menghapus sesi. **↗** membuka layanan di browser setelah konfirmasi.
 
-## Status dan batas versi 0.1.4
+## Status dan batas versi 0.1.5
 
 - Panel memakai layanan web asli, bukan tampilan chat buatan.
 - Sesi login memakai partisi persisten terpisah. Cookie/data disimpan oleh Electron di folder data aplikasi OS, bukan di repo; folder ini tetap berisi data sensitif. Logout menggunakan menu resmi layanan.
@@ -72,7 +72,7 @@ Dua gelembung chat mint dan biru di atas hijau tua menggambarkan dua percakapan 
 
 ## Windows dan macOS
 
-Workflow [Build desktop installers](.github/workflows/desktop-build.yml) membangun Windows x64 NSIS dan macOS universal DMG/ZIP pada runner OS masing-masing. Setelah pemeriksaan paket dan smoke aplikasi lulus, workflow membuat GitHub prerelease dengan installer serta SHA256SUMS.
+Workflow [Build desktop installers](.github/workflows/desktop-build.yml) membangun Windows x64 NSIS, macOS universal DMG/ZIP, dan Linux x64 AppImage/deb pada runner OS masing-masing. Setelah pemeriksaan paket dan smoke aplikasi lulus, workflow membuat GitHub prerelease dengan installer serta SHA256SUMS.
 
 Build ini belum ditandatangani/notarized. Windows dapat menampilkan SmartScreen; macOS dapat meminta persetujuan melalui System Settings → Privacy & Security → Open Anyway. Verifikasi sumber dan checksum sebelum membuka. Tidak perlu menonaktifkan perlindungan OS secara global.
 

@@ -1,5 +1,8 @@
+DuoChat 0.1.5 memperbarui kredit About menjadi **by Codex · prompt by TjongFaritno** di Windows, macOS, dan Linux.
+
 DuoChat brings WhatsApp Web and Telegram Web into one adjustable desktop workspace.
 
+- Linux x64: download the AppImage (or .deb on Debian/Ubuntu). Fedora users can download install-fedora.sh together with the AppImage, then run bash install-fedora.sh without sudo.
 - Windows x64: download the Setup.exe and run the installer.
 - macOS Intel or Apple Silicon: download the universal DMG, open it, and drag DuoChat into Applications. A ZIP of the app is also available.
 - F11: fullscreen; Ctrl+Shift+H (Cmd+Shift+H on Mac): hide/show header.

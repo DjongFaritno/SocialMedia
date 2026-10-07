@@ -1,6 +1,6 @@
 {
   "name": "duochat-desktop",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "WhatsApp dan Telegram dalam satu ruang kerja desktop",
   "main": "src/main.cjs",
   "author": "DuoChat",
@@ -13,7 +13,8 @@
     "pack": "electron-builder --dir",
     "smoke": "electron . --smoke",
     "dist:windows": "electron-builder --win nsis --x64 --publish never",
-    "dist:mac": "electron-builder --mac --universal --publish never"
+    "dist:mac": "electron-builder --mac --universal --publish never",
+    "dist:linux": "electron-builder --linux AppImage deb --x64 --publish never"
   },
   "devDependencies": {
     "electron": "44.6.0",

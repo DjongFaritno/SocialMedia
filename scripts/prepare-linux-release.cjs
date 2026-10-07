@@ -1,0 +1,17 @@
+const fs = require('node:fs');
+const path = require('node:path');
+const crypto = require('node:crypto');
+const assert = require('node:assert/strict');
+const version = require('../package.json').version;
+const imageName = 'DuoChat-' + version + '.AppImage';
+const image = fs.readFileSync(path.join('dist', imageName));
+const hash = crypto.createHash('sha256').update(image).digest('hex');
+let script = fs.readFileSync('downloads/install-fedora.sh', 'utf8');
+const original = script.match(/app_name='DuoChat-([^']+)\.AppImage'/);
+assert.ok(original, 'Fedora installer template version missing');
+script = script.replaceAll(original[1], version);
+script = script.replace(/expected_sha='[a-f0-9]{64}'/, "expected_sha='" + hash + "'");
+assert.ok(script.includes("expected_sha='" + hash + "'"));
+assert.ok(script.includes("app_name='" + imageName + "'"));
+fs.writeFileSync('dist/install-fedora.sh', script, { mode: 0o755 });
+console.log('Fedora installer prepared for ' + version + ', checksum ' + hash);

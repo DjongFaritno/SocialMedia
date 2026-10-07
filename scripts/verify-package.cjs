@@ -18,5 +18,15 @@ if (platform === 'windows') {
   assert.equal(data.subarray(data.length - 512, data.length - 508).toString(), 'koly', 'Invalid DMG trailer');
   const executable = fs.readFileSync('dist/mac-universal/DuoChat.app/Contents/MacOS/DuoChat');
   assert.ok([0xcafebabe, 0xcafebabf].includes(executable.readUInt32BE()), 'macOS executable is not universal');
-} else throw new Error('Specify windows or macos');
+} else if (platform === 'linux') {
+  const appImage = files.find(file => /^DuoChat-.*\.AppImage$/.test(file));
+  const deb = files.find(file => /\.deb$/.test(file));
+  assert.ok(appImage && deb, 'Linux AppImage or Debian package missing');
+  const image = fs.readFileSync(path.join('dist', appImage));
+  assert.equal(image.subarray(0, 4).toString(), '\x7fELF', 'Invalid AppImage executable');
+  assert.equal(image.subarray(8, 11).toString('hex'), '414902', 'Expected type 2 AppImage');
+  const archive = fs.readFileSync(path.join('dist', deb));
+  assert.equal(archive.subarray(0, 8).toString(), '!<arch>\n', 'Invalid Debian archive');
+  assert.ok(fs.existsSync('dist/linux-unpacked/duochat-desktop'));
+} else throw new Error('Specify windows, macos or linux');
 console.log(`PACKAGE PASS: ${platform}`);

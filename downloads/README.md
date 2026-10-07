@@ -1,3 +1,11 @@
+# Unduhan terbaru — v0.1.5
+
+Ambil paket Windows, macOS, Linux, dan SHA256SUMS.txt di [GitHub Release v0.1.5](https://github.com/DjongFaritno/SocialMedia/releases/tag/v0.1.5).
+
+Untuk Fedora, unduh **DuoChat-0.1.5.AppImage** dan **install-fedora.sh dari halaman Release yang sama**, simpan bersama, lalu jalankan **bash install-fedora.sh** tanpa sudo. Skrip release menyertakan checksum AppImage versi baru. Tutup DuoChat lama sebelum memasang; sesi login dan pengaturan tetap menggunakan folder data aplikasi yang sama. Jangan memakai skrip arsip v0.1.4 di folder ini untuk AppImage v0.1.5.
+
+## Arsip v0.1.4
+
 # DuoChat Linux x64
 
 File `DuoChat-0.1.4.AppImage` disimpan melalui Git LFS. Download melalui halaman file GitHub menggunakan tombol Download. Jika cloning, pasang Git LFS lalu jalankan `git lfs pull`.
@@ -39,7 +47,7 @@ Logo baru tersedia pada launcher Linux, header dan About. File logo PNG asli ter
 
 ## Windows dan macOS
 
-Installer tersedia di [GitHub Release v0.1.4](https://github.com/DjongFaritno/SocialMedia/releases/tag/v0.1.4). Repository private: login ke akun GitHub yang memiliki akses.
+Installer tersedia di [GitHub Release v0.1.4](https://github.com/DjongFaritno/SocialMedia/releases/tag/v0.1.4). Repository sudah publik.
 
 - Windows x64: `DuoChat-0.1.4-Windows-x64-Setup.exe`; unduh dan jalankan installer.
 - macOS Intel/Apple Silicon: `DuoChat-0.1.4-macOS-universal.dmg`; buka DMG dan seret DuoChat ke Applications. ZIP aplikasi juga tersedia.
