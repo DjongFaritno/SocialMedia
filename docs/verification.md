@@ -19,3 +19,12 @@ Smoke memakai folder userData sementara sendiri agar tidak mengubah sesi/pengatu
 - Empat tes unit lulus, termasuk identitas browser Linux/Windows/macOS.
 - Smoke desktop memverifikasi `navigator.userAgent` dan session User-Agent di kedua panel, tidak mengandung token Electron/aplikasi, serta sesuai versi mesin asli.
 - Hasil halaman/login WhatsApp sesungguhnya belum terverifikasi di lingkungan cloud.
+
+## Pembaruan 0.1.2
+
+- Enam tes unit lulus, termasuk geometri panel ketika header tersembunyi dan validasi pengaturan tema.
+- Smoke Linux/Xvfb: fullscreen masuk/keluar, header otomatis tersembunyi, header dapat dipulihkan di fullscreen, menu disembunyikan, Ctrl+Shift+H dari fokus Telegram memulihkan header: lulus.
+- Tema Dark/White mengubah media query `prefers-color-scheme` pada kedua panel; Auto mengembalikan sumber tema ke sistem: lulus.
+- Sesi dan web contents dipertahankan selama perubahan tampilan; halaman fixture tidak dimuat ulang.
+- Tema manual milik WhatsApp/Telegram dapat mengesampingkan preferensi browser; tampilan akun nyata belum diuji di cloud.
+- Smoke memakai `--no-sandbox` hanya untuk fixture di container sebagaimana catatan sebelumnya, bukan konfigurasi installer.

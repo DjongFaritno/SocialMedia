@@ -1,4 +1,4 @@
-const { app, BrowserWindow, WebContentsView, ipcMain, dialog, shell, Menu, session } = require('electron');
+const { app, BrowserWindow, WebContentsView, ipcMain, dialog, shell, Menu, session, nativeTheme } = require('electron');
 const fs = require('node:fs');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
@@ -6,16 +6,54 @@ const { SERVICES, trusted, ratio, layout, cleanSettings, browserUserAgent } = re
 const smoke = process.argv.includes('--smoke');
 if (smoke) app.setPath('userData', fs.mkdtempSync(path.join(require('node:os').tmpdir(), 'duochat-smoke-')));
 let win, settings, settingsPath, saveTimer;
+let fullscreenHeaderVisible = false;
 const views = {}, statuses = {};
 const uiURL = pathToFileURL(path.join(__dirname, 'index.html')).href;
 function save() { clearTimeout(saveTimer); fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2), { mode: 0o600 }); }
 function queueSave() { clearTimeout(saveTimer); saveTimer = setTimeout(save, 250); }
-function send() { if (win && !win.isDestroyed()) win.webContents.send('state', { ...settings, statuses }); }
+function state() {
+  const fullscreen = win.isFullScreen();
+  return { ...settings, statuses, fullscreen, effectiveTheme: nativeTheme.shouldUseDarkColors ? 'dark' : 'light', headerHidden: fullscreen ? !fullscreenHeaderVisible : settings.hideHeader };
+}
+function send() { if (win && !win.isDestroyed()) win.webContents.send('state', state()); }
+function updateColors() {
+  const dark = nativeTheme.shouldUseDarkColors;
+  win.setBackgroundColor(dark ? '#161e1b' : '#edf2f1');
+  for (const view of Object.values(views)) view.setBackgroundColor(dark ? '#1c2622' : '#ffffff');
+  send();
+}
+function setTheme(value) {
+  if (!['auto', 'light', 'dark'].includes(value)) return;
+  settings.theme = value;
+  nativeTheme.themeSource = value === 'auto' ? 'system' : value;
+  updateColors(); queueSave();
+}
+function updatePresentation() {
+  win.setMenuBarVisibility(!state().headerHidden);
+  arrange();
+}
+function windowAction(action) {
+  if (action === 'fullscreen') win.setFullScreen(!win.isFullScreen());
+  if (action === 'header') {
+    if (win.isFullScreen()) fullscreenHeaderVisible = !fullscreenHeaderVisible;
+    else settings.hideHeader = !settings.hideHeader;
+    updatePresentation();
+  }
+}
+function shortcuts(contents) {
+  contents.on('before-input-event', (event, input) => {
+    if (input.type !== 'keyDown' || input.isAutoRepeat) return;
+    const key = input.key.toLowerCase();
+    if (key === 'f11') { event.preventDefault(); windowAction('fullscreen'); }
+    else if ((input.control || input.meta) && input.shift && key === 'h') { event.preventDefault(); windowAction('header'); }
+    else if (key === 'escape' && win.isFullScreen()) { event.preventDefault(); win.setFullScreen(false); }
+  });
+}
 function arrange() {
   const [width, height] = win.getContentSize();
-  const bounds = layout(width, height, settings.ratio);
+  const bounds = layout(width, height, settings.ratio, state().headerHidden);
   for (const id of Object.keys(views)) views[id].setBounds(bounds[id]);
-  if (!win.isMaximized()) { const [w, h] = win.getSize(); settings.width = w; settings.height = h; }
+  if (!win.isMaximized() && !win.isFullScreen()) { const [w, h] = win.getSize(); settings.width = w; settings.height = h; }
   queueSave(); send();
 }
 async function external(url) {
@@ -43,9 +81,10 @@ function addService(id) {
     item.setSaveDialogOptions({ defaultPath: path.join(app.getPath('downloads'), path.basename(item.getFilename())) });
   });
   const view = new WebContentsView({ webPreferences: { partition: `persist:${id}`, sandbox: true, contextIsolation: true, nodeIntegration: false, backgroundThrottling: false } });
-  view.setBackgroundColor('#ffffff');
+  view.setBackgroundColor(nativeTheme.shouldUseDarkColors ? '#1c2622' : '#ffffff');
   views[id] = view; win.contentView.addChildView(view);
   protect(view.webContents, id);
+  shortcuts(view.webContents);
   const update = (state, message = '') => { statuses[id] = { state, message }; send(); };
   view.webContents.on('did-start-loading', () => update('loading'));
   view.webContents.on('did-finish-load', () => { if (trusted(id, view.webContents.getURL()) || smoke) update('ready'); });
@@ -57,7 +96,9 @@ function addService(id) {
   void view.webContents.loadURL(smoke ? `data:text/html,<h1>${SERVICES[id].name} smoke fixture</h1>` : SERVICES[id].url).catch(() => {});
 }
 function ownUI(event) { return win && event.sender === win.webContents && event.senderFrame?.url === uiURL; }
-ipcMain.handle('state:get', event => ownUI(event) ? { ...settings, statuses } : null);
+ipcMain.handle('state:get', event => ownUI(event) ? state() : null);
+ipcMain.handle('theme:set', (event, value) => { if (ownUI(event)) setTheme(value); });
+ipcMain.handle('window:action', (event, action) => { if (ownUI(event)) windowAction(action); });
 ipcMain.handle('ratio:set', (event, value) => { if (!ownUI(event)) return; settings.ratio = ratio(value); arrange(); });
 ipcMain.handle('service:action', async (event, id, action) => {
   if (!ownUI(event) || !Object.hasOwn(SERVICES, id)) return;
@@ -72,13 +113,19 @@ app.whenReady().then(async () => {
   app.userAgentFallback = browserUserAgent(app.userAgentFallback, app.getName());
   settingsPath = path.join(app.getPath('userData'), 'settings.json');
   try { settings = cleanSettings(JSON.parse(fs.readFileSync(settingsPath, 'utf8'))); } catch { settings = cleanSettings(); }
+  nativeTheme.themeSource = settings.theme === 'auto' ? 'system' : settings.theme;
   win = new BrowserWindow({ width: settings.width, height: settings.height, minWidth: 1000, minHeight: 650, title: 'DuoChat', backgroundColor: '#edf2f1', webPreferences: { preload: path.join(__dirname, 'preload.cjs'), sandbox: true, contextIsolation: true, nodeIntegration: false } });
-  Menu.setApplicationMenu(Menu.buildFromTemplate([{ label: 'DuoChat', submenu: [{ role: 'about' }, { role: 'quit' }] }, { label: 'Edit', submenu: [{ role: 'undo' }, { role: 'redo' }, { type: 'separator' }, { role: 'cut' }, { role: 'copy' }, { role: 'paste' }, { role: 'selectAll' }] }, { label: 'Window', submenu: [{ role: 'minimize' }, { role: 'zoom' }] }]));
+  Menu.setApplicationMenu(Menu.buildFromTemplate([{ label: 'DuoChat', submenu: [{ role: 'about' }, { role: 'quit' }] }, { label: 'Edit', submenu: [{ role: 'undo' }, { role: 'redo' }, { type: 'separator' }, { role: 'cut' }, { role: 'copy' }, { role: 'paste' }, { role: 'selectAll' }] }, { label: 'Window', submenu: [{ role: 'minimize' }, { role: 'zoom' }, { type: 'separator' }, { label: 'Layar penuh (F11)', click: () => windowAction('fullscreen') }, { label: 'Tampilkan/sembunyikan header (Ctrl+Shift+H)', click: () => windowAction('header') }] }]));
+  nativeTheme.on('updated', () => { if (win && !win.isDestroyed()) updateColors(); });
+  updateColors();
+  shortcuts(win.webContents);
+  win.on('enter-full-screen', () => { fullscreenHeaderVisible = false; updatePresentation(); });
+  win.on('leave-full-screen', () => { fullscreenHeaderVisible = false; updatePresentation(); });
   win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
   win.webContents.on('will-navigate', event => event.preventDefault());
   await win.loadFile(path.join(__dirname, 'index.html'));
   for (const id of Object.keys(SERVICES)) addService(id);
-  arrange(); win.on('resize', arrange);
+  updatePresentation(); win.on('resize', arrange);
   win.on('close', () => { save(); for (const view of Object.values(views)) if (!view.webContents.isDestroyed()) view.webContents.close(); });
   if (smoke) {
     setTimeout(async () => {
@@ -104,6 +151,50 @@ app.whenReady().then(async () => {
         assert.equal(await views.telegram.webContents.executeJavaScript('typeof window.duo'), 'undefined');
         assert.equal(await win.webContents.executeJavaScript('typeof require'), 'undefined');
         assert.equal(await views.whatsapp.webContents.executeJavaScript('typeof require'), 'undefined');
+        await win.webContents.executeJavaScript("window.duo.windowAction('header')");
+        assert.equal(state().headerHidden, true);
+        assert.equal(win.isMenuBarVisible(), false);
+        assert.equal(views.whatsapp.getBounds().y, 56);
+        await new Promise(resolve => setTimeout(resolve, 100));
+        assert.equal(await win.webContents.executeJavaScript("getComputedStyle(document.querySelector('header')).display"), 'none');
+        assert.equal(await win.webContents.executeJavaScript("getComputedStyle(document.querySelector('#restore-header')).display !== 'none'"), true);
+        views.telegram.webContents.focus();
+        views.telegram.webContents.sendInputEvent({ type: 'keyDown', keyCode: 'H', modifiers: ['control', 'shift'] });
+        views.telegram.webContents.sendInputEvent({ type: 'keyUp', keyCode: 'H', modifiers: ['control', 'shift'] });
+        await new Promise(resolve => setTimeout(resolve, 100));
+        assert.equal(state().headerHidden, false);
+        assert.equal(views.whatsapp.getBounds().y, 136);
+        assert.equal(win.isMenuBarVisible(), true);
+        // Fullscreen is exercised only when the test display has a window manager.
+        if (process.argv.includes('--test-fullscreen')) {
+          const transition = enabled => new Promise((resolve, reject) => {
+            const timer = setTimeout(() => reject(new Error('Fullscreen transition timed out')), 5000);
+            win.once(enabled ? 'enter-full-screen' : 'leave-full-screen', () => { clearTimeout(timer); resolve(); });
+            win.setFullScreen(enabled);
+          });
+          await transition(true);
+          assert.equal(state().fullscreen, true);
+          assert.equal(state().headerHidden, true);
+          assert.equal(views.whatsapp.getBounds().y, 56);
+          await win.webContents.executeJavaScript("window.duo.windowAction('header')");
+          assert.equal(state().headerHidden, false);
+          await transition(false);
+          assert.equal(state().headerHidden, false);
+          assert.equal(views.whatsapp.getBounds().y, 136);
+          console.log('FULLSCREEN PASS: enter, automatic hide, recovery, exit');
+        }
+        await win.webContents.executeJavaScript("window.duo.setTheme('dark')");
+        await new Promise(resolve => setTimeout(resolve, 100));
+        assert.equal(state().effectiveTheme, 'dark');
+        for (const view of Object.values(views)) assert.equal(await view.webContents.executeJavaScript("matchMedia('(prefers-color-scheme: dark)').matches"), true);
+        assert.equal(await win.webContents.executeJavaScript("document.documentElement.dataset.theme"), 'dark');
+        await win.webContents.executeJavaScript("window.duo.setTheme('light')");
+        await new Promise(resolve => setTimeout(resolve, 100));
+        for (const view of Object.values(views)) assert.equal(await view.webContents.executeJavaScript("matchMedia('(prefers-color-scheme: dark)').matches"), false);
+        await win.webContents.executeJavaScript("window.duo.setTheme('auto')");
+        assert.equal(nativeTheme.themeSource, 'system');
+        console.log('THEME PASS: dark/light preferences reach both services; auto restores system');
+        console.log('HEADER PASS: hide, menu visibility, recovered from Telegram keyboard focus');
         fs.mkdirSync(path.join(process.cwd(), 'artifacts'), { recursive: true });
         fs.writeFileSync(path.join(process.cwd(), 'artifacts', 'shell.png'), (await win.capturePage()).toPNG());
         if (process.argv.includes('--capture-root')) require('node:child_process').execFileSync('import', ['-window', 'root', path.join(process.cwd(), 'artifacts', 'smoke.png')]);

@@ -19,7 +19,7 @@ Login langsung ke layanan pada panel masing-masing. WhatsApp: tautkan perangkat 
 
 Gunakan slider atau pembatas untuk mengubah ukuran. Pembatas mendukung tombol panah kiri/kanan dan Home untuk kembali ke 65:35. **Muat ulang** memuat kembali layanan tanpa menghapus sesi. **↗** membuka layanan di browser setelah konfirmasi.
 
-## Status dan batas versi 0.1.1
+## Status dan batas versi 0.1.2
 
 - Panel memakai layanan web asli, bukan tampilan chat buatan.
 - Sesi login memakai partisi persisten terpisah. Cookie/data disimpan oleh Electron di folder data aplikasi OS, bukan di repo; folder ini tetap berisi data sensitif. Logout menggunakan menu resmi layanan.
@@ -50,3 +50,12 @@ Data aplikasi biasanya ada di `%APPDATA%/duochat-desktop`, `~/Library/Applicatio
 ## Perbaikan 0.1.1
 
 Panel layanan menggunakan identitas browser Chromium standar dengan versi mesin yang sebenarnya, tanpa token aplikasi/Electron. Perubahan ini menangani dugaan penyebab halaman WhatsApp yang meminta Chrome 100+ meskipun mesin aplikasinya Chromium 152. Tes lokal memeriksa identitas browser di kedua panel. Akses langsung ke WhatsApp dari cloud belum tersedia, sehingga login tetap perlu diuji pada perangkat pengguna.
+
+## Tampilan — versi 0.1.2
+
+- **F11**: masuk/keluar fullscreen. Menu dan header DuoChat otomatis disembunyikan saat masuk fullscreen.
+- **Esc**: keluar fullscreen.
+- **Ctrl+Shift+H** (macOS: Cmd+Shift+H): sembunyikan/tampilkan header. Bekerja saat fokus berada di WhatsApp/Telegram; pilihan jendela biasa tersimpan.
+- Tombol **Tampilkan header** di bawah tetap tersedia saat header tersembunyi. Pembatas kedua panel tetap bisa digeser.
+- Pilihan **Tema** di bawah: Dark, White, Auto. Auto mengikuti tema OS; pilihan tersimpan. Preferensi warna browser juga diteruskan ke kedua layanan. Jika layanan memilih tema manual sendiri, ubah pengaturan temanya menjadi System/Auto untuk mengikuti DuoChat.
+- Keluar fullscreen mengembalikan pilihan header jendela biasa. Fullscreen tidak dipaksakan saat membuka aplikasi berikutnya.
