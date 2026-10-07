@@ -62,7 +62,7 @@ Panel layanan menggunakan identitas browser Chromium standar dengan versi mesin 
 
 ## About — versi 0.1.3
 
-Buka menu DuoChat → About DuoChat atau tombol About di bagian bawah. Versi diambil langsung dari aplikasi. Kredit: **by Codex · prompt by Faritno**. Link website: https://djongfaritno.github.io/.
+Buka menu DuoChat → About DuoChat atau tombol About di bagian bawah. Versi diambil langsung dari aplikasi. Kredit: **by Codex · prompt by TjongFaritno**. Link website: https://djongfaritno.github.io/.
 
 “WhatsApp di kiri, Telegram di kanan. Biar ngobrol tetap nyambung tanpa bolak-balik jendela. Atur tampilannya sesukamu, lalu lanjut chat dengan santai.”
 

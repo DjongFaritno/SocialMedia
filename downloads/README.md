@@ -33,7 +33,7 @@ Tutup DuoChat sebelum menjalankan skrip terbaru. Versi 0.1.4 dipasang ke folder 
 
 Versi 0.1.4 menyediakan fullscreen F11, sembunyikan/tampilkan header Ctrl+Shift+H, serta tema Dark/White/Auto. Pengaturan tema dan header tersimpan. Pilihan Tema dan tombol pemulihan header tersedia di bagian bawah.
 
-About menampilkan versi aplikasi, kredit by Codex · prompt by Faritno, deskripsi singkat, dan link website Faritno. Buka lewat menu DuoChat atau tombol About di bagian bawah, termasuk saat header disembunyikan.
+About menampilkan versi aplikasi, kredit by Codex · prompt by TjongFaritno, deskripsi singkat, dan link website Faritno. Buka lewat menu DuoChat atau tombol About di bagian bawah, termasuk saat header disembunyikan.
 
 Logo baru tersedia pada launcher Linux, header dan About. File logo PNG asli tersedia di `src/assets/duochat-icon.png`.
 

@@ -40,6 +40,6 @@ shasum -a 256 DuoChat-0.1.4-macOS-universal.dmg
 
 Cocokkan hasilnya dengan baris DMG di `SHA256SUMS.txt`.
 
-by Codex · prompt by Faritno
+by Codex · prompt by TjongFaritno
 
 [Mampir ke website Faritno](https://djongfaritno.github.io/)

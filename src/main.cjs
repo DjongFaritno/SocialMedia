@@ -228,7 +228,7 @@ app.whenReady().then(async () => {
         await new Promise(resolve => setTimeout(resolve, 100));
         assert.equal(await aboutWindow.webContents.executeJavaScript("document.querySelector('#version').textContent"), app.getVersion());
         assert.equal(await aboutWindow.webContents.executeJavaScript("document.querySelector('#author-website').href"), authorWebsite);
-        assert.match(await aboutWindow.webContents.executeJavaScript('document.body.textContent'), /by Codex.*prompt by Faritno/);
+        assert.match(await aboutWindow.webContents.executeJavaScript('document.body.textContent'), /by Codex.*prompt by TjongFaritno/);
         assert.equal(await aboutWindow.webContents.executeJavaScript('typeof require'), 'undefined');
         assert.equal(await win.webContents.executeJavaScript('window.duo.getAbout()'), null);
         if (process.argv.includes('--capture-root')) require('node:child_process').execFileSync('import', ['-window', 'root', path.join(process.cwd(), 'artifacts', 'about.png')]);

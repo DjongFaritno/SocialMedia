@@ -22,5 +22,5 @@ Windows builds are unsigned too, so an OS trust prompt may appear.
 
 Build validation includes package format checks and launching the packaged app with local fixtures. Login, notifications, file transfers, and voice/video calls still require testing with real accounts on your device. Browser preferences affect service themes when those services use System/Auto.
 
-by Codex · prompt by Faritno
+by Codex · prompt by TjongFaritno
 https://djongfaritno.github.io/
