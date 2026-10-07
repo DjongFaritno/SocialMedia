@@ -16,3 +16,13 @@ Jika FUSE tidak tersedia:
 ```
 
 Installer ini prototipe. Login, notifikasi nyata, telepon dan video call masih perlu diuji dengan akun sendiri. Windows/macOS belum dibangun atau diverifikasi. Jangan menambahkan `--no-sandbox` untuk penggunaan sehari-hari.
+
+## Instalasi Fedora
+
+Unduh `install-fedora.sh` dan `DuoChat-0.1.0.AppImage` dari folder ini menggunakan tombol Download raw file. Simpan keduanya dalam folder yang sama. Buka terminal di folder tersebut dan jalankan:
+
+```sh
+bash install-fedora.sh
+```
+
+Skrip memverifikasi checksum, mengekstrak AppImage agar tidak membutuhkan FUSE, memasang di `~/.local/opt/duochat/0.1.0`, dan membuat pintasan di menu aplikasi. Jalankan tanpa sudo. File aplikasi yang sudah ada tidak ditimpa. Aplikasi mempertahankan pengaturan sandbox standar. Skrip diperiksa sintaksnya; instalasi di Fedora belum diverifikasi dari lingkungan cloud ini.
