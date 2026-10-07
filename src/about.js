@@ -5,3 +5,5 @@ document.querySelector('#author-website').addEventListener('click', event => {
   event.preventDefault();
   window.duo.openAuthorWebsite();
 });
+
+document.querySelector('#close-about').addEventListener('click', () => window.duo.closeAbout());

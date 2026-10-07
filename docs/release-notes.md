@@ -1,4 +1,4 @@
-DuoChat 0.1.5 memperbarui kredit About menjadi **by Codex · prompt by TjongFaritno** di Windows, macOS, dan Linux.
+DuoChat 0.1.5 memperbarui kredit About menjadi **by Codex · prompt by TjongFaritno** di Windows, macOS, dan Linux. About sekarang punya tombol Tutup. Izin mikrofon/kamera macOS dipusatkan, permintaan bersamaan digabung, dan paket Mac memakai signature ad-hoc beserta entitlements audio/video. Notifikasi tetap mengikuti izin per layanan dan pengaturan OS.
 
 DuoChat brings WhatsApp Web and Telegram Web into one adjustable desktop workspace.
 
@@ -10,7 +10,7 @@ DuoChat brings WhatsApp Web and Telegram Web into one adjustable desktop workspa
 
 ## macOS: membuka aplikasi pertama kali
 
-Paket ini belum ditandatangani/notarized oleh Apple. Untuk DuoChat yang diunduh dari repository ini:
+Paket ini ditandatangani ad-hoc untuk konsistensi identitas aplikasi lokal, belum memakai sertifikat Developer ID atau notarization Apple. Untuk DuoChat yang diunduh dari repository ini:
 
 1. Buka DMG, seret DuoChat ke **Applications**, lalu buka dari Applications.
 2. Saat muncul **“DuoChat” Not Opened**, pilih **Done**, bukan Move to Trash.

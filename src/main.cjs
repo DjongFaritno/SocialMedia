@@ -1,8 +1,10 @@
-const { app, BrowserWindow, WebContentsView, ipcMain, dialog, shell, Menu, session, nativeTheme } = require('electron');
+const { app, BrowserWindow, WebContentsView, ipcMain, dialog, shell, Menu, session, nativeTheme, systemPreferences } = require('electron');
 const fs = require('node:fs');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
 const { SERVICES, trusted, ratio, layout, cleanSettings, browserUserAgent } = require('./core.cjs');
+const { servicePermitted, nativeMediaGate } = require('./permissions.cjs');
+const mediaGate = nativeMediaGate(process.platform, systemPreferences);
 const smoke = process.argv.includes('--smoke');
 if (smoke) app.setPath('userData', fs.mkdtempSync(path.join(require('node:os').tmpdir(), 'duochat-smoke-')));
 let win, aboutWindow, settings, settingsPath, saveTimer;
@@ -38,7 +40,7 @@ function updatePresentation() {
 function showAbout() {
   if (aboutWindow && !aboutWindow.isDestroyed()) { aboutWindow.focus(); return; }
   aboutWindow = new BrowserWindow({
-    icon: iconPath, width: 480, height: 420, resizable: false, title: 'About DuoChat', parent: win, modal: true,
+    icon: iconPath, width: 480, height: 460, resizable: false, closable: true, title: 'About DuoChat', parent: win, modal: true,
     backgroundColor: nativeTheme.shouldUseDarkColors ? '#1c2622' : '#fafcfb',
     webPreferences: { preload: path.join(__dirname, 'preload.cjs'), sandbox: true, contextIsolation: true, nodeIntegration: false }
   });
@@ -97,9 +99,23 @@ function protect(contents, id) {
 function addService(id) {
   const ses = session.fromPartition(`persist:${id}`);
   ses.setUserAgent(app.userAgentFallback);
-  const permitted = (wc, permission, origin) => ['media', 'notifications'].includes(permission) && settings.permissions[id] && trusted(id, origin) && wc && trusted(id, wc.getURL());
-  ses.setPermissionCheckHandler((wc, permission, origin) => Boolean(permitted(wc, permission, origin)));
-  ses.setPermissionRequestHandler((wc, permission, callback, details) => callback(Boolean(permitted(wc, permission, details.requestingUrl))));
+  const permitted = (wc, permission, origin) => Boolean(wc && !wc.isDestroyed()
+    && servicePermitted(id, settings.permissions[id], permission, origin, wc.getURL()));
+  ses.setPermissionCheckHandler((wc, permission, origin, details) => {
+    if (!permitted(wc, permission, origin)) return false;
+    if (permission === 'media' && details?.mediaType === 'audio') return mediaGate.check('microphone');
+    if (permission === 'media' && details?.mediaType === 'video') return mediaGate.check('camera');
+    return true;
+  });
+  ses.setPermissionRequestHandler((wc, permission, callback, details) => {
+    if (!permitted(wc, permission, details.requestingUrl)) { callback(false); return; }
+    if (permission !== 'media') { callback(true); return; }
+    void mediaGate.requestTypes(details.mediaTypes || []).then(granted => {
+      // Permission may have been revoked or the requesting page changed while
+      // the operating-system dialog was open.
+      callback(granted && permitted(wc, permission, details.requestingUrl));
+    }).catch(() => callback(false));
+  });
   ses.on('will-download', (_event, item) => {
     item.setSaveDialogOptions({ defaultPath: path.join(app.getPath('downloads'), path.basename(item.getFilename())) });
   });
@@ -121,6 +137,7 @@ function addService(id) {
 function ownUI(event) { return win && event.sender === win.webContents && event.senderFrame?.url === uiURL; }
 ipcMain.handle('state:get', event => ownUI(event) ? state() : null);
 ipcMain.handle('about:info', event => ownAbout(event) ? { version: app.getVersion() } : null);
+ipcMain.handle('about:close', event => { if (!ownAbout(event)) return null; aboutWindow.close(); return true; });
 ipcMain.handle('about:website', event => { if (ownAbout(event)) return shell.openExternal(authorWebsite); });
 ipcMain.handle('theme:set', (event, value) => { if (ownUI(event)) setTheme(value); });
 ipcMain.handle('window:action', (event, action) => { if (ownUI(event)) windowAction(action); });
@@ -131,7 +148,18 @@ ipcMain.handle('service:action', async (event, id, action) => {
   if (action === 'browser') await external(SERVICES[id].url);
   if (action === 'permissions') {
     const result = await dialog.showMessageBox(win, { type: 'question', message: `Izin untuk ${SERVICES[id].name}`, detail: 'Izinkan situs resmi layanan ini memakai kamera, mikrofon, dan notifikasi di DuoChat. Sistem operasi dapat meminta izin tambahan. Dukungan panggilan mengikuti layanan web.', buttons: ['Batal', 'Izinkan', 'Cabut izin'], defaultId: 0, cancelId: 0 });
-    if (result.response !== 0) { settings.permissions[id] = result.response === 1; save(); send(); }
+    if (result.response !== 0) {
+      settings.permissions[id] = result.response === 1; save(); send();
+      if (result.response === 1 && process.platform === 'darwin') {
+        const microphone = await mediaGate.request('microphone');
+        const camera = await mediaGate.request('camera');
+        if (!microphone || !camera) await dialog.showMessageBox(win, {
+          type: 'info', message: 'Periksa izin perangkat di macOS',
+          detail: 'Buka System Settings → Privacy & Security → Microphone / Camera, lalu aktifkan DuoChat untuk perangkat yang ingin dipakai. Jika izin baru diubah, tutup dan buka lagi DuoChat. Untuk notifikasi, periksa System Settings → Notifications → DuoChat dan pengaturan notifikasi di layanan.',
+          buttons: ['Oke']
+        });
+      }
+    }
   }
 });
 app.whenReady().then(async () => {
@@ -221,7 +249,7 @@ app.whenReady().then(async () => {
         console.log('THEME PASS: dark/light preferences reach both services; auto restores system');
         console.log('HEADER PASS: hide, menu visibility, recovered from Telegram keyboard focus');
         fs.mkdirSync(path.join(process.cwd(), 'artifacts'), { recursive: true });
-        fs.writeFileSync(path.join(process.cwd(), 'artifacts', 'shell.png'), (await win.capturePage()).toPNG());
+        if (!process.argv.includes('--skip-capture')) fs.writeFileSync(path.join(process.cwd(), 'artifacts', 'shell.png'), (await win.capturePage()).toPNG());
         if (process.argv.includes('--capture-root')) require('node:child_process').execFileSync('import', ['-window', 'root', path.join(process.cwd(), 'artifacts', 'smoke.png')]);
         await win.webContents.executeJavaScript("window.duo.windowAction('about')");
         if (aboutWindow.webContents.isLoading()) await new Promise(resolve => aboutWindow.webContents.once('did-finish-load', resolve));
@@ -232,7 +260,14 @@ app.whenReady().then(async () => {
         assert.equal(await aboutWindow.webContents.executeJavaScript('typeof require'), 'undefined');
         assert.equal(await win.webContents.executeJavaScript('window.duo.getAbout()'), null);
         if (process.argv.includes('--capture-root')) require('node:child_process').execFileSync('import', ['-window', 'root', path.join(process.cwd(), 'artifacts', 'about.png')]);
-        aboutWindow.close();
+        assert.equal(await win.webContents.executeJavaScript('window.duo.closeAbout()'), null);
+        const closingAbout = aboutWindow;
+        const aboutClosed = new Promise(resolve => closingAbout.once('closed', resolve));
+        await closingAbout.webContents.executeJavaScript('document.querySelector("#close-about").click()').catch(error => {
+          if (!closingAbout.isDestroyed()) throw error;
+        });
+        await aboutClosed;
+        assert.equal(aboutWindow, null);
         console.log('ABOUT PASS: runtime version, author credit, website link, restricted IPC');
         console.log('SMOKE PASS: two loaded views, isolated sessions, IPC, bounds, Node isolation');
         app.exit(0);

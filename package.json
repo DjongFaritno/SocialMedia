@@ -7,8 +7,8 @@
   "license": "MIT",
   "scripts": {
     "start": "electron .",
-    "test": "node test/core.test.cjs",
-    "check": "node --check src/main.cjs && node --check src/preload.cjs && node --check src/renderer.js && node --check src/about.js",
+    "test": "node --test test/*.test.cjs",
+    "check": "node --check src/main.cjs && node --check src/preload.cjs && node --check src/renderer.js && node --check src/about.js && node --check src/permissions.cjs",
     "dist": "electron-builder",
     "pack": "electron-builder --dir",
     "smoke": "electron . --smoke",
@@ -40,7 +40,11 @@
         "NSCameraUsageDescription": "Kamera untuk panggilan video WhatsApp atau Telegram.",
         "NSMicrophoneUsageDescription": "Mikrofon untuk panggilan WhatsApp atau Telegram."
       },
-      "artifactName": "DuoChat-${version}-macOS-${arch}.${ext}"
+      "artifactName": "DuoChat-${version}-macOS-${arch}.${ext}",
+      "identity": "-",
+      "hardenedRuntime": false,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist"
     },
     "win": {
       "target": "nsis",
