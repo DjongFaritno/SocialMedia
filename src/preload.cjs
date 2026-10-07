@@ -1,0 +1,7 @@
+const { contextBridge, ipcRenderer } = require('electron');
+contextBridge.exposeInMainWorld('duo', {
+  getState: () => ipcRenderer.invoke('state:get'),
+  setRatio: value => ipcRenderer.invoke('ratio:set', value),
+  action: (id, action) => ipcRenderer.invoke('service:action', id, action),
+  onState: callback => { const listener = (_event, state) => callback(state); ipcRenderer.on('state', listener); return () => ipcRenderer.removeListener('state', listener); }
+});
