@@ -11,7 +11,9 @@
     "check": "node --check src/main.cjs && node --check src/preload.cjs && node --check src/renderer.js && node --check src/about.js",
     "dist": "electron-builder",
     "pack": "electron-builder --dir",
-    "smoke": "electron . --smoke"
+    "smoke": "electron . --smoke",
+    "dist:windows": "electron-builder --win nsis --x64 --publish never",
+    "dist:mac": "electron-builder --mac --universal --publish never"
   },
   "devDependencies": {
     "electron": "44.6.0",
@@ -28,15 +30,20 @@
       "package.json"
     ],
     "mac": {
-      "target": "dmg",
+      "target": [
+        "dmg",
+        "zip"
+      ],
       "category": "public.app-category.social-networking",
       "extendInfo": {
         "NSCameraUsageDescription": "Kamera untuk panggilan video WhatsApp atau Telegram.",
         "NSMicrophoneUsageDescription": "Mikrofon untuk panggilan WhatsApp atau Telegram."
-      }
+      },
+      "artifactName": "DuoChat-${version}-macOS-${arch}.${ext}"
     },
     "win": {
-      "target": "nsis"
+      "target": "nsis",
+      "artifactName": "DuoChat-${version}-Windows-${arch}-Setup.${ext}"
     },
     "linux": {
       "target": [

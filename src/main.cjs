@@ -178,7 +178,7 @@ app.whenReady().then(async () => {
         assert.equal(await views.whatsapp.webContents.executeJavaScript('typeof require'), 'undefined');
         await win.webContents.executeJavaScript("window.duo.windowAction('header')");
         assert.equal(state().headerHidden, true);
-        assert.equal(win.isMenuBarVisible(), false);
+        if (process.platform !== 'darwin') assert.equal(win.isMenuBarVisible(), false);
         assert.equal(views.whatsapp.getBounds().y, 56);
         await new Promise(resolve => setTimeout(resolve, 100));
         assert.equal(await win.webContents.executeJavaScript("getComputedStyle(document.querySelector('header')).display"), 'none');
@@ -189,7 +189,7 @@ app.whenReady().then(async () => {
         await new Promise(resolve => setTimeout(resolve, 100));
         assert.equal(state().headerHidden, false);
         assert.equal(views.whatsapp.getBounds().y, 136);
-        assert.equal(win.isMenuBarVisible(), true);
+        if (process.platform !== 'darwin') assert.equal(win.isMenuBarVisible(), true);
         // Fullscreen is exercised only when the test display has a window manager.
         if (process.argv.includes('--test-fullscreen')) {
           const transition = enabled => new Promise((resolve, reject) => {
