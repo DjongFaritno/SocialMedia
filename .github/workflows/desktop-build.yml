@@ -119,6 +119,8 @@ jobs:
           node scripts/verify-package.cjs linux
           node scripts/prepare-linux-release.cjs
           bash -n dist/install-fedora.sh
+      - name: Install Electron test runtime
+        run: node node_modules/electron/install.js
       - name: Test service-worker notification permissions
         timeout-minutes: 2
         run: xvfb-run -a ./node_modules/electron/dist/electron scripts/notification-smoke.cjs --no-sandbox --disable-gpu
