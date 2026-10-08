@@ -1,8 +1,11 @@
 const { trusted } = require('./core.cjs');
 
 function servicePermitted(id, enabled, permission, requestingOrigin, contentsURL) {
-  return enabled === true && ['media', 'notifications'].includes(permission)
-    && trusted(id, requestingOrigin) && trusted(id, contentsURL);
+  if (enabled !== true || !['media', 'notifications'].includes(permission) || !trusted(id, requestingOrigin)) return false;
+  // Notifications from a service worker have no document WebContents. The
+  // isolated service session and exact requesting origin identify the caller.
+  if (permission === 'notifications' && contentsURL === null) return true;
+  return trusted(id, contentsURL);
 }
 
 // TCC is shared by both services. Deduplicate requests, including a brief

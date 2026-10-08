@@ -99,8 +99,10 @@ function protect(contents, id) {
 function addService(id) {
   const ses = session.fromPartition(`persist:${id}`);
   ses.setUserAgent(app.userAgentFallback);
-  const permitted = (wc, permission, origin) => Boolean(wc && !wc.isDestroyed()
-    && servicePermitted(id, settings.permissions[id], permission, origin, wc.getURL()));
+  const permitted = (wc, permission, origin) => {
+    if (wc?.isDestroyed()) return false;
+    return servicePermitted(id, settings.permissions[id], permission, origin, wc ? wc.getURL() : null);
+  };
   ses.setPermissionCheckHandler((wc, permission, origin, details) => {
     if (!permitted(wc, permission, origin)) return false;
     if (permission === 'media' && details?.mediaType === 'audio') return mediaGate.check('microphone');

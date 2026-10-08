@@ -1,4 +1,4 @@
-# Verifikasi rilis DuoChat v0.1.6
+# Verifikasi rilis DuoChat v0.1.7
 
 ## Pemeriksaan wajib sebelum publikasi
 
@@ -24,4 +24,8 @@ Login, transfer file, panggilan suara/video, dan notifikasi nyata perlu diuji de
 
 ## Unduhan
 
-[Release v0.1.6](https://github.com/DjongFaritno/SocialMedia/releases/tag/v0.1.6) memuat paket ketiga OS dan checksum. [Website DuoChat](https://djongfaritno.github.io/duochat/) mengikuti rilis lengkap terbaru secara otomatis.
+[Release v0.1.7](https://github.com/DjongFaritno/SocialMedia/releases/tag/v0.1.7) memuat paket ketiga OS dan checksum. [Website DuoChat](https://djongfaritno.github.io/duochat/) mengikuti rilis lengkap terbaru secara otomatis.
+
+## Regresi notifikasi service worker
+
+Fixture HTTPS Telegram disajikan lewat protocol handler lokal pada sesi pengujian sendiri, tanpa akun maupun koneksi Telegram. Service worker melakukan navigator.permissions.query untuk notifikasi: hasil granted ketika izin layanan aktif, lalu denied setelah dicabut. Uji ini memeriksa jalur izin Electron, bukan kemunculan banner notifikasi pesan nyata pada OS pengguna.

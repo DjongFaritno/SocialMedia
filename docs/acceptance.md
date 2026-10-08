@@ -18,6 +18,7 @@ Jalankan setiap skenario pada Windows, macOS, dan Linux menggunakan akun sendiri
 | Panggilan WA + Telegram | Saat panggilan aktif, baca/balas Telegram dan kirim file; panggilan tetap aktif |
 | Panggilan Telegram + WA | Saat panggilan aktif, baca/balas WA dan kirim file; panggilan tetap aktif |
 | Kamera/mikrofon ganti perangkat | Pilih perangkat melalui UI layanan atau OS; panggilan tetap bekerja |
+| Telegram notifikasi latar belakang | Aktifkan notifikasi di Telegram, pindah fokus atau minimalkan DuoChat, lalu kirim pesan dari akun lain; notifikasi tampil. Cabut izin layanan dan pastikan notifikasi diblokir |
 | Aplikasi diminimalkan | Pesan/notifikasi diterima, panggilan tetap berjalan |
 | Gangguan jaringan | Pesan error/reconnect terlihat; muat ulang pulih saat koneksi kembali |
 | Popup layanan | Popup tetap sandbox, sesi sama; panel lainnya dapat dipakai |

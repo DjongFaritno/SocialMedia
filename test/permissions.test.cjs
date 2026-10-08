@@ -2,6 +2,23 @@ const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const { servicePermitted, nativeMediaGate } = require('../src/permissions.cjs');
 
+test('background notifications allow only enabled services with their exact worker origin', () => {
+  for (const [id, origin, other] of [
+    ['telegram', 'https://web.telegram.org', 'https://web.whatsapp.com'],
+    ['whatsapp', 'https://web.whatsapp.com', 'https://web.telegram.org']
+  ]) {
+    assert.equal(servicePermitted(id, true, 'notifications', origin, null), true);
+    assert.equal(servicePermitted(id, false, 'notifications', origin, null), false);
+    for (const attacker of [other, origin + '.evil.test', origin.replace('https:', 'http:'), 'null', '', undefined]) {
+      assert.equal(servicePermitted(id, true, 'notifications', attacker, null), false);
+    }
+    assert.equal(servicePermitted(id, true, 'media', origin, null), false);
+    assert.equal(servicePermitted(id, true, 'geolocation', origin, null), false);
+    assert.equal(servicePermitted(id, true, 'notifications', origin, 'https://example.com'), false);
+    assert.equal(servicePermitted(id, true, 'notifications', origin, undefined), false);
+  }
+});
+
 test('media and notifications require an enabled service and exact trusted origins', () => {
   for (const id of ['whatsapp', 'telegram']) {
     const url = id === 'whatsapp' ? 'https://web.whatsapp.com/' : 'https://web.telegram.org/a/';
