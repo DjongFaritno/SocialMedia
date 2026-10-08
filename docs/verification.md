@@ -1,4 +1,4 @@
-# Verifikasi rilis DuoChat v0.1.7
+# Verifikasi rilis DuoChat v0.1.8
 
 ## Pemeriksaan wajib sebelum publikasi
 
@@ -24,8 +24,12 @@ Login, transfer file, panggilan suara/video, dan notifikasi nyata perlu diuji de
 
 ## Unduhan
 
-[Release v0.1.7](https://github.com/DjongFaritno/SocialMedia/releases/tag/v0.1.7) memuat paket ketiga OS dan checksum. [Website DuoChat](https://djongfaritno.github.io/duochat/) mengikuti rilis lengkap terbaru secara otomatis.
+[Release v0.1.8](https://github.com/DjongFaritno/SocialMedia/releases/tag/v0.1.8) memuat paket ketiga OS dan checksum. [Website DuoChat](https://djongfaritno.github.io/duochat/) mengikuti rilis lengkap terbaru secara otomatis.
 
 ## Regresi notifikasi service worker
 
 Fixture HTTPS Telegram disajikan lewat protocol handler lokal pada sesi pengujian sendiri, tanpa akun maupun koneksi Telegram. Service worker melakukan navigator.permissions.query untuk notifikasi: hasil granted ketika izin layanan aktif, lalu denied setelah dicabut. Uji ini memeriksa jalur izin Electron, bukan kemunculan banner notifikasi pesan nyata pada OS pengguna.
+
+## Jalur notifikasi Telegram
+
+Fixture Electron dengan preload Telegram memverifikasi bahwa API notifikasi persisten tidak diiklankan, Notification biasa tetap tersedia, dan branch fallback Telegram memilih constructor notifikasi halaman. Preload tidak mengekspos Node atau IPC ke halaman. Navigasi fixture yang sama ke origin WhatsApp mempertahankan kemampuan browser aslinya. Constructor pada tes pemilihan branch direkam; tes tidak membuktikan kemunculan banner macOS. Banner dan klik/suara notifikasi nyata tetap membutuhkan pengujian akun/perangkat pengguna.

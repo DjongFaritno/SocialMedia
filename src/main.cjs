@@ -92,7 +92,7 @@ function protect(contents, id) {
   contents.on('will-redirect', (event, url) => { if (!trusted(id, url)) event.preventDefault(); });
   contents.setWindowOpenHandler(({ url }) => {
     if (!trusted(id, url)) { void external(url); return { action: 'deny' }; }
-    return { action: 'allow', overrideBrowserWindowOptions: { width: 760, height: 680, autoHideMenuBar: true, webPreferences: { partition: `persist:${id}`, nodeIntegration: false, contextIsolation: true, sandbox: true } } };
+    return { action: 'allow', overrideBrowserWindowOptions: { width: 760, height: 680, autoHideMenuBar: true, webPreferences: { ...(id === 'telegram' ? { preload: path.join(__dirname, 'telegram-preload.cjs') } : {}), partition: `persist:${id}`, nodeIntegration: false, contextIsolation: true, sandbox: true } } };
   });
   contents.on('did-create-window', child => { child.setMenu(null); protect(child.webContents, id); });
 }
@@ -121,7 +121,7 @@ function addService(id) {
   ses.on('will-download', (_event, item) => {
     item.setSaveDialogOptions({ defaultPath: path.join(app.getPath('downloads'), path.basename(item.getFilename())) });
   });
-  const view = new WebContentsView({ webPreferences: { partition: `persist:${id}`, sandbox: true, contextIsolation: true, nodeIntegration: false, backgroundThrottling: false } });
+  const view = new WebContentsView({ webPreferences: { ...(id === 'telegram' ? { preload: path.join(__dirname, 'telegram-preload.cjs') } : {}), partition: `persist:${id}`, sandbox: true, contextIsolation: true, nodeIntegration: false, backgroundThrottling: false } });
   view.setBackgroundColor(nativeTheme.shouldUseDarkColors ? '#1c2622' : '#ffffff');
   views[id] = view; win.contentView.addChildView(view);
   protect(view.webContents, id);

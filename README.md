@@ -4,7 +4,7 @@ WhatsApp Web dan Telegram Web dalam satu jendela Electron. Kedua panel hidup ber
 
 ## Installer Linux
 
-Paket terbaru tersedia di [Release v0.1.7](https://github.com/DjongFaritno/SocialMedia/releases/tag/v0.1.7), termasuk AppImage, .deb, dan installer Fedora. [Folder downloads](downloads/README.md) hanya berisi panduan. Semua installer dan checksum berada di GitHub Releases. Source code dapat dijalankan tanpa mengunduh installer atau mengambil file Git LFS.
+Paket terbaru tersedia di [Release v0.1.8](https://github.com/DjongFaritno/SocialMedia/releases/tag/v0.1.8), termasuk AppImage, .deb, dan installer Fedora. [Folder downloads](downloads/README.md) hanya berisi panduan. Semua installer dan checksum berada di GitHub Releases. Source code dapat dijalankan tanpa mengunduh installer atau mengambil file Git LFS.
 
 ## Menjalankan
 
@@ -19,7 +19,7 @@ Login langsung ke layanan pada panel masing-masing. WhatsApp: tautkan perangkat 
 
 Gunakan slider atau pembatas untuk mengubah ukuran. Pembatas mendukung tombol panah kiri/kanan dan Home untuk kembali ke 65:35. **Muat ulang** memuat kembali layanan tanpa menghapus sesi. **↗** membuka layanan di browser setelah konfirmasi.
 
-## Status dan batas versi 0.1.7
+## Status dan batas versi 0.1.8
 
 - Panel memakai layanan web asli, bukan tampilan chat buatan.
 - Sesi login memakai partisi persisten terpisah. Cookie/data disimpan oleh Electron di folder data aplikasi OS, bukan di repo; folder ini tetap berisi data sensitif. Logout menggunakan menu resmi layanan.

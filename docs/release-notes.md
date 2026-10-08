@@ -1,4 +1,4 @@
-DuoChat 0.1.7 memperbaiki pemeriksaan izin notifikasi dari service worker Telegram Web. Sebelumnya permintaan tanpa WebContents selalu ditolak; sekarang hanya notifikasi dari origin resmi pada sesi layanan dengan izin aktif yang diizinkan. Pemeriksaan kamera/mikrofon tetap memerlukan halaman web resmi. Pengaturan notifikasi Telegram dan OS tetap berlaku.
+DuoChat 0.1.8 memperbaiki pemilihan jalur notifikasi Telegram. Electron belum mengimplementasikan notifikasi persisten service worker. Pada halaman Telegram, kemampuan tersebut kini tidak diiklankan sehingga Telegram memakai fallback new Notification() miliknya sendiri, termasuk klik notifikasi dan suara. WhatsApp tidak diubah. Izin per layanan dan pengaturan notifikasi Telegram/OS tetap berlaku.
 
 DuoChat brings WhatsApp Web and Telegram Web into one adjustable desktop workspace.
 

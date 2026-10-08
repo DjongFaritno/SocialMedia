@@ -4,8 +4,8 @@ DuoChat bisa dipakai di Mac Intel dan Apple Silicon lewat installer universal ya
 
 ## Unduh dan pasang
 
-1. Buka [Release DuoChat v0.1.7](https://github.com/DjongFaritno/SocialMedia/releases/tag/v0.1.7).
-2. Unduh **DuoChat-0.1.7-macOS-universal.dmg**.
+1. Buka [Release DuoChat v0.1.8](https://github.com/DjongFaritno/SocialMedia/releases/tag/v0.1.8).
+2. Unduh **DuoChat-0.1.8-macOS-universal.dmg**.
 3. Buka DMG, lalu seret **DuoChat** ke folder **Applications**.
 4. Buka DuoChat dari **Applications**, bukan dari dalam DMG. Setelah selesai menyalin, DMG boleh di-eject.
 
@@ -35,7 +35,7 @@ Jika tombol **Open Anyway** belum terlihat, coba buka DuoChat sekali lagi dari A
 Kalau ingin memeriksa file unduhan, `SHA256SUMS.txt` tersedia di halaman Release. Dengan Terminal berada di folder unduhan, jalankan:
 
 ```sh
-shasum -a 256 DuoChat-0.1.7-macOS-universal.dmg
+shasum -a 256 DuoChat-0.1.8-macOS-universal.dmg
 ```
 
 Cocokkan hasilnya dengan baris DMG di `SHA256SUMS.txt`.
@@ -47,3 +47,7 @@ by Codex · prompt by TjongFaritno
 ## Izin mikrofon, kamera, dan notifikasi
 
 Aktifkan Izin di panel layanan. DuoChat meminta izin mikrofon dan kamera melalui macOS. Jika ditolak, aktifkan DuoChat di System Settings → Privacy & Security → Microphone / Camera, lalu tutup dan buka kembali aplikasinya. Notifikasi juga memerlukan izin di layanan dan System Settings → Notifications → DuoChat. Jalankan dari Applications, bukan dari DMG. Uji panggilan nyata diperlukan setelah pemasangan; runner build tidak punya akun atau perangkat panggilan pengguna.
+
+## Notifikasi Telegram
+
+Pastikan Izin di panel Telegram aktif, kemudian buka pengaturan Notifications di Telegram Web. Setelah memperbarui DuoChat, matikan lalu aktifkan kembali notifikasi web Telegram agar preferensi notifikasi dimuat ulang. Uji dengan meminimalkan DuoChat dan mengirim pesan dari akun lain ke chat yang tidak di-mute. Telegram dapat sengaja tidak memberi banner ketika halamannya sedang mendapat fokus. DuoChat memakai fallback notifikasi halaman Telegram karena Electron tidak mendukung notifikasi persisten service worker.

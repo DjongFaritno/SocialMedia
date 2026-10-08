@@ -13,15 +13,25 @@ app.whenReady().then(async()=>{
  ses.setPermissionRequestHandler((wc,p,cb,d)=>cb(servicePermitted('telegram',enabled,p,d.requestingUrl,wc?wc.getURL():null)));
  ses.protocol.handle('https',request=>{
   const url=new URL(request.url);
-  if(url.hostname!=='web.telegram.org')return new Response('blocked',{status:403});
+  if(!['web.telegram.org','web.whatsapp.com'].includes(url.hostname))return new Response('blocked',{status:403});
   if(url.pathname==='/sw.js')return new Response("self.addEventListener('install',e=>self.skipWaiting());self.addEventListener('activate',e=>e.waitUntil(self.clients.claim()));self.addEventListener('message',e=>{e.waitUntil(navigator.permissions.query({name:'notifications'}).then(p=>e.ports[0].postMessage(p.state)));});",{headers:{'Content-Type':'application/javascript'}});
   return new Response('<!doctype html><title>Local notification fixture</title>',{headers:{'Content-Type':'text/html'}});
  });
- win=new BrowserWindow({show:false,webPreferences:{session:ses,sandbox:true,nodeIntegration:false,contextIsolation:true}});
+ win=new BrowserWindow({show:false,webPreferences:{session:ses,sandbox:true,nodeIntegration:false,contextIsolation:true,preload:path.join(__dirname,'../src/telegram-preload.cjs')}});
  await win.loadURL('https://web.telegram.org/');
  const query=()=>win.webContents.executeJavaScript("(async()=>{await navigator.serviceWorker.register('/sw.js');const r=await navigator.serviceWorker.ready;return new Promise(resolve=>{const c=new MessageChannel();c.port1.onmessage=e=>resolve(e.data);r.active.postMessage('query',[c.port2]);});})()");
+ const capabilities = await win.webContents.executeJavaScript("({persistent: 'showNotification' in ServiceWorkerRegistration.prototype, native: typeof Notification, node: typeof require, bridge: typeof window.duo})");
+ assert.equal(capabilities.persistent,false);assert.equal(capabilities.native,'function');
+ assert.equal(capabilities.node,'undefined');assert.equal(capabilities.bridge,'undefined');
  assert.equal(await query(),'granted');assert(workerChecks>0);
+ // Exercise Telegram's capability branch with a recording constructor. Native
+ // banner delivery depends on user OS settings and is not claimed by this test.
+ const selected = await win.webContents.executeJavaScript("(() => {let nativeCalls=0;const Original=Notification;window.Notification=class {constructor(){nativeCalls++;}};try {if ('showNotification' in ServiceWorkerRegistration.prototype) return 'worker';new Notification('Fixture');return nativeCalls===1?'native':'none';} finally {window.Notification=Original;}})()");
+ assert.equal(selected,'native');
  enabled=false;assert.equal(await query(),'denied');
+ await win.loadURL('https://web.whatsapp.com/');
+ assert.equal(await win.webContents.executeJavaScript("'showNotification' in ServiceWorkerRegistration.prototype"),true);
+ console.log('TELEGRAM FALLBACK PASS: renderer notifications selected, Node/IPC isolated, WhatsApp capabilities unchanged');
  console.log('WORKER NOTIFICATION PASS: actual Electron service-worker permission is granted for enabled Telegram and denied after revocation');
  app.exit(0);
 }).catch(e=>{console.error(e);app.exit(1)});
