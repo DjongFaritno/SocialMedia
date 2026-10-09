@@ -7,3 +7,5 @@ document.querySelector('#author-website').addEventListener('click', event => {
 });
 
 document.querySelector('#close-about').addEventListener('click', () => window.duo.closeAbout());
+
+document.querySelector('#check-updates').addEventListener('click', () => window.duo.updateAction('check'));

@@ -4,8 +4,8 @@ DuoChat bisa dipakai di Mac Intel dan Apple Silicon lewat installer universal ya
 
 ## Unduh dan pasang
 
-1. Buka [Release DuoChat v0.1.9](https://github.com/DjongFaritno/SocialMedia/releases/tag/v0.1.9).
-2. Unduh **DuoChat-0.1.9-macOS-universal.dmg**.
+1. Buka [Release DuoChat v0.1.10](https://github.com/DjongFaritno/SocialMedia/releases/tag/v0.1.10).
+2. Unduh **DuoChat-0.1.10-macOS-universal.dmg**.
 3. Buka DMG, lalu seret **DuoChat** ke folder **Applications**.
 4. Buka DuoChat dari **Applications**, bukan dari dalam DMG. Setelah selesai menyalin, DMG boleh di-eject.
 
@@ -35,7 +35,7 @@ Jika tombol **Open Anyway** belum terlihat, coba buka DuoChat sekali lagi dari A
 Kalau ingin memeriksa file unduhan, `SHA256SUMS.txt` tersedia di halaman Release. Dengan Terminal berada di folder unduhan, jalankan:
 
 ```sh
-shasum -a 256 DuoChat-0.1.9-macOS-universal.dmg
+shasum -a 256 DuoChat-0.1.10-macOS-universal.dmg
 ```
 
 Cocokkan hasilnya dengan baris DMG di `SHA256SUMS.txt`.

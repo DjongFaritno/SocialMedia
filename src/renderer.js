@@ -11,6 +11,11 @@ function applyRatio(value) {
 function setRatio(percent) { applyRatio(percent); window.duo?.setRatio(percent / 100); }
 function render(state) {
   if (!state) return;
+  const update = state.updates || {};
+  const updateButton = document.querySelector('#update-button');
+  updateButton.disabled = ['checking', 'downloading'].includes(update.phase);
+  updateButton.dataset.action = update.phase === 'ready' ? 'install' : update.phase === 'available' ? 'download' : 'check';
+  updateButton.textContent = update.phase === 'ready' ? 'Pasang & mulai ulang' : update.phase === 'available' ? `Update ${update.version}` : update.phase === 'checking' ? 'Memeriksa…' : update.phase === 'downloading' ? `Unduh ${update.progress}%` : update.phase === 'error' ? 'Coba cek update' : 'Cek update';
   applyRatio(state.ratio * 100);
   document.documentElement.dataset.theme = state.effectiveTheme;
   document.querySelector('#theme').value = state.theme;
@@ -40,3 +45,5 @@ if (window.duo) { window.duo.onState(render); window.duo.getState().then(render)
 
 document.querySelectorAll('[data-window-action]').forEach(button => button.addEventListener('click', () => window.duo?.windowAction(button.dataset.windowAction)));
 document.querySelector('#theme').addEventListener('change', event => window.duo?.setTheme(event.target.value));
+
+document.querySelector('#update-button').addEventListener('click', event => window.duo?.updateAction(event.currentTarget.dataset.action || 'check'));

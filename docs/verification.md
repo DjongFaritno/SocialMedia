@@ -1,4 +1,4 @@
-# Verifikasi rilis DuoChat v0.1.9
+# Verifikasi rilis DuoChat v0.1.10
 
 ## Pemeriksaan wajib sebelum publikasi
 
@@ -24,7 +24,7 @@ Login, transfer file, panggilan suara/video, dan notifikasi nyata perlu diuji de
 
 ## Unduhan
 
-[Release v0.1.9](https://github.com/DjongFaritno/SocialMedia/releases/tag/v0.1.9) memuat paket ketiga OS dan checksum. [Website DuoChat](https://djongfaritno.github.io/duochat/) mengikuti rilis lengkap terbaru secara otomatis.
+[Release v0.1.10](https://github.com/DjongFaritno/SocialMedia/releases/tag/v0.1.10) memuat paket ketiga OS dan checksum. [Website DuoChat](https://djongfaritno.github.io/duochat/) mengikuti rilis lengkap terbaru secara otomatis.
 
 ## Regresi notifikasi service worker
 
@@ -37,3 +37,7 @@ Fixture Electron dengan preload Telegram memverifikasi bahwa API notifikasi pers
 ## Optimasi aset dan single-instance
 
 Tes Linux menjalankan dua proses aplikasi dengan userData yang sama. Proses kedua harus keluar tanpa membuat jendela, proses pertama menerima second-instance, jendela tersembunyi ditampilkan kembali, dan ID ketiga WebContents tidak berubah. Ikon window/header/About berukuran kecil dikemas bersama aplikasi. [Audit sebelum/sesudah](memory-audit.md) menjelaskan hasil fixture dan batas perbandingan RAM.
+
+## Updater
+
+Tes controller memeriksa pemilihan rilis lengkap/prerelease, versi numerik, pencegahan downgrade, check single-flight, preferensi unduh otomatis, konfirmasi instalasi, dan fallback macOS. Fixture Electron menggunakan provider electron-updater nyata dan server lokal: SHA-512 unduhan valid diterima, bytes rusak ditolak, tidak ada instalasi otomatis. Seluruh metadata rilis dibandingkan dengan versi, ukuran, dan hash SHA-512 installer sebelum upload. Pemasangan upgrade nyata Windows/AppImage antar-dua-rilis masih membutuhkan uji perangkat; fixture tidak mengeksekusi installer.

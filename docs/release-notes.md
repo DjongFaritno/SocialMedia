@@ -1,6 +1,6 @@
-DuoChat 0.1.9 mengurangi alokasi gambar pada antarmuka dan jendela. Header/About memakai logo 128 px, ikon jendela 256 px dimuat sekali dan dipakai bersama. Peluncuran kedua mengaktifkan jendela yang sudah ada, sehingga tidak membuat salinan dua layanan lagi.
+DuoChat 0.1.10 menambahkan Cek pembaruan di menu, footer, dan About. Pemeriksaan otomatis aktif saat startup dan setiap enam jam; unduh otomatis dapat diaktifkan untuk Windows x64 dan AppImage Linux x64. Pembaruan yang diunduh menunggu konfirmasi Pasang & mulai ulang dan tidak dipasang ketika aplikasi ditutup biasa.
 
-Dua panel tetap aktif bersamaan. Jalur notifikasi Telegram, izin kamera/mikrofon, fullscreen, dan tema tetap tersedia. Penghematan RAM pada akun nyata bergantung pada chat dan media; versi ini tidak menjanjikan persentase penghematan atau menidurkan layanan otomatis.
+Rilis lengkap dipilih dari repository publik, termasuk rilis prototipe. Metadata versi dan SHA-512 installer diverifikasi. macOS ad-hoc, paket .deb, dan instalasi Fedora hasil ekstraksi memakai cek otomatis serta tautan unduh manual. Pengguna versi lama perlu memasang 0.1.10 sekali untuk mendapatkan updater.
 
 DuoChat brings WhatsApp Web and Telegram Web into one adjustable desktop workspace.
 

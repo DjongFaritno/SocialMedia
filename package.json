@@ -1,6 +1,6 @@
 {
   "name": "duochat-desktop",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "description": "WhatsApp dan Telegram dalam satu ruang kerja desktop",
   "main": "src/main.cjs",
   "author": "DuoChat",
@@ -8,7 +8,7 @@
   "scripts": {
     "start": "electron .",
     "test": "node --test test/*.test.cjs",
-    "check": "node --check src/main.cjs && node --check src/preload.cjs && node --check src/renderer.js && node --check src/about.js && node --check src/permissions.cjs && node --check scripts/prepare-linux-release.cjs && node scripts/check-release-docs.cjs && node --check scripts/notification-smoke.cjs && node --check src/telegram-preload.cjs && node --check scripts/memory-audit.cjs && node --check scripts/single-instance-smoke.cjs",
+    "check": "node --check src/main.cjs && node --check src/preload.cjs && node --check src/renderer.js && node --check src/about.js && node --check src/permissions.cjs && node --check scripts/prepare-linux-release.cjs && node scripts/check-release-docs.cjs && node --check scripts/notification-smoke.cjs && node --check src/telegram-preload.cjs && node --check scripts/memory-audit.cjs && node --check scripts/single-instance-smoke.cjs && node --check src/update-core.cjs && node --check src/updates.cjs && node --check scripts/verify-update-metadata.cjs && node --check scripts/update-smoke.cjs",
     "dist": "electron-builder",
     "pack": "electron-builder --dir",
     "smoke": "electron . --smoke",
@@ -59,10 +59,20 @@
       "category": "Network",
       "maintainer": "TjongFaritno"
     },
-    "icon": "src/assets/duochat-icon.png"
+    "icon": "src/assets/duochat-icon.png",
+    "publish": [
+      {
+        "provider": "generic",
+        "url": "https://github.com/DjongFaritno/SocialMedia/releases/latest/download/",
+        "channel": "latest"
+      }
+    ]
   },
   "engines": {
     "node": ">=24.0.0"
   },
-  "homepage": "https://djongfaritno.github.io/duochat/"
+  "homepage": "https://djongfaritno.github.io/duochat/",
+  "dependencies": {
+    "electron-updater": "^6.8.9"
+  }
 }

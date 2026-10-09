@@ -1,9 +1,11 @@
-const { app, BrowserWindow, WebContentsView, ipcMain, dialog, shell, Menu, session, nativeTheme, systemPreferences, nativeImage } = require('electron');
+const { app, BrowserWindow, WebContentsView, ipcMain, dialog, shell, Menu, session, nativeTheme, systemPreferences, nativeImage, net } = require('electron');
 const fs = require('node:fs');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
 const { SERVICES, trusted, ratio, layout, cleanSettings, browserUserAgent } = require('./core.cjs');
 const { servicePermitted, nativeMediaGate } = require('./permissions.cjs');
+const { createUpdates } = require('./updates.cjs');
+let updates;
 const mediaGate = nativeMediaGate(process.platform, systemPreferences);
 const smoke = process.argv.includes('--smoke');
 if (smoke) app.setPath('userData', fs.mkdtempSync(path.join(require('node:os').tmpdir(), 'duochat-smoke-')));
@@ -31,7 +33,7 @@ function save() { clearTimeout(saveTimer); fs.writeFileSync(settingsPath, JSON.s
 function queueSave() { clearTimeout(saveTimer); saveTimer = setTimeout(save, 250); }
 function state() {
   const fullscreen = win.isFullScreen();
-  return { ...settings, statuses, fullscreen, effectiveTheme: nativeTheme.shouldUseDarkColors ? 'dark' : 'light', headerHidden: fullscreen ? !fullscreenHeaderVisible : settings.hideHeader };
+  return { ...settings, updates: updates?.snapshot(), statuses, fullscreen, effectiveTheme: nativeTheme.shouldUseDarkColors ? 'dark' : 'light', headerHidden: fullscreen ? !fullscreenHeaderVisible : settings.hideHeader };
 }
 function send() { if (win && !win.isDestroyed()) win.webContents.send('state', state()); }
 function updateColors() {
@@ -154,6 +156,7 @@ ipcMain.handle('state:get', event => ownUI(event) ? state() : null);
 ipcMain.handle('about:info', event => ownAbout(event) ? { version: app.getVersion() } : null);
 ipcMain.handle('about:close', event => { if (!ownAbout(event)) return null; aboutWindow.close(); return true; });
 ipcMain.handle('about:website', event => { if (ownAbout(event)) return shell.openExternal(authorWebsite); });
+ipcMain.handle('update:action', (event, action) => { if (ownUI(event) || ownAbout(event)) return updates?.action(action); });
 ipcMain.handle('theme:set', (event, value) => { if (ownUI(event)) setTheme(value); });
 ipcMain.handle('window:action', (event, action) => { if (ownUI(event)) windowAction(action); });
 ipcMain.handle('ratio:set', (event, value) => { if (!ownUI(event)) return; settings.ratio = ratio(value); arrange(); });
@@ -183,7 +186,8 @@ if (primaryInstance) app.whenReady().then(async () => {
   try { settings = cleanSettings(JSON.parse(fs.readFileSync(settingsPath, 'utf8'))); } catch { settings = cleanSettings(); }
   nativeTheme.themeSource = settings.theme === 'auto' ? 'system' : settings.theme;
   win = new BrowserWindow({ icon: windowIcon, width: settings.width, height: settings.height, minWidth: 1000, minHeight: 650, title: 'DuoChat', backgroundColor: '#edf2f1', webPreferences: { preload: path.join(__dirname, 'preload.cjs'), sandbox: true, contextIsolation: true, nodeIntegration: false } });
-  Menu.setApplicationMenu(Menu.buildFromTemplate([{ label: 'DuoChat', submenu: [{ label: 'About DuoChat', click: showAbout }, { role: 'quit' }] }, { label: 'Edit', submenu: [{ role: 'undo' }, { role: 'redo' }, { type: 'separator' }, { role: 'cut' }, { role: 'copy' }, { role: 'paste' }, { role: 'selectAll' }] }, { label: 'Window', submenu: [{ role: 'minimize' }, { role: 'zoom' }, { type: 'separator' }, { label: 'Layar penuh (F11)', click: () => windowAction('fullscreen') }, { label: 'Tampilkan/sembunyikan header (Ctrl+Shift+H)', click: () => windowAction('header') }] }]));
+  updates = createUpdates({ app, net, dialog, shell, getWindow: () => aboutWindow && !aboutWindow.isDestroyed() ? aboutWindow : win, getSettings: () => settings, save, notify: send });
+  Menu.setApplicationMenu(Menu.buildFromTemplate([{ label: 'DuoChat', submenu: [{ label: 'About DuoChat', click: showAbout }, { label: 'Cek pembaruan…', click: () => void updates.check(true) }, { type: 'separator' }, { label: 'Periksa pembaruan otomatis', type: 'checkbox', checked: settings.autoCheckUpdates, click: item => updates.preference('autoCheckUpdates', item.checked) }, { label: 'Unduh pembaruan otomatis', type: 'checkbox', checked: settings.autoDownloadUpdates, enabled: updates.snapshot().mode === 'native', click: item => updates.preference('autoDownloadUpdates', item.checked) }, { type: 'separator' }, { role: 'quit' }] }, { label: 'Edit', submenu: [{ role: 'undo' }, { role: 'redo' }, { type: 'separator' }, { role: 'cut' }, { role: 'copy' }, { role: 'paste' }, { role: 'selectAll' }] }, { label: 'Window', submenu: [{ role: 'minimize' }, { role: 'zoom' }, { type: 'separator' }, { label: 'Layar penuh (F11)', click: () => windowAction('fullscreen') }, { label: 'Tampilkan/sembunyikan header (Ctrl+Shift+H)', click: () => windowAction('header') }] }]));
   nativeTheme.on('updated', () => { if (win && !win.isDestroyed()) updateColors(); });
   updateColors();
   shortcuts(win.webContents);
@@ -194,6 +198,7 @@ if (primaryInstance) app.whenReady().then(async () => {
   await win.loadFile(path.join(__dirname, 'index.html'));
   for (const id of Object.keys(SERVICES)) addService(id);
   updatePresentation(); win.on('resize', arrange);
+  if (!smoke && app.isPackaged) updates.start();
   if (pendingFocus) focusExistingWindow();
   win.on('close', () => { save(); for (const view of Object.values(views)) if (!view.webContents.isDestroyed()) view.webContents.close(); });
   if (smoke) {
@@ -201,6 +206,9 @@ if (primaryInstance) app.whenReady().then(async () => {
       try {
         const assert = require('node:assert/strict');
         assert.equal(Object.keys(views).length, 2);
+        assert.ok(Menu.getApplicationMenu().items[0].submenu.items.some(item => item.label === 'Cek pembaruan…'));
+        assert.equal(await win.webContents.executeJavaScript("document.querySelector('#update-button').textContent"), 'Cek update');
+        assert.equal(await win.webContents.executeJavaScript("window.duo.updateAction('unknown')"), undefined);
         console.log(`Runtime: Electron ${process.versions.electron}; Chromium ${process.versions.chrome}`);
         for (const view of Object.values(views)) {
           const ua = await view.webContents.executeJavaScript('navigator.userAgent');
@@ -278,11 +286,15 @@ if (primaryInstance) app.whenReady().then(async () => {
         if (process.argv.includes('--capture-root')) require('node:child_process').execFileSync('import', ['-window', 'root', path.join(process.cwd(), 'artifacts', 'about.png')]);
         assert.equal(await win.webContents.executeJavaScript('window.duo.closeAbout()'), null);
         const closingAbout = aboutWindow;
-        const aboutClosed = new Promise(resolve => closingAbout.once('closed', resolve));
-        await closingAbout.webContents.executeJavaScript('document.querySelector("#close-about").click()').catch(error => {
-          if (!closingAbout.isDestroyed()) throw error;
+        // The renderer can be destroyed before executeJavaScript replies.
+        // Wait for the real window-close event rather than that IPC response.
+        await new Promise((resolve, reject) => {
+          const timeout = setTimeout(() => reject(new Error('About close timed out')), 5000);
+          closingAbout.once('closed', () => { clearTimeout(timeout); resolve(); });
+          void closingAbout.webContents.executeJavaScript('document.querySelector("#close-about").click()').catch(error => {
+            if (!closingAbout.isDestroyed()) { clearTimeout(timeout); reject(error); }
+          });
         });
-        await aboutClosed;
         assert.equal(aboutWindow, null);
         console.log('ABOUT PASS: runtime version, author credit, website link, restricted IPC');
         console.log('SMOKE PASS: two loaded views, isolated sessions, IPC, bounds, Node isolation');
@@ -291,4 +303,5 @@ if (primaryInstance) app.whenReady().then(async () => {
     }, 2000);
   }
 });
+app.on('before-quit', () => updates?.stop());
 app.on('window-all-closed', () => app.quit());

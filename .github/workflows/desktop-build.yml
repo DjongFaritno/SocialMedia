@@ -51,7 +51,10 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: duochat-windows-x64
-          path: dist/*.exe
+          path: |
+            dist/*.exe
+            dist/*.exe.blockmap
+            dist/latest.yml
           if-no-files-found: error
           compression-level: 0
           retention-days: 14
@@ -91,6 +94,8 @@ jobs:
           path: |
             dist/*.dmg
             dist/*.zip
+            dist/*.zip.blockmap
+            dist/latest-mac.yml
           if-no-files-found: error
           compression-level: 0
           retention-days: 14
@@ -124,6 +129,9 @@ jobs:
       - name: Test service-worker notification permissions
         timeout-minutes: 2
         run: xvfb-run -a ./node_modules/electron/dist/electron scripts/notification-smoke.cjs --no-sandbox --disable-gpu
+      - name: Verify updater download integrity
+        timeout-minutes: 2
+        run: xvfb-run -a ./node_modules/electron/dist/electron scripts/update-smoke.cjs --no-sandbox --disable-gpu
       - name: Verify second launch reuses existing window
         timeout-minutes: 2
         run: xvfb-run -a ./node_modules/electron/dist/electron scripts/single-instance-smoke.cjs --no-sandbox --disable-gpu
@@ -138,6 +146,7 @@ jobs:
             dist/*.AppImage
             dist/*.deb
             dist/install-fedora.sh
+            dist/latest-linux.yml
           if-no-files-found: error
           compression-level: 0
           retention-days: 14
@@ -156,6 +165,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - name: Install metadata parser without build runtimes
+        run: npm ci --omit=dev --ignore-scripts
       - uses: actions/download-artifact@v4
         with:
           pattern: duochat-*
