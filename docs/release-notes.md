@@ -1,4 +1,6 @@
-DuoChat 0.1.8 memperbaiki pemilihan jalur notifikasi Telegram. Electron belum mengimplementasikan notifikasi persisten service worker. Pada halaman Telegram, kemampuan tersebut kini tidak diiklankan sehingga Telegram memakai fallback new Notification() miliknya sendiri, termasuk klik notifikasi dan suara. WhatsApp tidak diubah. Izin per layanan dan pengaturan notifikasi Telegram/OS tetap berlaku.
+DuoChat 0.1.9 mengurangi alokasi gambar pada antarmuka dan jendela. Header/About memakai logo 128 px, ikon jendela 256 px dimuat sekali dan dipakai bersama. Peluncuran kedua mengaktifkan jendela yang sudah ada, sehingga tidak membuat salinan dua layanan lagi.
+
+Dua panel tetap aktif bersamaan. Jalur notifikasi Telegram, izin kamera/mikrofon, fullscreen, dan tema tetap tersedia. Penghematan RAM pada akun nyata bergantung pada chat dan media; versi ini tidak menjanjikan persentase penghematan atau menidurkan layanan otomatis.
 
 DuoChat brings WhatsApp Web and Telegram Web into one adjustable desktop workspace.
 

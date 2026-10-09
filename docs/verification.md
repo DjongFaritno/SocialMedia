@@ -1,4 +1,4 @@
-# Verifikasi rilis DuoChat v0.1.8
+# Verifikasi rilis DuoChat v0.1.9
 
 ## Pemeriksaan wajib sebelum publikasi
 
@@ -24,7 +24,7 @@ Login, transfer file, panggilan suara/video, dan notifikasi nyata perlu diuji de
 
 ## Unduhan
 
-[Release v0.1.8](https://github.com/DjongFaritno/SocialMedia/releases/tag/v0.1.8) memuat paket ketiga OS dan checksum. [Website DuoChat](https://djongfaritno.github.io/duochat/) mengikuti rilis lengkap terbaru secara otomatis.
+[Release v0.1.9](https://github.com/DjongFaritno/SocialMedia/releases/tag/v0.1.9) memuat paket ketiga OS dan checksum. [Website DuoChat](https://djongfaritno.github.io/duochat/) mengikuti rilis lengkap terbaru secara otomatis.
 
 ## Regresi notifikasi service worker
 
@@ -33,3 +33,7 @@ Fixture HTTPS Telegram disajikan lewat protocol handler lokal pada sesi pengujia
 ## Jalur notifikasi Telegram
 
 Fixture Electron dengan preload Telegram memverifikasi bahwa API notifikasi persisten tidak diiklankan, Notification biasa tetap tersedia, dan branch fallback Telegram memilih constructor notifikasi halaman. Preload tidak mengekspos Node atau IPC ke halaman. Navigasi fixture yang sama ke origin WhatsApp mempertahankan kemampuan browser aslinya. Constructor pada tes pemilihan branch direkam; tes tidak membuktikan kemunculan banner macOS. Banner dan klik/suara notifikasi nyata tetap membutuhkan pengujian akun/perangkat pengguna.
+
+## Optimasi aset dan single-instance
+
+Tes Linux menjalankan dua proses aplikasi dengan userData yang sama. Proses kedua harus keluar tanpa membuat jendela, proses pertama menerima second-instance, jendela tersembunyi ditampilkan kembali, dan ID ketiga WebContents tidak berubah. Ikon window/header/About berukuran kecil dikemas bersama aplikasi. [Audit sebelum/sesudah](memory-audit.md) menjelaskan hasil fixture dan batas perbandingan RAM.

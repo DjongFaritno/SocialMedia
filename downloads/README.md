@@ -2,19 +2,19 @@
 
 Untuk unduhan yang mengikuti rilis terbaru secara otomatis, buka [website DuoChat](https://djongfaritno.github.io/duochat/). Semua versi, termasuk prerelease, tersedia di [halaman GitHub Releases](https://github.com/DjongFaritno/SocialMedia/releases).
 
-## Rilis saat ini — v0.1.8
+## Rilis saat ini — v0.1.9
 
-Paket di bawah tersedia pada [GitHub Release v0.1.8](https://github.com/DjongFaritno/SocialMedia/releases/tag/v0.1.8). Repository sudah publik.
+Paket di bawah tersedia pada [GitHub Release v0.1.9](https://github.com/DjongFaritno/SocialMedia/releases/tag/v0.1.9). Repository sudah publik.
 
 | Sistem operasi | Unduhan |
 | --- | --- |
-| Windows x64 | [DuoChat-0.1.8-Windows-x64-Setup.exe](https://github.com/DjongFaritno/SocialMedia/releases/download/v0.1.8/DuoChat-0.1.8-Windows-x64-Setup.exe) |
-| macOS Intel / Apple Silicon | [DuoChat-0.1.8-macOS-universal.dmg](https://github.com/DjongFaritno/SocialMedia/releases/download/v0.1.8/DuoChat-0.1.8-macOS-universal.dmg) · [ZIP aplikasi](https://github.com/DjongFaritno/SocialMedia/releases/download/v0.1.8/DuoChat-0.1.8-macOS-universal.zip) |
-| Linux x64 | [DuoChat-0.1.8.AppImage](https://github.com/DjongFaritno/SocialMedia/releases/download/v0.1.8/DuoChat-0.1.8.AppImage) |
-| Debian / Ubuntu x64 | [duochat-desktop_0.1.8_amd64.deb](https://github.com/DjongFaritno/SocialMedia/releases/download/v0.1.8/duochat-desktop_0.1.8_amd64.deb) |
-| Fedora | [install-fedora.sh](https://github.com/DjongFaritno/SocialMedia/releases/download/v0.1.8/install-fedora.sh), dipakai bersama AppImage v0.1.8 |
+| Windows x64 | [DuoChat-0.1.9-Windows-x64-Setup.exe](https://github.com/DjongFaritno/SocialMedia/releases/download/v0.1.9/DuoChat-0.1.9-Windows-x64-Setup.exe) |
+| macOS Intel / Apple Silicon | [DuoChat-0.1.9-macOS-universal.dmg](https://github.com/DjongFaritno/SocialMedia/releases/download/v0.1.9/DuoChat-0.1.9-macOS-universal.dmg) · [ZIP aplikasi](https://github.com/DjongFaritno/SocialMedia/releases/download/v0.1.9/DuoChat-0.1.9-macOS-universal.zip) |
+| Linux x64 | [DuoChat-0.1.9.AppImage](https://github.com/DjongFaritno/SocialMedia/releases/download/v0.1.9/DuoChat-0.1.9.AppImage) |
+| Debian / Ubuntu x64 | [duochat-desktop_0.1.9_amd64.deb](https://github.com/DjongFaritno/SocialMedia/releases/download/v0.1.9/duochat-desktop_0.1.9_amd64.deb) |
+| Fedora | [install-fedora.sh](https://github.com/DjongFaritno/SocialMedia/releases/download/v0.1.9/install-fedora.sh), dipakai bersama AppImage v0.1.9 |
 
-[SHA256SUMS.txt](https://github.com/DjongFaritno/SocialMedia/releases/download/v0.1.8/SHA256SUMS.txt) tersedia untuk memeriksa integritas setiap unduhan.
+[SHA256SUMS.txt](https://github.com/DjongFaritno/SocialMedia/releases/download/v0.1.9/SHA256SUMS.txt) tersedia untuk memeriksa integritas setiap unduhan.
 
 ## Windows dan macOS
 
@@ -29,25 +29,25 @@ Paket Mac menggunakan signature ad-hoc, belum memakai sertifikat Developer ID/no
 Unduh AppImage dari tabel di atas, buka terminal di folder unduhan, lalu jalankan:
 
 ```sh
-chmod +x DuoChat-0.1.8.AppImage
-./DuoChat-0.1.8.AppImage
+chmod +x DuoChat-0.1.9.AppImage
+./DuoChat-0.1.9.AppImage
 ```
 
 Jika FUSE tidak tersedia:
 
 ```sh
-./DuoChat-0.1.8.AppImage --appimage-extract-and-run
+./DuoChat-0.1.9.AppImage --appimage-extract-and-run
 ```
 
 ## Instalasi Fedora
 
-Unduh **install-fedora.sh dan DuoChat-0.1.8.AppImage dari Release v0.1.8 yang sama**, lalu simpan bersama. Tutup DuoChat lama dan jalankan tanpa sudo:
+Unduh **install-fedora.sh dan DuoChat-0.1.9.AppImage dari Release v0.1.9 yang sama**, lalu simpan bersama. Tutup DuoChat lama dan jalankan tanpa sudo:
 
 ```sh
 bash install-fedora.sh
 ```
 
-Skrip memverifikasi checksum AppImage, mengekstraknya agar tidak membutuhkan FUSE, memasang ke `~/.local/opt/duochat/0.1.8`, dan membuat pintasan menu aplikasi. Sesi login serta pengaturan tetap memakai folder data aplikasi yang sama. Versi sebelumnya tetap tersimpan untuk rollback. Instalasi di Fedora perlu dicoba pada perangkat Fedora pengguna.
+Skrip memverifikasi checksum AppImage, mengekstraknya agar tidak membutuhkan FUSE, memasang ke `~/.local/opt/duochat/0.1.9`, dan membuat pintasan menu aplikasi. Sesi login serta pengaturan tetap memakai folder data aplikasi yang sama. Versi sebelumnya tetap tersimpan untuk rollback. Instalasi di Fedora perlu dicoba pada perangkat Fedora pengguna.
 
 ## Setelah membuka aplikasi
 
@@ -57,7 +57,7 @@ Skrip memverifikasi checksum AppImage, mengekstraknya agar tidak membutuhkan FUS
 - Pilih tema Dark, White, atau Auto di bagian bawah.
 - About menampilkan versi, tombol **Tutup**, dan kredit **by Codex · prompt by TjongFaritno**.
 
-Rilis v0.1.8 diterbitkan setelah pemeriksaan format dan uji buka aplikasi di Windows, macOS, serta Linux lulus. Login, panggilan, dan notifikasi nyata masih memerlukan pengujian dengan akun serta perangkat pengguna. Jangan memakai `--no-sandbox` untuk penggunaan sehari-hari.
+Rilis v0.1.9 diterbitkan setelah pemeriksaan format dan uji buka aplikasi di Windows, macOS, serta Linux lulus. Login, panggilan, dan notifikasi nyata masih memerlukan pengujian dengan akun serta perangkat pengguna. Jangan memakai `--no-sandbox` untuk penggunaan sehari-hari.
 
 ## Isi folder downloads
 

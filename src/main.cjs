@@ -1,4 +1,4 @@
-const { app, BrowserWindow, WebContentsView, ipcMain, dialog, shell, Menu, session, nativeTheme, systemPreferences } = require('electron');
+const { app, BrowserWindow, WebContentsView, ipcMain, dialog, shell, Menu, session, nativeTheme, systemPreferences, nativeImage } = require('electron');
 const fs = require('node:fs');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
@@ -8,9 +8,22 @@ const mediaGate = nativeMediaGate(process.platform, systemPreferences);
 const smoke = process.argv.includes('--smoke');
 if (smoke) app.setPath('userData', fs.mkdtempSync(path.join(require('node:os').tmpdir(), 'duochat-smoke-')));
 let win, aboutWindow, settings, settingsPath, saveTimer;
+// Use the same profile lock on every launch; never create a second pair of chats.
+const primaryInstance = app.requestSingleInstanceLock();
+if (!primaryInstance) app.quit();
+let pendingFocus = false;
+function focusExistingWindow() {
+  if (!win || win.isDestroyed()) { pendingFocus = true; return; }
+  if (win.isMinimized()) win.restore();
+  win.show(); win.focus();
+  if (aboutWindow && !aboutWindow.isDestroyed()) aboutWindow.focus();
+  pendingFocus = false;
+}
+app.on('second-instance', focusExistingWindow);
 let fullscreenHeaderVisible = false;
 const views = {}, statuses = {};
-const iconPath = path.join(__dirname, 'assets', 'duochat-icon.png');
+// Small window icon, decoded once and shared by main/About windows.
+const windowIcon = primaryInstance ? nativeImage.createFromPath(path.join(__dirname, 'assets', 'duochat-window-icon.png')) : null;
 const authorWebsite = 'https://djongfaritno.github.io/';
 const aboutURL = pathToFileURL(path.join(__dirname, 'about.html')).href;
 const uiURL = pathToFileURL(path.join(__dirname, 'index.html')).href;
@@ -40,7 +53,7 @@ function updatePresentation() {
 function showAbout() {
   if (aboutWindow && !aboutWindow.isDestroyed()) { aboutWindow.focus(); return; }
   aboutWindow = new BrowserWindow({
-    icon: iconPath, width: 480, height: 460, resizable: false, closable: true, title: 'About DuoChat', parent: win, modal: true,
+    icon: windowIcon, width: 480, height: 460, resizable: false, closable: true, title: 'About DuoChat', parent: win, modal: true,
     backgroundColor: nativeTheme.shouldUseDarkColors ? '#1c2622' : '#fafcfb',
     webPreferences: { preload: path.join(__dirname, 'preload.cjs'), sandbox: true, contextIsolation: true, nodeIntegration: false }
   });
@@ -164,12 +177,12 @@ ipcMain.handle('service:action', async (event, id, action) => {
     }
   }
 });
-app.whenReady().then(async () => {
+if (primaryInstance) app.whenReady().then(async () => {
   app.userAgentFallback = browserUserAgent(app.userAgentFallback, app.getName());
   settingsPath = path.join(app.getPath('userData'), 'settings.json');
   try { settings = cleanSettings(JSON.parse(fs.readFileSync(settingsPath, 'utf8'))); } catch { settings = cleanSettings(); }
   nativeTheme.themeSource = settings.theme === 'auto' ? 'system' : settings.theme;
-  win = new BrowserWindow({ icon: iconPath, width: settings.width, height: settings.height, minWidth: 1000, minHeight: 650, title: 'DuoChat', backgroundColor: '#edf2f1', webPreferences: { preload: path.join(__dirname, 'preload.cjs'), sandbox: true, contextIsolation: true, nodeIntegration: false } });
+  win = new BrowserWindow({ icon: windowIcon, width: settings.width, height: settings.height, minWidth: 1000, minHeight: 650, title: 'DuoChat', backgroundColor: '#edf2f1', webPreferences: { preload: path.join(__dirname, 'preload.cjs'), sandbox: true, contextIsolation: true, nodeIntegration: false } });
   Menu.setApplicationMenu(Menu.buildFromTemplate([{ label: 'DuoChat', submenu: [{ label: 'About DuoChat', click: showAbout }, { role: 'quit' }] }, { label: 'Edit', submenu: [{ role: 'undo' }, { role: 'redo' }, { type: 'separator' }, { role: 'cut' }, { role: 'copy' }, { role: 'paste' }, { role: 'selectAll' }] }, { label: 'Window', submenu: [{ role: 'minimize' }, { role: 'zoom' }, { type: 'separator' }, { label: 'Layar penuh (F11)', click: () => windowAction('fullscreen') }, { label: 'Tampilkan/sembunyikan header (Ctrl+Shift+H)', click: () => windowAction('header') }] }]));
   nativeTheme.on('updated', () => { if (win && !win.isDestroyed()) updateColors(); });
   updateColors();
@@ -181,6 +194,7 @@ app.whenReady().then(async () => {
   await win.loadFile(path.join(__dirname, 'index.html'));
   for (const id of Object.keys(SERVICES)) addService(id);
   updatePresentation(); win.on('resize', arrange);
+  if (pendingFocus) focusExistingWindow();
   win.on('close', () => { save(); for (const view of Object.values(views)) if (!view.webContents.isDestroyed()) view.webContents.close(); });
   if (smoke) {
     setTimeout(async () => {
