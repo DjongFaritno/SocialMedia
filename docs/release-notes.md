@@ -1,31 +1,16 @@
-DuoChat 0.1.10 menambahkan Cek pembaruan di menu, footer, dan About. Pemeriksaan otomatis aktif saat startup dan setiap enam jam; unduh otomatis dapat diaktifkan untuk Windows x64 dan AppImage Linux x64. Pembaruan yang diunduh menunggu konfirmasi Pasang & mulai ulang dan tidak dipasang ketika aplikasi ditutup biasa.
+DuoChat 0.2.0-beta.1 — dua ruang, lebih banyak akun.
 
-Rilis lengkap dipilih dari repository publik, termasuk rilis prototipe. Metadata versi dan SHA-512 installer diverifikasi. macOS ad-hoc, paket .deb, dan instalasi Fedora hasil ekstraksi memakai cek otomatis serta tautan unduh manual. Pengguna versi lama perlu memasang 0.1.10 sekali untuk mendapatkan updater.
+- Tambahkan beberapa akun WhatsApp, Telegram, Discord, X, Instagram, atau Threads. Setiap akun memakai sesi login tersendiri.
+- Pilih akun untuk panel kiri/kanan. Memilih akun di sisi lain menukar kedua panel.
+- Header dan sidebar tersembunyi pada mode ringkas; sidebar muncul saat hover tepi kiri tanpa menggeser percakapan.
+- Kelola nama akun, pilih Tetap aktif di latar belakang, atau hapus sesi akun dari DuoChat. Akun dijeda berhenti menerima notifikasi dan panggilan.
+- Sesi WhatsApp/Telegram lama dipertahankan saat upgrade. Tema, rasio, About dengan versi/Tutup, dan cek pembaruan tetap tersedia.
 
-DuoChat brings WhatsApp Web and Telegram Web into one adjustable desktop workspace.
+Windows x64: Setup.exe. macOS Intel/Apple Silicon: DMG universal atau ZIP. Linux x64: AppImage/deb, dengan script installer Fedora.
 
-- Linux x64: download the AppImage (or .deb on Debian/Ubuntu). Fedora users can download install-fedora.sh together with the AppImage, then run bash install-fedora.sh without sudo.
-- Windows x64: download the Setup.exe and run the installer.
-- macOS Intel or Apple Silicon: download the universal DMG, open it, and drag DuoChat into Applications. A ZIP of the app is also available.
-- F11: fullscreen; Ctrl+Shift+H (Cmd+Shift+H on Mac): hide/show header.
-- Dark, White, Auto themes; About includes the version and Faritno's website.
+Pada Mac, seret DuoChat ke Applications. Bila muncul “DuoChat” Not Opened, pilih Done lalu System Settings → Privacy & Security → Open Anyway, dan konfirmasikan Touch ID/password jika diminta. Paket masih ad-hoc, belum dinotarize Apple. Windows juga belum memakai sertifikat signing.
 
-## macOS: membuka aplikasi pertama kali
-
-Paket ini ditandatangani ad-hoc untuk konsistensi identitas aplikasi lokal, belum memakai sertifikat Developer ID atau notarization Apple. Untuk DuoChat yang diunduh dari repository ini:
-
-1. Buka DMG, seret DuoChat ke **Applications**, lalu buka dari Applications.
-2. Saat muncul **“DuoChat” Not Opened**, pilih **Done**, bukan Move to Trash.
-3. Buka ** → System Settings → Privacy & Security**; gulir ke **Security** dan klik **Open Anyway** untuk DuoChat.
-4. Pada dialog **Open “DuoChat”?**, pilih **Open Anyway** lagi jika diminta.
-5. Konfirmasikan dengan **Touch ID**, atau **Use Password…** dan password administrator Mac.
-6. Buka DuoChat dari Applications jika belum terbuka, lalu login ke kedua layanan.
-
-Urutan konfirmasi/autentikasi dapat berbeda sesuai versi macOS. Tidak perlu menonaktifkan perlindungan OS secara global. [Panduan macOS lengkap](https://github.com/DjongFaritno/SocialMedia/blob/main/docs/install-macos.md).
-
-Windows builds are unsigned too, so an OS trust prompt may appear.
-
-Build validation includes package format checks and launching the packaged app with local fixtures. Login, notifications, file transfers, and voice/video calls still require testing with real accounts on your device. Browser preferences affect service themes when those services use System/Auto.
+Smoke dan tes otomatis memakai fixture lokal. Login, notifikasi, upload/download, serta panggilan mengikuti web resmi layanan dan masih membutuhkan pengujian akun nyata pada OS pengguna. Versi beta ini tidak menjamin dukungan semua fitur tiap layanan.
 
 by Codex · prompt by TjongFaritno
 https://djongfaritno.github.io/

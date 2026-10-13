@@ -33,3 +33,18 @@ Tes unit mencakup batas origin, geometri panel, dan pemulihan pengaturan rusak. 
 ## Tampilan
 
 Uji F11/Esc saat fokus berada di setiap panel. Header/menu harus menghilang, panggilan/chat tetap aktif, dan ukuran panel menyesuaikan. Uji Ctrl+Shift+H serta tombol Tampilkan header di bagian bawah. Tutup/buka aplikasi untuk memeriksa preferensi header/tema. Uji Dark/White/Auto; jika layanan memakai tema manual, pilih System/Auto dari pengaturan layanan untuk mengikuti browser.
+
+## Multiakun dan layanan baru — 0.2.0-beta.1
+
+| Skenario | Hasil yang harus terlihat |
+| --- | --- |
+| Upgrade profil lama | WhatsApp/Telegram tetap memakai sesi lama; rasio, tema, izin tersimpan |
+| Dua WhatsApp | Dua nomor berbeda dapat login bersamaan tanpa saling keluar |
+| Ganti akun/tukar sisi | Akun pindah panel; sesi tidak bercampur |
+| Akun tambahan dijeda | Halaman ditutup; akun bisa dipulihkan tanpa menghapus sesi |
+| Tetap aktif | Notifikasi/panggilan tetap berjalan sesuai dukungan layanan saat tidak terlihat |
+| Hapus satu akun | Hanya profil terpilih dihapus, akun lain tetap login |
+| Hover sidebar | Ringkas menyembunyikan sidebar; hover menampilkan overlay tanpa menggeser panel; Esc menutupnya |
+| Layanan baru | Uji login/restart/upload/download/notifikasi Discord, X, Instagram, Threads pada setiap OS |
+
+Status akun nyata untuk skenario baru: belum diuji. Tes fixture tidak membuktikan panggilan atau notifikasi layanan baru.

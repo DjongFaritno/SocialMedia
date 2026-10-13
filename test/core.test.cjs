@@ -31,14 +31,13 @@ test('browser identity keeps real Chromium version and platform without Electron
   }
 });
 
-test('hiding the header gives both services 80 extra pixels without shifting the split', () => {
+test('compact mode frees header and rail space while keeping both panels within bounds', () => {
   const normal = layout(1440, 900, .65);
   const hidden = layout(1440, 900, .65, true);
   for (const id of ['whatsapp', 'telegram']) {
     assert.equal(hidden[id].y, 56);
     assert.equal(hidden[id].height, normal[id].height + 80);
-    assert.equal(hidden[id].x, normal[id].x);
-    assert.equal(hidden[id].width, normal[id].width);
+    assert.ok(hidden[id].width > normal[id].width);
     assert.equal(hidden[id].y + hidden[id].height, 860);
   }
   assert.equal(cleanSettings({ hideHeader: true }).hideHeader, true);

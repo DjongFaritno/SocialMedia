@@ -22,6 +22,7 @@ function label(contents) {
   if (url.startsWith('https://web.whatsapp.com/')) return 'whatsapp-fixture';
   if (url.startsWith('https://web.telegram.org/')) return 'telegram-fixture';
   if (url.endsWith('/about.html')) return 'about';
+  if (url.endsWith('/overlay.html')) return 'account-overlay';
   if (url.endsWith('/index.html')) return 'shell';
   return 'other';
 }
@@ -130,14 +131,14 @@ app.whenReady().then(async () => {
       await closed;
     }
     await sleep(3000);
-    assert.equal(webContents.getAllWebContents().length, 3, 'About renderers must be destroyed');
+    assert.equal(webContents.getAllWebContents().length, 4, 'About renderers must be destroyed');
     snapshot(`after-${batch * 10}-about-cycles`);
 
     for (let cycle = 0; cycle < 10; cycle++) {
       await Promise.all(services.map(item => item.loadURL(SERVICES[label(item).split('-')[0]].url)));
     }
     await sleep(3000);
-    assert.equal(webContents.getAllWebContents().length, 3, 'Reload must reuse the service views');
+    assert.equal(webContents.getAllWebContents().length, 4, 'Reload must reuse the service views');
     snapshot(`after-${batch * 10}-reload-cycles`);
   }
 
