@@ -8,10 +8,10 @@ function numbers(version) {
   return parts.every(Number.isSafeInteger) ? parts : null;
 }
 function compare(a, b) {
-  const left = numbers(a), right = numbers(b);
-  if (!left || !right) throw new Error('Versi rilis tidak valid');
-  for (let i = 0; i < 3; i++) if (left[i] !== right[i]) return left[i] > right[i] ? 1 : -1;
-  return 0;
+  const semver = require('semver');
+  const left = typeof a === 'string' ? a.replace(/^v/, '') : '', right = typeof b === 'string' ? b.replace(/^v/, '') : '';
+  if (!semver.valid(left) || !semver.valid(right)) throw new Error('Versi rilis tidak valid');
+  return semver.compare(left, right);
 }
 function latestRelease(releases) {
   if (!Array.isArray(releases)) throw new Error('Respons GitHub tidak valid');

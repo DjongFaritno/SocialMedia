@@ -1,4 +1,4 @@
-# Verifikasi rilis DuoChat v0.1.10
+# Verifikasi kandidat DuoChat 0.2.0-beta.1
 
 ## Pemeriksaan wajib sebelum publikasi
 
@@ -24,7 +24,7 @@ Login, transfer file, panggilan suara/video, dan notifikasi nyata perlu diuji de
 
 ## Unduhan
 
-[Release v0.1.10](https://github.com/DjongFaritno/SocialMedia/releases/tag/v0.1.10) memuat paket ketiga OS dan checksum. [Website DuoChat](https://djongfaritno.github.io/duochat/) mengikuti rilis lengkap terbaru secara otomatis.
+[Release v0.1.10](https://github.com/DjongFaritno/SocialMedia/releases) memuat paket ketiga OS dan checksum. [Website DuoChat](https://djongfaritno.github.io/duochat/) mengikuti rilis lengkap terbaru secara otomatis.
 
 ## Regresi notifikasi service worker
 
@@ -41,3 +41,7 @@ Tes Linux menjalankan dua proses aplikasi dengan userData yang sama. Proses kedu
 ## Updater
 
 Tes controller memeriksa pemilihan rilis lengkap/prerelease, versi numerik, pencegahan downgrade, check single-flight, preferensi unduh otomatis, konfirmasi instalasi, dan fallback macOS. Fixture Electron menggunakan provider electron-updater nyata dan server lokal: SHA-512 unduhan valid diterima, bytes rusak ditolak, tidak ada instalasi otomatis. Seluruh metadata rilis dibandingkan dengan versi, ukuran, dan hash SHA-512 installer sebelum upload. Pemasangan upgrade nyata Windows/AppImage antar-dua-rilis masih membutuhkan uji perangkat; fixture tidak mengeksekusi installer.
+
+## Big update
+
+Lihat [cakupan dan batas pengujian multiakun](big-update.md). Rilis publik tetap menunggu validasi OS; artifact PR bukan rilis otomatis.

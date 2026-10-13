@@ -4,12 +4,16 @@ const path = require('node:path');
 const { pathToFileURL } = require('node:url');
 const { SERVICES, trusted, ratio, layout, cleanSettings, browserUserAgent } = require('./core.cjs');
 const { servicePermitted, nativeMediaGate } = require('./permissions.cjs');
+const { randomUUID } = require('node:crypto');
+const { MAX_ACCOUNTS, partition, switchAccount, liveAccounts } = require('./accounts.cjs');
 const { createUpdates } = require('./updates.cjs');
 let updates;
 const mediaGate = nativeMediaGate(process.platform, systemPreferences);
 const smoke = process.argv.includes('--smoke');
 if (smoke) app.setPath('userData', fs.mkdtempSync(path.join(require('node:os').tmpdir(), 'duochat-smoke-')));
-let win, aboutWindow, settings, settingsPath, saveTimer;
+let win, aboutWindow, overlay, settings, settingsPath, saveTimer;
+let overlayMode = null;
+const configuredSessions = new Set(), childWindows = new Map();
 // Use the same profile lock on every launch; never create a second pair of chats.
 const primaryInstance = app.requestSingleInstanceLock();
 if (!primaryInstance) app.quit();
@@ -28,6 +32,7 @@ const views = {}, statuses = {};
 const windowIcon = primaryInstance ? nativeImage.createFromPath(path.join(__dirname, 'assets', 'duochat-window-icon.png')) : null;
 const authorWebsite = 'https://djongfaritno.github.io/';
 const aboutURL = pathToFileURL(path.join(__dirname, 'about.html')).href;
+const overlayURL = pathToFileURL(path.join(__dirname, 'overlay.html')).href;
 const uiURL = pathToFileURL(path.join(__dirname, 'index.html')).href;
 function save() { clearTimeout(saveTimer); fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2), { mode: 0o600 }); }
 function queueSave() { clearTimeout(saveTimer); saveTimer = setTimeout(save, 250); }
@@ -35,7 +40,7 @@ function state() {
   const fullscreen = win.isFullScreen();
   return { ...settings, updates: updates?.snapshot(), statuses, fullscreen, effectiveTheme: nativeTheme.shouldUseDarkColors ? 'dark' : 'light', headerHidden: fullscreen ? !fullscreenHeaderVisible : settings.hideHeader };
 }
-function send() { if (win && !win.isDestroyed()) win.webContents.send('state', state()); }
+function send() { if (win && !win.isDestroyed()) win.webContents.send('state', state()); if (overlay && !overlay.webContents.isDestroyed()) overlay.webContents.send('state', { ...state(), overlayMode }); }
 function updateColors() {
   const dark = nativeTheme.shouldUseDarkColors;
   win.setBackgroundColor(dark ? '#161e1b' : '#edf2f1');
@@ -49,8 +54,11 @@ function setTheme(value) {
   updateColors(); queueSave();
 }
 function updatePresentation() {
+  if (!state().headerHidden && overlayMode === "rail") showOverlay(null);
   win.setMenuBarVisibility(!state().headerHidden);
   arrange();
+  // Hiding the native menu changes content height without a resize event.
+  setTimeout(() => { if (win && !win.isDestroyed()) arrange(); }, 100);
 }
 function showAbout() {
   if (aboutWindow && !aboutWindow.isDestroyed()) { aboutWindow.focus(); return; }
@@ -84,6 +92,7 @@ function shortcuts(contents) {
   contents.on('before-input-event', (event, input) => {
     if (input.type !== 'keyDown' || input.isAutoRepeat) return;
     const key = input.key.toLowerCase();
+    if (key === 'escape' && overlayMode) { event.preventDefault(); showOverlay(null); return; }
     if (key === 'f11') { event.preventDefault(); windowAction('fullscreen'); }
     else if ((input.control || input.meta) && input.shift && key === 'h') { event.preventDefault(); windowAction('header'); }
     else if (key === 'escape' && win.isFullScreen()) { event.preventDefault(); win.setFullScreen(false); }
@@ -92,7 +101,14 @@ function shortcuts(contents) {
 function arrange() {
   const [width, height] = win.getContentSize();
   const bounds = layout(width, height, settings.ratio, state().headerHidden);
-  for (const id of Object.keys(views)) views[id].setBounds(bounds[id]);
+  for (const [id, view] of Object.entries(views)) {
+    const side = Object.entries(settings.slots).find(([, accountId]) => accountId === id)?.[0];
+    view.setVisible(Boolean(side));
+    if (side) view.setBounds(bounds[side === 'left' ? 'whatsapp' : 'telegram']);
+  }
+  if (overlay) {
+    overlay.setBounds(overlayMode === 'rail' ? { x: 0, y: state().headerHidden ? 0 : 80, width: 88, height: Math.max(1, height - 40 - (state().headerHidden ? 0 : 80)) } : { x: 0, y: 0, width, height });
+  }
   if (!win.isMaximized() && !win.isFullScreen()) { const [w, h] = win.getSize(); settings.width = w; settings.height = h; }
   queueSave(); send();
 }
@@ -102,57 +118,88 @@ async function external(url) {
   const result = await dialog.showMessageBox(win, { type: 'question', message: 'Buka tautan di browser?', detail: parsed.href, buttons: ['Batal', 'Buka browser'], defaultId: 0, cancelId: 0 });
   if (result.response === 1) await shell.openExternal(parsed.href);
 }
-function protect(contents, id) {
-  contents.on('will-navigate', (event, url) => { if (!trusted(id, url)) { event.preventDefault(); void external(url); } });
-  contents.on('will-redirect', (event, url) => { if (!trusted(id, url)) event.preventDefault(); });
+function accountById(id) { return settings.accounts.find(item => item.id === id); }
+function protect(contents, account) {
+  const service = account.service;
+  contents.on('will-navigate', (event, url) => { if (!trusted(service, url)) { event.preventDefault(); void external(url); } });
+  contents.on('will-redirect', (event, url) => { if (!trusted(service, url)) event.preventDefault(); });
   contents.setWindowOpenHandler(({ url }) => {
-    if (!trusted(id, url)) { void external(url); return { action: 'deny' }; }
-    return { action: 'allow', overrideBrowserWindowOptions: { width: 760, height: 680, autoHideMenuBar: true, webPreferences: { ...(id === 'telegram' ? { preload: path.join(__dirname, 'telegram-preload.cjs') } : {}), partition: `persist:${id}`, nodeIntegration: false, contextIsolation: true, sandbox: true } } };
+    if (!trusted(service, url)) { void external(url); return { action: 'deny' }; }
+    return { action: 'allow', overrideBrowserWindowOptions: { width: 760, height: 680, autoHideMenuBar: true, webPreferences: { ...(service === 'telegram' ? { preload: path.join(__dirname, 'telegram-preload.cjs') } : {}), partition: partition(account), nodeIntegration: false, contextIsolation: true, sandbox: true } } };
   });
-  contents.on('did-create-window', child => { child.setMenu(null); protect(child.webContents, id); });
+  contents.on('did-create-window', child => {
+    child.setMenu(null); protect(child.webContents, account); shortcuts(child.webContents);
+    const children = childWindows.get(account.id) || new Set(); children.add(child); childWindows.set(account.id, children);
+    child.on('closed', () => children.delete(child));
+  });
 }
-function addService(id) {
-  const ses = session.fromPartition(`persist:${id}`);
+function addService(account) {
+  const id = account.id, service = account.service;
+  const ses = session.fromPartition(partition(account));
   ses.setUserAgent(app.userAgentFallback);
-  const permitted = (wc, permission, origin) => {
-    if (wc?.isDestroyed()) return false;
-    return servicePermitted(id, settings.permissions[id], permission, origin, wc ? wc.getURL() : null);
-  };
-  ses.setPermissionCheckHandler((wc, permission, origin, details) => {
-    if (!permitted(wc, permission, origin)) return false;
-    if (permission === 'media' && details?.mediaType === 'audio') return mediaGate.check('microphone');
-    if (permission === 'media' && details?.mediaType === 'video') return mediaGate.check('camera');
-    return true;
-  });
-  ses.setPermissionRequestHandler((wc, permission, callback, details) => {
-    if (!permitted(wc, permission, details.requestingUrl)) { callback(false); return; }
-    if (permission !== 'media') { callback(true); return; }
-    void mediaGate.requestTypes(details.mediaTypes || []).then(granted => {
-      // Permission may have been revoked or the requesting page changed while
-      // the operating-system dialog was open.
-      callback(granted && permitted(wc, permission, details.requestingUrl));
-    }).catch(() => callback(false));
-  });
-  ses.on('will-download', (_event, item) => {
-    item.setSaveDialogOptions({ defaultPath: path.join(app.getPath('downloads'), path.basename(item.getFilename())) });
-  });
-  const view = new WebContentsView({ webPreferences: { ...(id === 'telegram' ? { preload: path.join(__dirname, 'telegram-preload.cjs') } : {}), partition: `persist:${id}`, sandbox: true, contextIsolation: true, nodeIntegration: false, backgroundThrottling: false } });
+  if (!configuredSessions.has(id)) {
+    configuredSessions.add(id);
+    const permitted = (wc, permission, origin) => {
+      const current = accountById(id);
+      if (!current || !views[id] || wc?.isDestroyed()) return false;
+      return servicePermitted(service, current.permissions, permission, origin, wc ? wc.getURL() : null);
+    };
+    ses.setPermissionCheckHandler((wc, permission, origin, details) => {
+      if (!permitted(wc, permission, origin)) return false;
+      if (permission === 'media' && details?.mediaType === 'audio') return mediaGate.check('microphone');
+      if (permission === 'media' && details?.mediaType === 'video') return mediaGate.check('camera');
+      return true;
+    });
+    ses.setPermissionRequestHandler((wc, permission, callback, details) => {
+      if (!permitted(wc, permission, details.requestingUrl)) { callback(false); return; }
+      if (permission !== 'media') { callback(true); return; }
+      void mediaGate.requestTypes(details.mediaTypes || []).then(granted => callback(granted && permitted(wc, permission, details.requestingUrl))).catch(() => callback(false));
+    });
+    ses.on('will-download', (_event, item) => {
+      if (!accountById(id) || !views[id]) { item.cancel(); return; }
+      item.setSaveDialogOptions({ defaultPath: path.join(app.getPath('downloads'), path.basename(item.getFilename())) });
+    });
+  }
+  const view = new WebContentsView({ webPreferences: { ...(service === 'telegram' ? { preload: path.join(__dirname, 'telegram-preload.cjs') } : {}), partition: partition(account), sandbox: true, contextIsolation: true, nodeIntegration: false, backgroundThrottling: false } });
   view.setBackgroundColor(nativeTheme.shouldUseDarkColors ? '#1c2622' : '#ffffff');
   views[id] = view; win.contentView.addChildView(view);
-  protect(view.webContents, id);
-  shortcuts(view.webContents);
-  const update = (state, message = '') => { statuses[id] = { state, message }; send(); };
+  protect(view.webContents, account); shortcuts(view.webContents);
+  const update = (value, message = '') => { if (views[id] === view) { statuses[id] = { state: value, message }; send(); } };
   view.webContents.on('did-start-loading', () => update('loading'));
-  view.webContents.on('did-finish-load', () => { if (trusted(id, view.webContents.getURL()) || smoke) update('ready'); });
-  view.webContents.on('did-fail-load', (_e, code, _description, _url, mainFrame) => { if (mainFrame && code !== -3) {
+  view.webContents.on('did-finish-load', () => { if (trusted(service, view.webContents.getURL()) || smoke) update('ready'); });
+  view.webContents.on('did-fail-load', (_e, code, _description, _url, mainFrame) => {
+    if (mainFrame && code !== -3 && views[id] === view) {
       update('error', `Gagal memuat (${code}). Periksa koneksi, lalu muat ulang.`);
       void view.webContents.loadFile(path.join(__dirname, 'offline.html')).catch(() => {});
-    } });
+    }
+  });
   view.webContents.on('render-process-gone', () => update('error', 'Panel berhenti. Tekan Muat ulang.'));
-  void view.webContents.loadURL(smoke ? `data:text/html,<h1>${SERVICES[id].name} smoke fixture</h1>` : SERVICES[id].url).catch(() => {});
+  void view.webContents.loadURL(smoke ? `data:text/html,<h1>${SERVICES[service].name} smoke fixture</h1>` : SERVICES[service].url).catch(() => {});
 }
-function ownUI(event) { return win && event.sender === win.webContents && event.senderFrame?.url === uiURL; }
-ipcMain.handle('state:get', event => ownUI(event) ? state() : null);
+function closeAccount(id) {
+  for (const child of childWindows.get(id) || []) if (!child.isDestroyed()) child.destroy();
+  childWindows.delete(id);
+  const view = views[id]; delete views[id]; statuses[id] = { state: 'paused' };
+  if (view) { win.contentView.removeChildView(view); if (!view.webContents.isDestroyed()) view.webContents.close(); }
+}
+function syncAccounts() {
+  const live = new Set(liveAccounts(settings).map(item => item.id));
+  for (const id of Object.keys(views)) if (!live.has(id)) closeAccount(id);
+  for (const account of liveAccounts(settings)) if (!views[account.id]) addService(account);
+  // Native child views cover the HTML shell. Keep our trusted overlay above them.
+  if (overlay) { win.contentView.removeChildView(overlay); win.contentView.addChildView(overlay); }
+  arrange();
+}
+function showOverlay(mode, focus = false) {
+  if (!['rail', 'add', 'manage', null].includes(mode)) return;
+  if (mode === 'rail' && !state().headerHidden) return;
+  overlayMode = mode;
+  overlay.setVisible(Boolean(mode)); arrange(); send();
+  if (mode && (mode !== 'rail' || focus)) overlay.webContents.focus();
+  if (!mode) win.webContents.focus();
+}
+function ownUI(event) { return win && ((event.sender === win.webContents && event.senderFrame?.url === uiURL) || (overlay && event.sender === overlay.webContents && event.senderFrame?.url === overlayURL)); }
+ipcMain.handle('state:get', event => ownUI(event) ? { ...state(), overlayMode } : null);
 ipcMain.handle('about:info', event => ownAbout(event) ? { version: app.getVersion() } : null);
 ipcMain.handle('about:close', event => { if (!ownAbout(event)) return null; aboutWindow.close(); return true; });
 ipcMain.handle('about:website', event => { if (ownAbout(event)) return shell.openExternal(authorWebsite); });
@@ -161,13 +208,15 @@ ipcMain.handle('theme:set', (event, value) => { if (ownUI(event)) setTheme(value
 ipcMain.handle('window:action', (event, action) => { if (ownUI(event)) windowAction(action); });
 ipcMain.handle('ratio:set', (event, value) => { if (!ownUI(event)) return; settings.ratio = ratio(value); arrange(); });
 ipcMain.handle('service:action', async (event, id, action) => {
-  if (!ownUI(event) || !Object.hasOwn(SERVICES, id)) return;
-  if (action === 'reload') { void views[id].webContents.loadURL(SERVICES[id].url).catch(() => {}); }
-  if (action === 'browser') await external(SERVICES[id].url);
+  if (!ownUI(event)) return;
+  const account = accountById(id); if (!account) return;
+  const service = account.service;
+  if (action === 'reload') { if (!views[id]) return; void views[id].webContents.loadURL(smoke ? `data:text/html,<h1>${SERVICES[service].name} smoke fixture</h1>` : SERVICES[service].url).catch(() => {}); }
+  if (action === 'browser') await external(SERVICES[service].url);
   if (action === 'permissions') {
-    const result = await dialog.showMessageBox(win, { type: 'question', message: `Izin untuk ${SERVICES[id].name}`, detail: 'Izinkan situs resmi layanan ini memakai kamera, mikrofon, dan notifikasi di DuoChat. Sistem operasi dapat meminta izin tambahan. Dukungan panggilan mengikuti layanan web.', buttons: ['Batal', 'Izinkan', 'Cabut izin'], defaultId: 0, cancelId: 0 });
+    const result = await dialog.showMessageBox(win, { type: 'question', message: `Izin untuk ${account.name}`, detail: 'Izinkan situs resmi layanan ini memakai kamera, mikrofon, dan notifikasi di DuoChat. Sistem operasi dapat meminta izin tambahan. Dukungan panggilan mengikuti layanan web.', buttons: ['Batal', 'Izinkan', 'Cabut izin'], defaultId: 0, cancelId: 0 });
     if (result.response !== 0) {
-      settings.permissions[id] = result.response === 1; save(); send();
+      if (accountById(id) !== account) return; account.permissions = result.response === 1; if (['whatsapp', 'telegram'].includes(id)) settings.permissions[id] = account.permissions; save(); send();
       if (result.response === 1 && process.platform === 'darwin') {
         const microphone = await mediaGate.request('microphone');
         const camera = await mediaGate.request('camera');
@@ -180,6 +229,57 @@ ipcMain.handle('service:action', async (event, id, action) => {
     }
   }
 });
+ipcMain.handle('ui:overlay', (event, mode, focus) => { if (ownUI(event)) showOverlay(mode, focus === true); });
+let accountActions = Promise.resolve();
+ipcMain.handle('account:action', (event, action, input) => {
+  if (!ownUI(event)) return null;
+  const run = () => handleAccountAction(action, input);
+  const operation = accountActions.then(run, run); accountActions = operation.catch(() => {}); return operation;
+});
+async function handleAccountAction(action, input = {}) {
+  if (!input || typeof input !== 'object') return { ok: false, error: 'Permintaan akun tidak valid.' };
+  let account = accountById(input.id);
+  if (action === 'add') {
+    if (!Object.hasOwn(SERVICES, input.service) || settings.accounts.length >= MAX_ACCOUNTS) return { ok: false, error: 'Layanan tidak valid atau batas 30 akun tercapai.' };
+    const name = typeof input.name === 'string' ? input.name.trim().slice(0, 40) : '';
+    if (!name) return { ok: false, error: 'Isi nama akun dulu.' };
+    account = { id: 'account-' + randomUUID(), service: input.service, name, keepActive: false, permissions: false };
+    settings.accounts.push(account); save(); send(); return { ok: true, id: account.id };
+  }
+  if (!account) return { ok: false, error: 'Akun tidak ditemukan.' };
+  if (action === 'select') {
+    if (!['left', 'right'].includes(input.side)) return { ok: false, error: 'Panel tidak valid.' };
+    const previous = accountById(settings.slots[input.side]);
+    // Never silently terminate an account when it leaves a panel. The user
+    // can keep its connection (including calls) alive or explicitly pause it.
+    if (previous.id !== account.id && !previous.keepActive && !Object.values(settings.slots).includes(account.id) && !smoke) {
+      const result = await dialog.showMessageBox(win, { type: 'question', message: `Ganti panel ${input.side === 'left' ? 'kiri' : 'kanan'}?`, detail: `${previous.name} akan keluar dari panel. Menjeda akun menghentikan halaman, panggilan, dan notifikasinya. Pilih Tetap aktif jika masih ingin terhubung.`, buttons: ['Batal', 'Tetap aktif', 'Jeda akun lama'], defaultId: 1, cancelId: 0 });
+      if (result.response === 0) return { ok: false, error: 'Pergantian akun dibatalkan.' };
+      if (result.response === 1) previous.keepActive = true;
+    }
+    switchAccount(settings, input.side, account.id);
+  } else if (action === 'rename') {
+    const name = typeof input.name === 'string' ? input.name.trim().slice(0, 40) : '';
+    if (!name) return { ok: false, error: 'Nama akun tidak boleh kosong.' }; account.name = name;
+  } else if (action === 'keep') {
+    if (typeof input.value !== 'boolean') return { ok: false, error: 'Status akun tidak valid.' };
+    if (!input.value && account.keepActive && !Object.values(settings.slots).includes(account.id) && !smoke) {
+      const result = await dialog.showMessageBox(win, { type: 'question', message: `Jeda ${account.name}?`, detail: 'Halaman akun akan ditutup. Panggilan dan notifikasi akun ini berhenti sampai dibuka lagi.', buttons: ['Batal', 'Jeda'], defaultId: 0, cancelId: 0 });
+      if (result.response !== 1) return { ok: false, error: 'Akun tetap aktif.' };
+    }
+    account.keepActive = input.value;
+  } else if (action === 'remove') {
+    if (settings.accounts.length <= 2) return { ok: false, error: 'Sisakan minimal dua akun untuk kedua panel.' };
+    if (Object.values(settings.slots).includes(account.id)) return { ok: false, error: 'Ganti akun di panel dulu sebelum menghapusnya.' };
+    const result = await dialog.showMessageBox(win, { type: 'warning', message: `Hapus ${account.name} dari DuoChat?`, detail: 'Sesi login dan data situs akun ini di komputer akan dihapus. Akun layanan dan percakapan di layanan tidak dihapus.', buttons: ['Batal', 'Hapus dari DuoChat'], defaultId: 0, cancelId: 0 });
+    if (result.response !== 1) return { ok: false, error: 'Penghapusan dibatalkan.' };
+    closeAccount(account.id);
+    const ses = session.fromPartition(partition(account));
+    try { await ses.clearStorageData(); await ses.clearCache(); await ses.closeAllConnections(); } catch { return { ok: false, error: 'Data sesi belum berhasil dihapus. Coba lagi.' }; }
+    settings.accounts = settings.accounts.filter(item => item.id !== account.id);
+  } else return { ok: false, error: 'Aksi akun tidak dikenal.' };
+  save(); syncAccounts(); return { ok: true, id: account.id };
+}
 if (primaryInstance) app.whenReady().then(async () => {
   app.userAgentFallback = browserUserAgent(app.userAgentFallback, app.getName());
   settingsPath = path.join(app.getPath('userData'), 'settings.json');
@@ -187,7 +287,7 @@ if (primaryInstance) app.whenReady().then(async () => {
   nativeTheme.themeSource = settings.theme === 'auto' ? 'system' : settings.theme;
   win = new BrowserWindow({ icon: windowIcon, width: settings.width, height: settings.height, minWidth: 1000, minHeight: 650, title: 'DuoChat', backgroundColor: '#edf2f1', webPreferences: { preload: path.join(__dirname, 'preload.cjs'), sandbox: true, contextIsolation: true, nodeIntegration: false } });
   updates = createUpdates({ app, net, dialog, shell, getWindow: () => aboutWindow && !aboutWindow.isDestroyed() ? aboutWindow : win, getSettings: () => settings, save, notify: send });
-  Menu.setApplicationMenu(Menu.buildFromTemplate([{ label: 'DuoChat', submenu: [{ label: 'About DuoChat', click: showAbout }, { label: 'Cek pembaruan…', click: () => void updates.check(true) }, { type: 'separator' }, { label: 'Periksa pembaruan otomatis', type: 'checkbox', checked: settings.autoCheckUpdates, click: item => updates.preference('autoCheckUpdates', item.checked) }, { label: 'Unduh pembaruan otomatis', type: 'checkbox', checked: settings.autoDownloadUpdates, enabled: updates.snapshot().mode === 'native', click: item => updates.preference('autoDownloadUpdates', item.checked) }, { type: 'separator' }, { role: 'quit' }] }, { label: 'Edit', submenu: [{ role: 'undo' }, { role: 'redo' }, { type: 'separator' }, { role: 'cut' }, { role: 'copy' }, { role: 'paste' }, { role: 'selectAll' }] }, { label: 'Window', submenu: [{ role: 'minimize' }, { role: 'zoom' }, { type: 'separator' }, { label: 'Layar penuh (F11)', click: () => windowAction('fullscreen') }, { label: 'Tampilkan/sembunyikan header (Ctrl+Shift+H)', click: () => windowAction('header') }] }]));
+  Menu.setApplicationMenu(Menu.buildFromTemplate([{ label: 'DuoChat', submenu: [{ label: 'About DuoChat', click: showAbout }, { label: 'Tambah akun…', click: () => showOverlay('add') }, { label: 'Kelola akun…', click: () => showOverlay('manage') }, { label: 'Cek pembaruan…', click: () => void updates.check(true) }, { type: 'separator' }, { label: 'Periksa pembaruan otomatis', type: 'checkbox', checked: settings.autoCheckUpdates, click: item => updates.preference('autoCheckUpdates', item.checked) }, { label: 'Unduh pembaruan otomatis', type: 'checkbox', checked: settings.autoDownloadUpdates, enabled: updates.snapshot().mode === 'native', click: item => updates.preference('autoDownloadUpdates', item.checked) }, { type: 'separator' }, { role: 'quit' }] }, { label: 'Edit', submenu: [{ role: 'undo' }, { role: 'redo' }, { type: 'separator' }, { role: 'cut' }, { role: 'copy' }, { role: 'paste' }, { role: 'selectAll' }] }, { label: 'Window', submenu: [{ role: 'minimize' }, { role: 'zoom' }, { type: 'separator' }, { label: 'Layar penuh (F11)', click: () => windowAction('fullscreen') }, { label: 'Tampilkan/sembunyikan header (Ctrl+Shift+H)', click: () => windowAction('header') }] }]));
   nativeTheme.on('updated', () => { if (win && !win.isDestroyed()) updateColors(); });
   updateColors();
   shortcuts(win.webContents);
@@ -196,112 +296,17 @@ if (primaryInstance) app.whenReady().then(async () => {
   win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
   win.webContents.on('will-navigate', event => event.preventDefault());
   await win.loadFile(path.join(__dirname, 'index.html'));
-  for (const id of Object.keys(SERVICES)) addService(id);
+  overlay = new WebContentsView({ webPreferences: { preload: path.join(__dirname, 'preload.cjs'), sandbox: true, contextIsolation: true, nodeIntegration: false } });
+  overlay.setBackgroundColor('#00000000'); overlay.setVisible(false); win.contentView.addChildView(overlay);
+  overlay.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
+  overlay.webContents.on('will-navigate', event => event.preventDefault()); shortcuts(overlay.webContents);
+  await overlay.webContents.loadFile(path.join(__dirname, 'overlay.html'));
+  syncAccounts();
   updatePresentation(); win.on('resize', arrange);
   if (!smoke && app.isPackaged) updates.start();
   if (pendingFocus) focusExistingWindow();
-  win.on('close', () => { save(); for (const view of Object.values(views)) if (!view.webContents.isDestroyed()) view.webContents.close(); });
-  if (smoke) {
-    setTimeout(async () => {
-      try {
-        const assert = require('node:assert/strict');
-        assert.equal(Object.keys(views).length, 2);
-        assert.ok(Menu.getApplicationMenu().items[0].submenu.items.some(item => item.label === 'Cek pembaruan…'));
-        assert.equal(await win.webContents.executeJavaScript("document.querySelector('#update-button').textContent"), 'Cek update');
-        assert.equal(await win.webContents.executeJavaScript("window.duo.updateAction('unknown')"), undefined);
-        console.log(`Runtime: Electron ${process.versions.electron}; Chromium ${process.versions.chrome}`);
-        for (const view of Object.values(views)) {
-          const ua = await view.webContents.executeJavaScript('navigator.userAgent');
-          assert.equal(ua, app.userAgentFallback);
-          assert.ok(ua.includes(`Chrome/${process.versions.chrome}`));
-          assert.ok(!ua.includes('Electron/') && !ua.includes('duochat-desktop/'));
-          assert.equal(view.webContents.session.getUserAgent(), ua);
-        }
-        console.log(`Browser identity: ${app.userAgentFallback}`);
-        assert.notEqual(views.whatsapp.webContents.session, views.telegram.webContents.session);
-        await win.webContents.executeJavaScript('window.duo.setRatio(0.6)');
-        assert.equal(settings.ratio, .6);
-        const [cw, ch] = win.getContentSize();
-        assert.deepEqual(views.whatsapp.getBounds(), layout(cw, ch, .6).whatsapp);
-        assert.deepEqual(views.telegram.getBounds(), layout(cw, ch, .6).telegram);
-        assert.match(await views.whatsapp.webContents.executeJavaScript('document.body.textContent'), /WhatsApp smoke fixture/);
-        assert.equal(await views.telegram.webContents.executeJavaScript('typeof window.duo'), 'undefined');
-        assert.equal(await win.webContents.executeJavaScript('typeof require'), 'undefined');
-        assert.equal(await views.whatsapp.webContents.executeJavaScript('typeof require'), 'undefined');
-        await win.webContents.executeJavaScript("window.duo.windowAction('header')");
-        assert.equal(state().headerHidden, true);
-        if (process.platform !== 'darwin') assert.equal(win.isMenuBarVisible(), false);
-        assert.equal(views.whatsapp.getBounds().y, 56);
-        await new Promise(resolve => setTimeout(resolve, 100));
-        assert.equal(await win.webContents.executeJavaScript("getComputedStyle(document.querySelector('header')).display"), 'none');
-        assert.equal(await win.webContents.executeJavaScript("getComputedStyle(document.querySelector('#restore-header')).display !== 'none'"), true);
-        views.telegram.webContents.focus();
-        views.telegram.webContents.sendInputEvent({ type: 'keyDown', keyCode: 'H', modifiers: ['control', 'shift'] });
-        views.telegram.webContents.sendInputEvent({ type: 'keyUp', keyCode: 'H', modifiers: ['control', 'shift'] });
-        await new Promise(resolve => setTimeout(resolve, 100));
-        assert.equal(state().headerHidden, false);
-        assert.equal(views.whatsapp.getBounds().y, 136);
-        if (process.platform !== 'darwin') assert.equal(win.isMenuBarVisible(), true);
-        // Fullscreen is exercised only when the test display has a window manager.
-        if (process.argv.includes('--test-fullscreen')) {
-          const transition = enabled => new Promise((resolve, reject) => {
-            const timer = setTimeout(() => reject(new Error('Fullscreen transition timed out')), 5000);
-            win.once(enabled ? 'enter-full-screen' : 'leave-full-screen', () => { clearTimeout(timer); resolve(); });
-            win.setFullScreen(enabled);
-          });
-          await transition(true);
-          assert.equal(state().fullscreen, true);
-          assert.equal(state().headerHidden, true);
-          assert.equal(views.whatsapp.getBounds().y, 56);
-          await win.webContents.executeJavaScript("window.duo.windowAction('header')");
-          assert.equal(state().headerHidden, false);
-          await transition(false);
-          assert.equal(state().headerHidden, false);
-          assert.equal(views.whatsapp.getBounds().y, 136);
-          console.log('FULLSCREEN PASS: enter, automatic hide, recovery, exit');
-        }
-        await win.webContents.executeJavaScript("window.duo.setTheme('dark')");
-        await new Promise(resolve => setTimeout(resolve, 100));
-        assert.equal(state().effectiveTheme, 'dark');
-        for (const view of Object.values(views)) assert.equal(await view.webContents.executeJavaScript("matchMedia('(prefers-color-scheme: dark)').matches"), true);
-        assert.equal(await win.webContents.executeJavaScript("document.documentElement.dataset.theme"), 'dark');
-        await win.webContents.executeJavaScript("window.duo.setTheme('light')");
-        await new Promise(resolve => setTimeout(resolve, 100));
-        for (const view of Object.values(views)) assert.equal(await view.webContents.executeJavaScript("matchMedia('(prefers-color-scheme: dark)').matches"), false);
-        await win.webContents.executeJavaScript("window.duo.setTheme('auto')");
-        assert.equal(nativeTheme.themeSource, 'system');
-        console.log('THEME PASS: dark/light preferences reach both services; auto restores system');
-        console.log('HEADER PASS: hide, menu visibility, recovered from Telegram keyboard focus');
-        fs.mkdirSync(path.join(process.cwd(), 'artifacts'), { recursive: true });
-        if (!process.argv.includes('--skip-capture')) fs.writeFileSync(path.join(process.cwd(), 'artifacts', 'shell.png'), (await win.capturePage()).toPNG());
-        if (process.argv.includes('--capture-root')) require('node:child_process').execFileSync('import', ['-window', 'root', path.join(process.cwd(), 'artifacts', 'smoke.png')]);
-        await win.webContents.executeJavaScript("window.duo.windowAction('about')");
-        if (aboutWindow.webContents.isLoading()) await new Promise(resolve => aboutWindow.webContents.once('did-finish-load', resolve));
-        await new Promise(resolve => setTimeout(resolve, 100));
-        assert.equal(await aboutWindow.webContents.executeJavaScript("document.querySelector('#version').textContent"), app.getVersion());
-        assert.equal(await aboutWindow.webContents.executeJavaScript("document.querySelector('#author-website').href"), authorWebsite);
-        assert.match(await aboutWindow.webContents.executeJavaScript('document.body.textContent'), /by Codex.*prompt by TjongFaritno/);
-        assert.equal(await aboutWindow.webContents.executeJavaScript('typeof require'), 'undefined');
-        assert.equal(await win.webContents.executeJavaScript('window.duo.getAbout()'), null);
-        if (process.argv.includes('--capture-root')) require('node:child_process').execFileSync('import', ['-window', 'root', path.join(process.cwd(), 'artifacts', 'about.png')]);
-        assert.equal(await win.webContents.executeJavaScript('window.duo.closeAbout()'), null);
-        const closingAbout = aboutWindow;
-        // The renderer can be destroyed before executeJavaScript replies.
-        // Wait for the real window-close event rather than that IPC response.
-        await new Promise((resolve, reject) => {
-          const timeout = setTimeout(() => reject(new Error('About close timed out')), 5000);
-          closingAbout.once('closed', () => { clearTimeout(timeout); resolve(); });
-          void closingAbout.webContents.executeJavaScript('document.querySelector("#close-about").click()').catch(error => {
-            if (!closingAbout.isDestroyed()) { clearTimeout(timeout); reject(error); }
-          });
-        });
-        assert.equal(aboutWindow, null);
-        console.log('ABOUT PASS: runtime version, author credit, website link, restricted IPC');
-        console.log('SMOKE PASS: two loaded views, isolated sessions, IPC, bounds, Node isolation');
-        app.exit(0);
-      } catch (error) { console.error(error); app.exit(1); }
-    }, 2000);
-  }
+  win.on('close', () => { save(); clearTimeout(saveTimer); for (const id of Object.keys(views)) closeAccount(id); if (overlay && !overlay.webContents.isDestroyed()) overlay.webContents.close(); });
+  if (smoke) setTimeout(() => require('./smoke.cjs')({ app, win, views, settings, state, overlay, showOverlay, handleAccountAction, mediaGate, about: () => aboutWindow }).then(() => app.exit(0)).catch(error => { console.error(error); app.exit(1); }), 1600);
 });
 app.on('before-quit', () => updates?.stop());
 app.on('window-all-closed', () => app.quit());

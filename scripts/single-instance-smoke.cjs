@@ -20,7 +20,7 @@ app.whenReady().then(async () => {
   }
   require('../src/main.cjs');
   const limit = Date.now() + 8000;
-  while (webContents.getAllWebContents().length !== 3 || webContents.getAllWebContents().some(item => item.isLoading())) {
+  while (webContents.getAllWebContents().length !== 4 || webContents.getAllWebContents().some(item => item.isLoading())) {
     if (Date.now() > limit) throw new Error('Primary application did not become ready');
     await sleep(50);
   }
@@ -40,7 +40,7 @@ app.whenReady().then(async () => {
   assert.deepEqual(webContents.getAllWebContents().map(item => item.id).sort(), before);
   assert.equal(BrowserWindow.getAllWindows().length, 1);
   assert.equal(main.isVisible(), true, 'Existing hidden window must be shown again');
-  console.log('SINGLE INSTANCE PASS: second launch exits, existing window shown, same two service views and shell');
+  console.log('SINGLE INSTANCE PASS: second launch exits, existing window shown, same two service views, shell and trusted overlay');
   clearTimeout(deadline);
   app.exit(0);
 }).catch(error => { console.error(error); child?.kill(); app.exit(1); });

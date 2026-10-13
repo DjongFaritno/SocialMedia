@@ -1,5 +1,7 @@
 const { contextBridge, ipcRenderer } = require('electron');
 contextBridge.exposeInMainWorld('duo', {
+  accountAction: (action, input) => ipcRenderer.invoke('account:action', action, input),
+  overlay: (mode, focus = false) => ipcRenderer.invoke('ui:overlay', mode, focus),
   updateAction: action => ipcRenderer.invoke('update:action', action),
   windowAction: action => ipcRenderer.invoke('window:action', action),
   setTheme: value => ipcRenderer.invoke('theme:set', value),

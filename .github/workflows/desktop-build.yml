@@ -1,6 +1,8 @@
 name: Build desktop installers
 
 on:
+  pull_request:
+    branches: [main]
   workflow_dispatch:
   push:
     branches: [main]
@@ -152,6 +154,7 @@ jobs:
           retention-days: 14
 
   release:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     name: Publish prototype downloads
     needs: [windows, macos, linux]
     runs-on: ubuntu-latest

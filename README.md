@@ -1,35 +1,49 @@
-# DuoChat — prototipe desktop
+# DuoChat
 
-WhatsApp Web dan Telegram Web dalam satu jendela Electron. Kedua panel hidup bersamaan; ukuran awal 65:35 bisa diubah melalui slider atau pembatas, dan tersimpan bersama ukuran jendela.
+Dua ruang. Akunnya terserah kamu.
 
-## Installer Linux
+DuoChat membuka dua akun layanan web berdampingan dalam satu aplikasi desktop. Versi pengembangan **0.2.0-beta.1** menambahkan multiakun WhatsApp, Telegram, Discord, X, Instagram, dan Threads. Panel memakai tampilan web resmi masing-masing layanan.
 
-Paket terbaru tersedia di [Release v0.1.10](https://github.com/DjongFaritno/SocialMedia/releases/tag/v0.1.10), termasuk AppImage, .deb, dan installer Fedora. [Folder downloads](downloads/README.md) hanya berisi panduan. Semua installer dan checksum berada di GitHub Releases. Source code dapat dijalankan tanpa mengunduh installer atau mengambil file Git LFS.
+## Coba dan jalankan
 
-## Menjalankan
+Installer yang sudah diterbitkan ada di [GitHub Releases](https://github.com/DjongFaritno/SocialMedia/releases). Build kandidat dapat ditemukan pada artifact [GitHub Actions](https://github.com/DjongFaritno/SocialMedia/actions). Versi pada branch pengembangan belum otomatis tersedia sebagai rilis publik.
 
-Pasang Node.js 24 LTS dan npm. Buka terminal di folder proyek:
+Untuk menjalankan source, gunakan Node.js 24 dan npm:
 
 ```sh
 npm ci
 npm start
 ```
 
-Login langsung ke layanan pada panel masing-masing. WhatsApp: tautkan perangkat melalui QR di ponsel. Telegram: gunakan QR atau nomor telepon. Tekan **Izin** pada masing-masing panel untuk mengizinkan kamera, mikrofon, dan notifikasi; OS mungkin meminta izin tambahan. Setelah mengubah izin, coba lagi atau muat ulang panel bila diperlukan.
+## Akun dan dua panel
 
-Gunakan slider atau pembatas untuk mengubah ukuran. Pembatas mendukung tombol panah kiri/kanan dan Home untuk kembali ke 65:35. **Muat ulang** memuat kembali layanan tanpa menghapus sesi. **↗** membuka layanan di browser setelah konfirmasi.
+- Klik **+** di sidebar atau menu **DuoChat → Tambah akun**. Pilih layanan dan nama seperti Pribadi atau Toko kedua.
+- Pilih akun dari dropdown panel kiri atau kanan. Memilih akun yang sudah tampil di sisi lain menukar kedua akun.
+- Dua akun WhatsApp memiliki sesi terpisah. Login melalui UI layanan ketika akun pertama kali dibuka.
+- Akun tambahan disimpan tanpa langsung membuka halaman. Akun lama yang keluar dari panel dapat dijeda atau dipertahankan aktif melalui konfirmasi.
+- Buka **Kelola akun** (ikon roda gigi) untuk mengubah nama, memilih **Tetap aktif**, atau menghapus akun dari DuoChat. Nama disimpan ketika selesai diedit.
+- Akun yang dijeda menutup halaman layanan, sehingga panggilan dan notifikasinya berhenti. Pilih **Tetap aktif** jika ingin melanjutkan panggilan saat berpindah akun. Akun yang terlihat selalu aktif.
+- Hapus akun hanya setelah dikeluarkan dari kedua panel. Konfirmasi menghapus sesi dan data situs lokal, bukan akun atau percakapan di layanan. Minimal dua akun disimpan; maksimal 30.
 
-## Status dan batas versi 0.1.10
+Upgrade dari versi dua layanan mempertahankan partition WhatsApp/Telegram lama beserta pilihan izin, ukuran jendela, tema, dan rasio panel. Akun baru memiliki profil independen. Login tetap dapat kedaluwarsa karena kebijakan layanan.
 
-- Panel memakai layanan web asli, bukan tampilan chat buatan.
-- Sesi login memakai partisi persisten terpisah. Cookie/data disimpan oleh Electron di folder data aplikasi OS, bukan di repo; folder ini tetap berisi data sensitif. Logout menggunakan menu resmi layanan.
-- Kamera/mikrofon/notifikasi ditolak sampai diaktifkan lewat tombol Izin. Pencabutan izin memblokir permintaan berikutnya; tutup panggilan/muat ulang untuk menghentikan akses yang sudah berlangsung.
-- Kedua panel tidak dipause saat jendela tidak aktif. Menutup jendela utama keluar dari aplikasi; belum ada tray atau start otomatis.
-- Tautan luar membuka browser dengan konfirmasi. Popup dari origin resmi layanan diizinkan dengan sandbox dan sesi layanan yang sama.
-- Dukungan panggilan suara/video ditentukan layanan web dan perangkat/OS. Belum terverifikasi dengan akun nyata. Tidak ada implementasi panggilan sendiri atau pemaksaan fitur aplikasi resmi.
-- Panggilan dalam panel tetap menggunakan UI layanan. Jendela panggilan terpisah hanya tersedia jika layanan membuka popup; tidak ada pemisahan video buatan.
-- Screen sharing, indikator unread gabungan, pembaruan otomatis, dan distribusi bertanda tangan belum tersedia.
-- Aplikasi tidak menggabungkan isi pesan, tidak memiliki server penyimpan pesan, dan tidak meminta kredensial di luar UI resmi layanan.
+## Tampilan dan izin
+
+Slider/pembatas mengatur lebar panel kiri; tombol panah dan Home juga tersedia. **F11** masuk/keluar fullscreen. **Ctrl+Shift+H** (Mac: Cmd+Shift+H) mengaktifkan mode ringkas: header dan sidebar disembunyikan. Hover pada tepi kiri menampilkan sidebar sebagai overlay tanpa menggeser panel. Klik/Enter pada penanda tepi juga membuka sidebar; **Esc** menutupnya. Tombol **Tampilkan header & akun** tetap tersedia di footer.
+
+Tema **White / Dark / Auto** mengikuti pilihan pengguna dan mengirim preferensi warna ke layanan. UI layanan dengan pengaturan tema manual dapat memerlukan pengaturan System/Auto sendiri.
+
+Tombol **Izin** berlaku per akun untuk kamera, mikrofon, dan notifikasi. OS dapat meminta izin tambahan. Pencabutan memblokir permintaan berikutnya; tutup panggilan/muat ulang untuk menghentikan akses yang sudah berlangsung. **Muat ulang** mempertahankan sesi. **↗** membuka layanan di browser sesudah konfirmasi; browser memakai sesi tersendiri.
+
+## Update, platform, dan batas
+
+Cek update tersedia di menu, footer, dan About. Pemeriksaan otomatis memakai pengaturan yang sudah tersimpan. Unduh otomatis bersifat opt-in pada Windows x64 dan AppImage Linux x64; pemasangan meminta konfirmasi mulai ulang. macOS ad-hoc, deb, dan Fedora hasil ekstraksi memakai cek versi dan unduh manual.
+
+Build tersedia untuk Windows x64, macOS universal, dan Linux x64 AppImage/deb. [Panduan Mac](docs/install-macos.md) menjelaskan Done → Privacy & Security → Open Anyway untuk paket yang belum dinotarize. Windows dapat menampilkan SmartScreen.
+
+Panggilan, notifikasi, dan fitur lain mengikuti dukungan web layanan. Pilihan layanan baru tersedia, tetapi login, panggilan, dan notifikasi akun nyata pada tiap layanan/OS masih perlu diuji; fixture tidak membuktikan dukungan tersebut. Tidak ada chat UI buatan atau implementasi protokol tidak resmi. Screen sharing, unread gabungan, tray, dan start otomatis belum diimplementasikan.
+
+Data sesi berada di direktori data aplikasi OS, bukan repository. Menutup jendela utama keluar dari aplikasi dan menghentikan semua akun. Tautan luar perlu konfirmasi; popup dari origin layanan yang diizinkan memakai sandbox dan sesi akun yang sama. Halaman layanan tidak mendapatkan Node atau API internal DuoChat.
 
 ## Pemeriksaan dan build
 
@@ -37,53 +51,16 @@ Gunakan slider atau pembatas untuk mengubah ukuran. Pembatas mendukung tombol pa
 npm run check
 npm test
 npm run smoke
-npm run pack
-npm run dist
+npm run dist:linux
+# Pada OS yang bersangkutan:
+npm run dist:windows
+npm run dist:mac
 ```
 
-`smoke` memakai dua halaman fixture lokal, tidak mengakses akun atau membuktikan panggilan. Ia memeriksa pembuatan dua panel, pemisahan sesi, IPC, tata letak, dan isolasi Node, lalu menghasilkan `artifacts/shell.png` (shell UI saja; capturePage tidak menyertakan panel native).
+Smoke memakai profil sementara dan fixture lokal. Ia memeriksa dua WhatsApp dengan cookie terpisah, pause/resume, tukar sisi, semua provider, overlay, tema, About, dan isolasi Node/IPC. Akun asli tidak digunakan. Artifact capture shell tidak menyertakan native service views.
 
-Build installer pada OS target: Windows menghasilkan NSIS, macOS DMG, Linux AppImage/deb. Dukungan target dikonfigurasi; verifikasi masing-masing OS wajib sebelum distribusi. Build publik macOS/Windows membutuhkan signing/notarization. Lihat [matriks pengujian](docs/acceptance.md).
+GitHub Actions membangun dan menguji aplikasi pada ketiga OS untuk pull request. Publishing hanya dilakukan dari main setelah semua job lolos; artifact PR tidak otomatis menjadi update untuk pengguna.
 
-Data aplikasi biasanya ada di `%APPDATA%/duochat-desktop`, `~/Library/Application Support/duochat-desktop`, atau `~/.config/duochat-desktop`. Cadangkan hanya jika perlu; jangan membagikan folder sesi.
+Lihat [catatan big update](docs/big-update.md), [matriks penerimaan](docs/acceptance.md), dan [panduan unduh](downloads/README.md).
 
-## Identitas browser
-
-Panel layanan menggunakan identitas browser Chromium standar dengan versi mesin yang sebenarnya, tanpa token aplikasi/Electron. Perubahan ini menangani dugaan penyebab halaman WhatsApp yang meminta Chrome 100+ meskipun mesin aplikasinya Chromium 152. Tes lokal memeriksa identitas browser di kedua panel. Akses langsung ke WhatsApp dari cloud belum tersedia, sehingga login tetap perlu diuji pada perangkat pengguna.
-
-## Tampilan
-
-- **F11**: masuk/keluar fullscreen. Menu dan header DuoChat otomatis disembunyikan saat masuk fullscreen.
-- **Esc**: keluar fullscreen.
-- **Ctrl+Shift+H** (macOS: Cmd+Shift+H): sembunyikan/tampilkan header. Bekerja saat fokus berada di WhatsApp/Telegram; pilihan jendela biasa tersimpan.
-- Tombol **Tampilkan header** di bawah tetap tersedia saat header tersembunyi. Pembatas kedua panel tetap bisa digeser.
-- Pilihan **Tema** di bawah: Dark, White, Auto. Auto mengikuti tema OS; pilihan tersimpan. Preferensi warna browser juga diteruskan ke kedua layanan. Jika layanan memilih tema manual sendiri, ubah pengaturan temanya menjadi System/Auto untuk mengikuti DuoChat.
-- Keluar fullscreen mengembalikan pilihan header jendela biasa. Fullscreen tidak dipaksakan saat membuka aplikasi berikutnya.
-
-## About
-
-Buka menu DuoChat → About DuoChat atau tombol About di bagian bawah. Versi diambil langsung dari aplikasi. Kredit: **by Codex · prompt by TjongFaritno**. Link website: https://djongfaritno.github.io/.
-
-“WhatsApp di kiri, Telegram di kanan. Biar ngobrol tetap nyambung tanpa bolak-balik jendela. Atur tampilannya sesukamu, lalu lanjut chat dengan santai.”
-
-## Logo
-
-Dua gelembung chat mint dan biru di atas hijau tua menggambarkan dua percakapan dalam satu ruang kerja. Logo asli PNG: [src/assets/duochat-icon.png](src/assets/duochat-icon.png). Ikon jendela memakai turunan 256 px yang dimuat sekali; header dan About memakai turunan 128 px; electron-builder menghasilkan ukuran ikon platform dari PNG tersebut.
-
-## Windows dan macOS
-
-Workflow [Build desktop installers](.github/workflows/desktop-build.yml) membangun Windows x64 NSIS, macOS universal DMG/ZIP, dan Linux x64 AppImage/deb pada runner OS masing-masing. Setelah pemeriksaan paket dan smoke aplikasi lulus, workflow membuat GitHub prerelease dengan installer serta SHA256SUMS.
-
-Build ini belum ditandatangani/notarized. Windows dapat menampilkan SmartScreen; macOS dapat meminta persetujuan melalui System Settings → Privacy & Security → Open Anyway. Verifikasi sumber dan checksum sebelum membuka. Tidak perlu menonaktifkan perlindungan OS secara global.
-
-Untuk build lokal: `npm ci`, lalu `npm run dist:windows` pada Windows atau `npm run dist:mac` pada macOS. Smoke GitHub Actions memakai fixture lokal; login dan panggilan tetap perlu diuji di perangkat pengguna.
-
-Release memakai tag `v<version>`. Sebelum menerbitkan perubahan berikutnya, naikkan versi di package.json agar tag versi yang sudah diterbitkan tidak dipakai ulang untuk commit lain.
-
-## Instalasi dan penggunaan macOS
-
-Lihat [panduan macOS lengkap](docs/install-macos.md). Jika muncul **“DuoChat” Not Opened**, pilih **Done**, lalu buka **System Settings → Privacy & Security → Open Anyway**. Konfirmasikan **Open Anyway** pada dialog berikutnya dan autentikasi memakai **Touch ID** atau **Use Password…** jika diminta.
-
-## Pembaruan aplikasi
-
-Menu DuoChat → Cek pembaruan, tombol footer, atau About dapat memeriksa rilis baru. Pemeriksaan otomatis aktif secara default; unduh otomatis dapat diaktifkan di menu untuk paket yang mendukungnya. Installer versi lama belum memiliki updater: pasang versi terbaru sekali. [Dukungan dan cara pembaruan per OS](docs/updates.md).
+About menampilkan versi aplikasi, tombol Tutup, dan **by Codex · prompt by TjongFaritno**. Website: https://djongfaritno.github.io/.

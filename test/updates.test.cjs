@@ -73,3 +73,10 @@ test('never downgrades; unknown IPC action has no side effects', async () => {
   assert.equal(f.updates.snapshot().phase, 'current'); await f.updates.action('anything');
   assert.equal(f.calls.downloads, 0); assert.equal(f.calls.installs, 0);
 });
+
+ test('beta builds compare safely without downgrading to the previous numeric release', async () => {
+  assert.equal(compare('0.2.0-beta.1','0.1.10'), 1);
+  assert.equal(compare('0.2.0','0.2.0-beta.1'), 1);
+  assert.equal(compare('0.2.0-beta.10','0.2.0-beta.2'), 1);
+  const f = fixture({current:'0.2.0-beta.1'}); await f.updates.check(); assert.equal(f.updates.snapshot().phase,'current');
+ });
