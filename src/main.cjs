@@ -1,4 +1,4 @@
-const { app, BrowserWindow, WebContentsView, ipcMain, dialog, shell, Menu, session, nativeTheme, systemPreferences, nativeImage, net } = require('electron');
+const { app, BrowserWindow, WebContentsView, ipcMain, dialog, shell, Menu, session, nativeTheme, systemPreferences, nativeImage, net, webContents } = require('electron');
 const fs = require('node:fs');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
@@ -12,7 +12,7 @@ const mediaGate = nativeMediaGate(process.platform, systemPreferences);
 const smoke = process.argv.includes('--smoke');
 if (smoke) app.setPath('userData', fs.mkdtempSync(path.join(require('node:os').tmpdir(), 'duochat-smoke-')));
 let win, aboutWindow, overlay, settings, settingsPath, saveTimer;
-let overlayMode = null;
+let overlayMode = null, overlayReturnFocus;
 const configuredSessions = new Set(), childWindows = new Map();
 // Use the same profile lock on every launch; never create a second pair of chats.
 const primaryInstance = app.requestSingleInstanceLock();
@@ -193,10 +193,15 @@ function syncAccounts() {
 function showOverlay(mode, focus = false) {
   if (!['rail', 'add', 'manage', null].includes(mode)) return;
   if (mode === 'rail' && !state().headerHidden) return;
+  if (mode && !overlayMode) overlayReturnFocus = webContents.getFocusedWebContents();
+  const hadOverlayFocus = overlay.webContents.isFocused();
   overlayMode = mode;
   overlay.setVisible(Boolean(mode)); arrange(); send();
   if (mode && (mode !== 'rail' || focus)) overlay.webContents.focus();
-  if (!mode) win.webContents.focus();
+  if (!mode && hadOverlayFocus) {
+    const target = overlayReturnFocus && !overlayReturnFocus.isDestroyed() ? overlayReturnFocus : win.webContents;
+    target.focus();
+  }
 }
 function ownUI(event) { return win && ((event.sender === win.webContents && event.senderFrame?.url === uiURL) || (overlay && event.sender === overlay.webContents && event.senderFrame?.url === overlayURL)); }
 ipcMain.handle('state:get', event => ownUI(event) ? { ...state(), overlayMode } : null);

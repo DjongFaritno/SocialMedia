@@ -80,6 +80,8 @@ jobs:
         run: npm run dist:mac
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+          # package.json uses identity '-' (ad-hoc), without signing secrets.
+          CSC_FOR_PULL_REQUEST: 'true'
       - name: Verify packages and macOS code signature
         run: |
           node scripts/verify-package.cjs macos
