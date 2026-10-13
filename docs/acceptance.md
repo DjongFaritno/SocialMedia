@@ -34,7 +34,7 @@ Tes unit mencakup batas origin, geometri panel, dan pemulihan pengaturan rusak. 
 
 Uji F11/Esc saat fokus berada di setiap panel. Header/menu harus menghilang, panggilan/chat tetap aktif, dan ukuran panel menyesuaikan. Uji Ctrl+Shift+H serta tombol Tampilkan header di bagian bawah. Tutup/buka aplikasi untuk memeriksa preferensi header/tema. Uji Dark/White/Auto; jika layanan memakai tema manual, pilih System/Auto dari pengaturan layanan untuk mengikuti browser.
 
-## Multiakun dan layanan baru — 0.2.0-beta.1
+## Multiakun dan layanan baru — 0.2.0-beta.2
 
 | Skenario | Hasil yang harus terlihat |
 | --- | --- |

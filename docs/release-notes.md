@@ -1,5 +1,6 @@
-DuoChat 0.2.0-beta.1 — dua ruang, lebih banyak akun.
+DuoChat 0.2.0-beta.2 — dua ruang, lebih banyak akun.
 
+- Login Instagram melalui Facebook tetap di DuoChat, menggunakan sesi akun yang sama untuk popup dan redirect login.
 - Tambahkan beberapa akun WhatsApp, Telegram, Discord, X, Instagram, atau Threads. Setiap akun memakai sesi login tersendiri.
 - Pilih akun untuk panel kiri/kanan. Memilih akun di sisi lain menukar kedua panel.
 - Header dan sidebar tersembunyi pada mode ringkas; sidebar muncul saat hover tepi kiri tanpa menggeser percakapan.

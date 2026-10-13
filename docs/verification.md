@@ -1,4 +1,4 @@
-# Verifikasi kandidat DuoChat 0.2.0-beta.1
+# Verifikasi kandidat DuoChat 0.2.0-beta.2
 
 ## Pemeriksaan wajib sebelum publikasi
 
@@ -45,3 +45,7 @@ Tes controller memeriksa pemilihan rilis lengkap/prerelease, versi numerik, penc
 ## Big update
 
 Lihat [cakupan dan batas pengujian multiakun](big-update.md). Rilis publik tetap menunggu validasi OS; artifact PR bukan rilis otomatis.
+
+## Login Facebook untuk Instagram/Threads
+
+Beta.2 menguji popup login Facebook, redirect checkpoint, callback Instagram, dan popup about:blank memakai session akun yang sama. Fixture Electron tidak mengakses Meta atau menggunakan kredensial. Profil Instagram lain tetap terpisah; origin Facebook tidak mendapat izin media/notifikasi. Login Facebook nyata masih perlu dicoba ulang di perangkat pengguna.

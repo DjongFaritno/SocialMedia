@@ -2,7 +2,7 @@
 
 Dua ruang. Akunnya terserah kamu.
 
-DuoChat membuka dua akun layanan web berdampingan dalam satu aplikasi desktop. Versi pengembangan **0.2.0-beta.1** menambahkan multiakun WhatsApp, Telegram, Discord, X, Instagram, dan Threads. Panel memakai tampilan web resmi masing-masing layanan.
+DuoChat membuka dua akun layanan web berdampingan dalam satu aplikasi desktop. Versi pengembangan **0.2.0-beta.2** menambahkan multiakun WhatsApp, Telegram, Discord, X, Instagram, dan Threads. Panel memakai tampilan web resmi masing-masing layanan.
 
 ## Coba dan jalankan
 
@@ -64,3 +64,5 @@ GitHub Actions membangun dan menguji aplikasi pada ketiga OS untuk pull request.
 Lihat [catatan big update](docs/big-update.md), [matriks penerimaan](docs/acceptance.md), dan [panduan unduh](downloads/README.md).
 
 About menampilkan versi aplikasi, tombol Tutup, dan **by Codex · prompt by TjongFaritno**. Website: https://djongfaritno.github.io/.
+
+Login Instagram lewat Facebook dibuka di DuoChat dengan profil akun Instagram yang sama. Login di browser luar tidak otomatis masuk ke sesi DuoChat. Jika tadi sudah login di browser, ulangi login dari panel setelah memasang beta terbaru.
