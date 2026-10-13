@@ -6,6 +6,7 @@ const { SERVICES, trusted, ratio, layout, cleanSettings, browserUserAgent } = re
 const { servicePermitted, nativeMediaGate } = require('./permissions.cjs');
 const { randomUUID } = require('node:crypto');
 const { MAX_ACCOUNTS, partition, switchAccount, liveAccounts } = require('./accounts.cjs');
+const { navigationAllowed, protectNavigation } = require('./navigation.cjs');
 const { createUpdates } = require('./updates.cjs');
 let updates;
 const mediaGate = nativeMediaGate(process.platform, systemPreferences);
@@ -121,16 +122,14 @@ async function external(url) {
 function accountById(id) { return settings.accounts.find(item => item.id === id); }
 function protect(contents, account) {
   const service = account.service;
-  contents.on('will-navigate', (event, url) => { if (!trusted(service, url)) { event.preventDefault(); void external(url); } });
-  contents.on('will-redirect', (event, url) => { if (!trusted(service, url)) event.preventDefault(); });
-  contents.setWindowOpenHandler(({ url }) => {
-    if (!trusted(service, url)) { void external(url); return { action: 'deny' }; }
-    return { action: 'allow', overrideBrowserWindowOptions: { width: 760, height: 680, autoHideMenuBar: true, webPreferences: { ...(service === 'telegram' ? { preload: path.join(__dirname, 'telegram-preload.cjs') } : {}), partition: partition(account), nodeIntegration: false, contextIsolation: true, sandbox: true } } };
-  });
-  contents.on('did-create-window', child => {
-    child.setMenu(null); protect(child.webContents, account); shortcuts(child.webContents);
-    const children = childWindows.get(account.id) || new Set(); children.add(child); childWindows.set(account.id, children);
-    child.on('closed', () => children.delete(child));
+  protectNavigation(contents, {
+    service, external,
+    popupPreferences: () => ({ width: 760, height: 680, autoHideMenuBar: true, webPreferences: { ...(service === 'telegram' ? { preload: path.join(__dirname, 'telegram-preload.cjs') } : {}), partition: partition(account), nodeIntegration: false, contextIsolation: true, sandbox: true } }),
+    onChild: child => {
+      child.setMenu(null); protect(child.webContents, account); shortcuts(child.webContents);
+      const children = childWindows.get(account.id) || new Set(); children.add(child); childWindows.set(account.id, children);
+      child.on('closed', () => children.delete(child));
+    }
   });
 }
 function addService(account) {
@@ -166,7 +165,7 @@ function addService(account) {
   protect(view.webContents, account); shortcuts(view.webContents);
   const update = (value, message = '') => { if (views[id] === view) { statuses[id] = { state: value, message }; send(); } };
   view.webContents.on('did-start-loading', () => update('loading'));
-  view.webContents.on('did-finish-load', () => { if (trusted(service, view.webContents.getURL()) || smoke) update('ready'); });
+  view.webContents.on('did-finish-load', () => { if (navigationAllowed(service, view.webContents.getURL()) || smoke) update('ready'); });
   view.webContents.on('did-fail-load', (_e, code, _description, _url, mainFrame) => {
     if (mainFrame && code !== -3 && views[id] === view) {
       update('error', `Gagal memuat (${code}). Periksa koneksi, lalu muat ulang.`);

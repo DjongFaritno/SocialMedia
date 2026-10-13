@@ -133,6 +133,9 @@ jobs:
       - name: Test service-worker notification permissions
         timeout-minutes: 2
         run: xvfb-run -a ./node_modules/electron/dist/electron scripts/notification-smoke.cjs --no-sandbox --disable-gpu
+      - name: Verify Instagram Facebook login navigation
+        timeout-minutes: 2
+        run: xvfb-run -a ./node_modules/electron/dist/electron scripts/auth-smoke.cjs --no-sandbox --disable-gpu
       - name: Verify updater download integrity
         timeout-minutes: 2
         run: xvfb-run -a ./node_modules/electron/dist/electron scripts/update-smoke.cjs --no-sandbox --disable-gpu

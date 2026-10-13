@@ -1,4 +1,4 @@
-# DuoChat 0.2.0-beta.1 — multiakun dan layanan
+# DuoChat 0.2.0-beta.2 — multiakun dan layanan
 
 Versi kandidat ini tetap menggunakan Electron. Scope RAM dan ukuran paket tidak diubah dalam update ini.
 
@@ -20,7 +20,7 @@ Notifikasi Telegram service-worker/fallback serta single-instance diuji ulang. C
 
 ## Uji akun nyata sebelum menyebut layanan sepenuhnya didukung
 
-Untuk setiap layanan dan OS, periksa login, persistensi sesudah restart, upload/download, notifikasi foreground/background, serta suara/video bila tersedia. Instagram/Threads/X dapat memiliki perubahan login, redirect, atau fitur web. OAuth yang menuju origin di luar daftar tidak otomatis diberi akses; periksa kebutuhan login terlebih dahulu sebelum memperluas daftar.
+Untuk setiap layanan dan OS, periksa login, persistensi sesudah restart, upload/download, notifikasi foreground/background, serta suara/video bila tersedia. Instagram/Threads/X dapat memiliki perubahan login, redirect, atau fitur web. Beta.2 mengizinkan origin Facebook yang eksplisit untuk navigasi login Instagram/Threads di profil akun yang sama. Origin login ini tidak mendapatkan izin kamera/mikrofon/notifikasi layanan atau API shell. Origin lain tetap diblokir/dibuka di browser sesuai kontrol navigasi.
 
 Uji dua WhatsApp dengan akun berbeda, ganti nama setelah login, pindah panel, pause/resume, dan menghapus satu profil tanpa memengaruhi lainnya. Panggilan harus tetap aktif bila akun memilih Tetap aktif. Akun dijeda tidak menjanjikan notifikasi. Menutup aplikasi menghentikan semua akun; belum ada tray.
 
