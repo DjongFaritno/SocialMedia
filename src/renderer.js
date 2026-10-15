@@ -23,8 +23,13 @@ function render(state) {
  for (const side of ['left', 'right']) {
   const covered = state.privacy?.covered?.[side] === true;
   document.querySelector(`#${side}-cover`).hidden = !covered;
+  const preview = document.querySelector(`#${side}-preview`), image = state.panelPreviews?.[side];
+  preview.hidden = !(covered && image);
+  if (image && preview.getAttribute('src') !== image) preview.src = image;
+  if (!image) preview.removeAttribute('src');
   document.querySelectorAll(`[data-cover="${side}"]`).forEach(button => { button.setAttribute('aria-pressed', String(covered)); });
-  document.querySelector(`[data-cover="${side}"]`).textContent = covered ? '◉' : '◌';
+  document.querySelector(`[data-cover="${side}"]:not([data-mode])`).textContent = covered ? '◉' : '◌';
+  document.querySelector(`[data-cover="${side}"][data-mode]`).textContent = covered ? 'Buka' : 'Blur';
   const account = state.accounts.find(item => item.id === state.slots[side]), select = document.querySelector(`#${side}-account`);
   const choices = state.accounts.map(item => `<option value="${item.id}">${escapeHTML(item.name)} · ${providerNames[item.service]}</option>`).join('');
   if (select.innerHTML !== choices) select.innerHTML = choices; select.value = account.id;
@@ -49,5 +54,5 @@ const trigger = document.querySelector('#rail-trigger'); trigger.addEventListene
 trigger.addEventListener('keydown', event => { if (['Enter', 'ArrowRight', ' '].includes(event.key)) { event.preventDefault(); void window.duo.overlay('rail', true); } });
 railEvents(() => currentState); window.duo.onState(render); window.duo.getState().then(render);
 
-document.querySelectorAll('[data-cover]').forEach(button => button.addEventListener('click', () => window.duo.privacyAction('cover', { side: button.dataset.cover })));
+document.querySelectorAll('[data-cover]').forEach(button => button.addEventListener('click', () => window.duo.privacyAction('cover', { side: button.dataset.cover, mode: button.dataset.mode })));
 document.querySelector('#lock-app').addEventListener('click', () => currentState?.privacy?.configured ? window.duo.privacyAction('lock') : window.duo.overlay('privacy'));

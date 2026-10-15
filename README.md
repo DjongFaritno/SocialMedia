@@ -37,7 +37,7 @@ Tombol **Izin** berlaku per akun untuk kamera, mikrofon, dan notifikasi. OS dapa
 
 ## Privasi
 
-Buka **Privasi** untuk memasang password, memilih kunci saat mulai, saat komputer dikunci/sleep, atau setelah idle. **Ctrl/Cmd+Shift+L** mengunci aplikasi. Mac yang mendukung juga bisa memakai Touch ID. Ikon **◌** pada setiap panel menutup tampilannya sementara tanpa memutus sesi. [Panduan privasi dan batas perlindungan](docs/privacy.md).
+Buka **Privasi** untuk memasang password, memilih kunci saat mulai, saat komputer dikunci/sleep, atau setelah idle. **Ctrl/Cmd+Shift+L** mengunci aplikasi. Mac yang mendukung juga bisa memakai Touch ID. Ikon **◌** atau **Blur** pada setiap panel menutup tampilannya sementara tanpa memutus sesi. [Panduan privasi dan batas perlindungan](docs/privacy.md).
 
 ## Update, platform, dan batas
 

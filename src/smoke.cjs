@@ -75,12 +75,36 @@ module.exports = async ({ app, win, views, settings, state, overlay, showOverlay
  const password = 'smoke-only-password';
  assert.equal((await privateUI(`window.duo.privacyAction('save',{newPassword:${JSON.stringify(password)},confirmPassword:${JSON.stringify(password)},lockOnStart:true,lockOnOS:true})`)).ok, true);
  assert.equal(privacy.snapshot().configured, true);
+ // Exercise the production session permission handlers on an intercepted,
+ // secure official origin; this never contacts WhatsApp.
+ const waSession = views.whatsapp.webContents.session;
+ const waAccount = settings.accounts.find(item => item.id === 'whatsapp');
+ waAccount.permissions = true;
+ await waSession.protocol.handle('https', () => new Response('<!doctype html><title>Privacy fixture</title><h1>Private chat fixture</h1>', { headers: { 'Content-Type': 'text/html' } }));
+ await views.whatsapp.webContents.loadURL('https://web.whatsapp.com/privacy-fixture');
+ const notificationPermission = () => views.whatsapp.webContents.executeJavaScript('Notification.permission');
+ assert.equal(await notificationPermission(), 'granted');
  const beforeLock = Object.fromEntries(Object.entries(views).map(([id, view]) => [id, view.webContents.id]));
  showOverlay(null);
  await ui("window.duo.privacyAction('cover',{side:'left'})"); await sleep(50);
  assert.equal(views.whatsapp.getVisible(), false); assert.equal(views.telegram.getVisible(), true);
+ assert.equal(await notificationPermission(), 'denied', 'Covered account cannot show new notifications');
  assert.equal(await ui("document.querySelector('#left-cover').hidden"), false);
  await ui("window.duo.privacyAction('cover',{side:'left'})"); assert.equal(views.whatsapp.getVisible(), true);
+ // Static blur must hide the real view too. Capture may fall back to opaque
+ // on platforms without a compositor; no full-size image enters UI state.
+ await ui("window.duo.privacyAction('cover',{side:'left',mode:'blur'})");
+ assert.equal(views.whatsapp.getVisible(), false);
+ if (!process.argv.includes('--skip-capture')) {
+   const deadline = Date.now() + 5000;
+   while (!state().panelPreviews.left && Date.now() < deadline) await sleep(50);
+   if (state().panelPreviews.left) {
+     const { nativeImage } = require('electron');
+     assert.deepEqual(nativeImage.createFromDataURL(state().panelPreviews.left).getSize(), { width: 32, height: 32 });
+   }
+ }
+ await ui("window.duo.privacyAction('cover',{side:'left'})");
+ assert.equal(state().panelPreviews.left, null);
  // Native popup, not a DOM simulation: it must hide with its account.
  const { BrowserWindow } = require('electron');
  const popup = new BrowserWindow({ show: true, webPreferences: { sandbox: true, nodeIntegration: false } });
@@ -88,6 +112,7 @@ module.exports = async ({ app, win, views, settings, state, overlay, showOverlay
  childWindows.set('whatsapp', new Set([popup]));
  await ui("window.duo.privacyAction('lock')"); await sleep(100);
  assert.equal(state().privacy.locked, true); assert.equal(popup.isVisible(), false);
+ assert.equal(await notificationPermission(), 'denied', 'Lock blocks notifications even after prior grant');
  assert.equal(overlay.getVisible(), true); assert.equal(overlay.getBounds().width, win.getContentSize()[0]);
  assert.equal(await privateUI("document.querySelector('#lock-screen').hidden"), false);
  for (const view of Object.values(views)) assert.equal(view.getVisible(), false);
@@ -102,11 +127,13 @@ module.exports = async ({ app, win, views, settings, state, overlay, showOverlay
  assert.equal((await privateUI(`window.duo.privacyAction('unlock',{password:${JSON.stringify(password)}})`)).ok, true);
  await sleep(50);
  assert.equal(privacy.snapshot().locked, false); assert.equal(popup.isVisible(), true);
+ assert.equal(await notificationPermission(), 'granted');
  assert.equal(views.whatsapp.getVisible(), true); assert.equal(views.telegram.getVisible(), true);
  for (const [id, wcId] of Object.entries(beforeLock)) assert.equal(views[id].webContents.id, wcId, 'Lock does not reload services or terminate sessions');
  powerMonitor.emit('lock-screen'); assert.equal(privacy.snapshot().locked, true);
  await privateUI(`window.duo.privacyAction('unlock',{password:${JSON.stringify(password)}})`);
  popup.destroy(); childWindows.delete('whatsapp');
+ waSession.protocol.unhandle('https'); waAccount.permissions = false;
  assert.equal((await privateUI(`window.duo.privacyAction('disable',{currentPassword:${JSON.stringify(password)}})`)).ok, true);
  console.log('PRIVACY SMOKE PASS: settings UI, opaque native-view covers, real popup hidden/restored, full lock overlay, mutation/IPC guards, password rejection/unlock, preserved service processes and OS-lock event.');
 

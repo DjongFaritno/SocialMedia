@@ -11,6 +11,7 @@ const { createUpdates } = require('./updates.cjs');
 const { createPrivacy, defaults: privacyDefaults } = require('./privacy.cjs');
 let updates, privacy, idleTimer;
 const privacyHiddenChildren = new Set();
+const panelPreviews = { left: null, right: null }, previewAccounts = {}, previewGeneration = { left: 0, right: 0 };
 const mediaGate = nativeMediaGate(process.platform, systemPreferences);
 const smoke = process.argv.includes('--smoke');
 if (smoke) app.setPath('userData', fs.mkdtempSync(path.join(require('node:os').tmpdir(), 'duochat-smoke-')));
@@ -41,7 +42,7 @@ function save() { clearTimeout(saveTimer); fs.writeFileSync(settingsPath, JSON.s
 function queueSave() { clearTimeout(saveTimer); saveTimer = setTimeout(save, 250); }
 function state() {
   const fullscreen = win.isFullScreen();
-  return { ...settings, privacy: privacy?.snapshot(), updates: updates?.snapshot(), statuses, fullscreen, effectiveTheme: nativeTheme.shouldUseDarkColors ? 'dark' : 'light', headerHidden: fullscreen ? !fullscreenHeaderVisible : settings.hideHeader };
+  return { ...settings, panelPreviews: { ...panelPreviews }, privacy: privacy?.snapshot(), updates: updates?.snapshot(), statuses, fullscreen, effectiveTheme: nativeTheme.shouldUseDarkColors ? 'dark' : 'light', headerHidden: fullscreen ? !fullscreenHeaderVisible : settings.hideHeader };
 }
 function send() { if (win && !win.isDestroyed()) win.webContents.send('state', state()); if (overlay && !overlay.webContents.isDestroyed()) overlay.webContents.send('state', { ...state(), overlayMode }); }
 function updateColors() {
@@ -137,6 +138,7 @@ function lockOrSetup() {
 function privacyChanged() {
   if (!win || win.isDestroyed() || !overlay) return;
   const locked = privacy.snapshot().locked;
+  if (locked) for (const side of ['left', 'right']) { panelPreviews[side] = null; previewGeneration[side]++; }
   if (locked && aboutWindow && !aboutWindow.isDestroyed()) aboutWindow.close();
   for (const [id, children] of childWindows) for (const child of children) {
     if (child.isDestroyed()) { privacyHiddenChildren.delete(child); continue; }
@@ -214,6 +216,9 @@ function closeAccount(id) {
   if (view) { win.contentView.removeChildView(view); if (!view.webContents.isDestroyed()) view.webContents.close(); }
 }
 function syncAccounts() {
+  for (const side of ['left', 'right']) if (previewAccounts[side] !== settings.slots[side]) {
+    panelPreviews[side] = null; previewGeneration[side]++; previewAccounts[side] = settings.slots[side];
+  }
   const live = new Set(liveAccounts(settings).map(item => item.id));
   for (const id of Object.keys(views)) if (!live.has(id)) closeAccount(id);
   for (const account of liveAccounts(settings)) if (!views[account.id]) addService(account);
@@ -239,8 +244,24 @@ function editableUI(event) { return ownUI(event) && !privacy?.snapshot().locked;
 ipcMain.handle('privacy:action', (event, action, input) => {
   if (!ownUI(event) || !privacy) return { ok: false };
   if (['save', 'disable', 'unlock', 'biometric'].includes(action) && event.sender !== overlay?.webContents) return { ok: false };
+  if (action === 'cover') return togglePanelCover(input);
   return privacy.action(action, input);
 });
+function togglePanelCover(input) {
+  if (!input || !['left', 'right'].includes(input.side) || privacy.snapshot().locked) return { ok: false };
+  const side = input.side, covering = !privacy.snapshot().covered[side], id = settings.slots[side], view = views[id];
+  const generation = ++previewGeneration[side]; previewAccounts[side] = id; panelPreviews[side] = null;
+  const result = privacy.action('cover', input);
+  if (covering && input.mode === 'blur' && view && !view.webContents.isDestroyed()) {
+    // Capture once after hiding the real view. Only a 32x32 color preview
+    // reaches the trusted shell, never the original full-resolution snapshot.
+    void view.webContents.capturePage(undefined, { stayHidden: true }).then(image => {
+      if (image.isEmpty() || generation !== previewGeneration[side] || privacy.snapshot().locked || !privacy.snapshot().covered[side] || settings.slots[side] !== id) return;
+      panelPreviews[side] = image.resize({ width: 32, height: 32, quality: 'good' }).toDataURL(); send();
+    }).catch(() => {}); // Keep the opaque cover if the platform cannot capture.
+  }
+  return result;
+}
 function ownUI(event) { return win && ((event.sender === win.webContents && event.senderFrame?.url === uiURL) || (overlay && event.sender === overlay.webContents && event.senderFrame?.url === overlayURL)); }
 ipcMain.handle('state:get', event => ownUI(event) ? { ...state(), overlayMode } : null);
 ipcMain.handle('about:info', event => ownAbout(event) ? { version: app.getVersion() } : null);
