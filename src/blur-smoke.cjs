@@ -56,9 +56,10 @@ module.exports = async ({ app, win, views, settings, handleAccountAction, blurCo
  await ui('window.duo.overlay(null)');
  await save(config);
  for (const service of Object.keys(SERVICES)) {
+  console.log('BLUR FIXTURE mount',service);
   const account = settings.accounts.find(item => item.service === service);
   assert.ok(account, 'Fixture account exists for ' + service);
-  const wc = await mount(account, service);
+  const wc = await mount(account, service); console.log('BLUR FIXTURE ready',service);
   for (const id of ['message', 'person', 'avatar', 'media', ...(service === 'threads' ? [] : ['preview'])]) assert.equal(await isBlurred(wc, id), true, service + ' blurs ' + id);
   assert.equal(await isBlurred(wc, 'editor'), false, service + ' keeps composer clear by default');
   assert.equal(await isBlurred(wc, 'plain-button'), false, service + ' keeps controls usable');
@@ -90,13 +91,13 @@ module.exports = async ({ app, win, views, settings, handleAccountAction, blurCo
   if (service === 'whatsapp') {
    await require('./whatsapp-blur-smoke.cjs')({ wc, save, move, hover, isBlurred });
   }
-  if (['instagram','threads'].includes(service)) await require('./media-blur-smoke.cjs')({wc,save,move,hover,isBlurred,service});
+  if (['instagram','threads'].includes(service)) { console.log('MEDIA OVERLAY start',service); await require('./media-blur-smoke.cjs')({wc,save,move,hover,isBlurred,service}); console.log('MEDIA OVERLAY pass',service); }
   if (service === 'instagram') {
    await wc.loadURL('https://www.facebook.com/login'); await settled(wc);
    assert.equal(await isBlurred(wc, 'message'), false, 'Facebook login does not inherit Instagram CSS');
   }
   if (wc.debugger.isAttached()) wc.debugger.detach();
-  wc.session.protocol.unhandle('https');
+  wc.session.protocol.unhandle('https'); console.log('BLUR FIXTURE pass',service);
  }
  // Both visible panels pick up one saved configuration, including a newly re-created view.
  await handleAccountAction('select', { side: 'left', id: 'whatsapp' });
