@@ -5,7 +5,7 @@ module.exports = async ({wc,save,move,hover,isBlurred,service}) => {
  await evaluate(`(()=>{
  const root=document.querySelector('article,[data-pressable-container="true"]');
  const wrapper=document.createElement('div');wrapper.setAttribute('dir','auto');wrapper.id='media-wrapper';
- wrapper.innerHTML='<div style="position:relative;width:160px;height:100px"><img id="overlay-image" style="width:160px;height:100px;pointer-events:none" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"><button id="image-control" style="position:absolute;inset:0;margin:0">Photo controls</button></div><div style="position:relative;width:160px;height:100px"><video id="overlay-video" style="width:160px;height:100px;pointer-events:none"></video><button id="video-control" style="position:absolute;inset:0;margin:0">Play</button></div>';
+ wrapper.innerHTML='<div style="position:relative;width:160px;height:100px"><img id="overlay-image" style="width:160px;height:100px;pointer-events:none" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"><button id="image-control" style="position:absolute;inset:0;margin:0">Photo controls</button></div><div style="position:relative;width:160px;height:100px"><video id="overlay-video" style="width:160px;height:100px;pointer-events:none"></video><img id="video-poster" style="position:absolute;inset:0;width:160px;height:100px;pointer-events:none" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"><button id="video-control" style="position:absolute;inset:0;margin:0">Play</button></div>';
  root.append(wrapper);document.getElementById('image-control').onclick=()=>document.body.dataset.mediaClicked='yes';
  })()`);
  await move(wc,2,2);
@@ -16,6 +16,7 @@ module.exports = async ({wc,save,move,hover,isBlurred,service}) => {
   assert.equal(await evaluate('document.getElementById('+JSON.stringify(media)+').matches(":hover")'),false,'overlay intercepts hover');
   assert.equal(await isBlurred(wc,media),false,service+' reveals media through sibling overlay');
   assert.equal(await isBlurred(wc,other),true,service+' keeps other media blurred');
+  assert.equal(await isBlurred(wc,'video-poster'),control!=='video-control',service+' handles stacked video/poster layers');
   assert.equal(await isBlurred(wc,'message'),true,service+' keeps unrelated caption blurred');
   await move(wc,2,2);assert.equal(await isBlurred(wc,media),true,'reblur');
  }

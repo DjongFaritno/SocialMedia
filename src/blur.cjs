@@ -113,12 +113,12 @@ function installMediaHover(selectors, enabled) {
  const key = '__duochatMediaHoverCleanup', attribute = 'data-duochat-media-reveal';
  globalThis[key]?.();
  if (!enabled) return;
- let frame = 0, current = null, point = null, disposed = false;
+ let frame = 0, current = new Set(), point = null, disposed = false;
  const selector = selectors.join(',');
- function clear() { if (current) current.removeAttribute(attribute); current = null; }
+ function clear() { for (const element of current) element.removeAttribute(attribute); current.clear(); }
  function update() {
   frame = 0; if (disposed) return;
-  let found = null;
+  const found = new Set();
   if (point) {
    const hit = document.elementFromPoint(point.x, point.y);
    if (hit) for (const element of document.querySelectorAll(selector)) {
@@ -129,12 +129,13 @@ function installMediaHover(selectors, enabled) {
     let root = element;
     for (let depth = 0; root && depth < 7; depth++, root = root.parentElement) {
      if (root !== element && root.matches('html,body,main,article,[role="main"],[data-pressable-container="true"]')) break;
-     if (root.contains(hit)) { found = element; break; }
+     if (root.contains(hit)) { found.add(element); break; }
     }
-    if (found) break;
    }
   }
-  if (current !== found) { clear(); current = found; current?.setAttribute(attribute, ''); }
+  for (const element of current) if (!found.has(element)) element.removeAttribute(attribute);
+  for (const element of found) if (!current.has(element)) element.setAttribute(attribute, '');
+  current = found;
  }
  function schedule() { if (!frame && !disposed) frame = requestAnimationFrame(update); }
  function pointer(event) { point = { x: event.clientX, y: event.clientY }; schedule(); }
@@ -150,6 +151,7 @@ function installMediaHover(selectors, enabled) {
  document.addEventListener('focusin', focused, true);
  document.addEventListener('focusout', leave, true);
  window.addEventListener('blur', leave);
+ window.addEventListener('resize', schedule);
  globalThis[key] = () => {
   disposed = true; leave();
   document.removeEventListener('pointermove', pointer, true);
@@ -157,7 +159,7 @@ function installMediaHover(selectors, enabled) {
   document.removeEventListener('scroll', schedule, true);
   document.removeEventListener('focusin', focused, true);
   document.removeEventListener('focusout', leave, true);
-  window.removeEventListener('blur', leave); delete globalThis[key];
+  window.removeEventListener('blur', leave); window.removeEventListener('resize', schedule); delete globalThis[key];
  };
 }
 function mediaHoverScript(service, raw) {
