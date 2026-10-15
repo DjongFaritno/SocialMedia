@@ -3,7 +3,14 @@ const { SERVICES } = require('./accounts.cjs');
 const ELEMENTS = Object.freeze(['messages', 'previews', 'names', 'avatars', 'media', 'composer']);
 const ADAPTERS = Object.freeze({
  whatsapp: {
-  messages: ['.message-in .selectable-text', '.message-out .selectable-text', '[data-testid="msg-text"]'],
+  messages: [
+   '.message-in .selectable-text', '.message-out .selectable-text', '[data-testid="msg-text"]',
+   '[data-testid="msg-container"] .selectable-text', '#main [data-id] .selectable-text', '#main [data-pre-plain-text] .selectable-text',
+   '[data-testid="msg-container"] [data-lexical-text="true"]', '#main [data-id] [data-lexical-text="true"]',
+   '#main [data-pre-plain-text] .copyable-text span[dir]:not(:has([dir]))',
+   '#main [data-pre-plain-text].copyable-text > span[dir]:not(:has(img, video))',
+   '[data-testid="msg-container"]:not(:has(.selectable-text, [data-lexical-text], img, video, canvas, audio))'
+  ],
   previews: ['#pane-side [data-testid="cell-frame-secondary"]', '#pane-side [data-testid="last-msg-preview"]', '#pane-side div.xjbqb8w.x1iyjqo2.x1f6kntn.x1fc57z9.x6ikm8r.x10wlt62.x1yc453h.xlyipyv.xuxw1ft.xo1l8bm'],
   names: ['#pane-side [data-testid="cell-frame-title"]', '#pane-side [role="gridcell"] div.x14ug900.x78zum5.x1iyjqo2.x1jchvi3.xdod15v.x6ikm8r.x10wlt62.x1mzt3pk.x1yc453h.xo1l8bm', '#pane-side ._ak8q', '#main header span[title]', '[data-testid="conversation-info-header-chat-title"]'],
   avatars: ['#pane-side img', '#main header img', '[data-testid="conversation-info-header"] img'],
@@ -65,7 +72,10 @@ function blurCSS(service, raw) {
  if (!config.enabled || !adapter) return '';
  const normal = ELEMENTS.filter(key => key !== 'composer' && config.elements[key]).flatMap(key => adapter[key]);
  // Leave editors and their ancestors/children alone unless composer blur is explicitly selected.
- const guard = ':not(input):not(textarea):not([contenteditable]):not([role="textbox"]):not([contenteditable] *):not([role="textbox"] *):not(:has([contenteditable="true"], textarea, [role="textbox"]))';
+ // Read-only message markup can carry contenteditable=false / role=textbox.
+ // Exclude actual editors, not every element with these accessibility attributes.
+ const editor = ':is(input,textarea,[contenteditable]:not([contenteditable="false"]))';
+ const guard = ':not(' + editor + '):not(' + editor + ' *):not(:has(' + editor + '))';
  const targets = normal.length ? [':where(' + [...new Set(normal)].join(',') + ')' + guard] : [];
  if (config.elements.composer && adapter.composer.length) targets.push(':where(' + adapter.composer.join(',') + '):not(input[type="password"])');
  if (!targets.length) return '';
@@ -94,7 +104,6 @@ function attachBlur(contents, service, getConfig, report = () => {}) {
     if (css) next = await contents.insertCSS(css, { cssOrigin: 'author' });
     if (disposed || contents.isDestroyed() || token !== revision) { if (next && !contents.isDestroyed()) await contents.removeInsertedCSS(next).catch(() => {}); return; }
     const previous = key; key = next;
-    if (process.argv.includes('--smoke')) console.log('BLUR-SHEET', JSON.stringify({ service, previous, next, reveal: getConfig().revealOnHover }));
     if (previous) await contents.removeInsertedCSS(previous).catch(() => {});
     report(css ? 'active' : 'off');
    } catch { report('error'); }

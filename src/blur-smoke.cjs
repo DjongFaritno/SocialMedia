@@ -6,7 +6,7 @@ const { cleanBlur } = require('./blur.cjs');
 const image = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 const pic = attributes => '<img src="' + image + '" ' + attributes + '>';
 const fixtures = {
- whatsapp: '<div id="pane-side"><div role="row"><span data-testid="cell-frame-title" id="person">Private contact</span><div data-testid="cell-frame-secondary" id="preview">Private preview</div>' + pic('id="avatar"') + '</div></div><div id="main"><div class="message-in"><span class="selectable-text" id="message">Private message</span>' + pic('id="media"') + '</div><footer><div contenteditable="true" data-testid="conversation-compose-box-input" id="editor">Reply</div></footer></div>',
+ whatsapp: '<div id="pane-side"><div role="row"><span data-testid="cell-frame-title" id="person">Private contact</span><div data-testid="cell-frame-secondary" id="preview">Private preview</div>' + pic('id="avatar"') + '</div></div><div id="main"><div class="message-in"><span class="selectable-text" contenteditable="false" role="textbox" aria-readonly="true" id="message">Private message</span>' + pic('id="media"') + '</div><footer><div contenteditable="true" data-testid="conversation-compose-box-input" id="editor">Reply</div></footer></div>',
  telegram: '<div class="ChatInfo"><span class="title" id="person">Private contact</span></div><div class="ListItem Chat"><div class="subtitle" id="preview">Preview</div></div><div class="Avatar" id="avatar">AB</div><div class="Message"><span class="text-content" id="message">Private message</span>' + pic('class="full-media" id="media"') + '</div><div class="MessageInput"><div contenteditable="true" id="message-input-text"><span id="editor">Reply</span></div></div>',
  discord: '<span class="username_fixture" id="person">Private contact</span><span class="lastMessage_fixture" id="preview">Preview</span>' + pic('class="avatar_fixture" id="avatar"') + '<li id="chat-messages-1"><div id="message-content-1"><span id="message">Private message</span></div><div class="imageWrapper_fixture">' + pic('id="media"') + '</div></li><div data-slate-editor="true" role="textbox" contenteditable="true" id="editor">Reply</div>',
  x: '<div data-testid="User-Name" id="person">Private contact</div><div data-testid="conversation"><span data-testid="preview" id="preview">Preview</span></div><div data-testid="UserAvatar-Container-fixture" id="avatar">' + pic('') + '</div><div data-testid="tweetText" id="message">Private post</div><div data-testid="tweetPhoto">' + pic('id="media"') + '</div><div data-testid="tweetTextarea_0" role="textbox" contenteditable="true" id="editor">Reply</div>',
@@ -71,10 +71,10 @@ module.exports = async ({ app, win, views, settings, handleAccountAction, blurCo
   assert.match(await evaluate(wc, 'document.body.textContent'), /live reply/);
   await hover(wc, 'message'); assert.equal(await isBlurred(wc, 'message'), false, service + ' reveals only the hovered message');
   assert.equal(await isBlurred(wc, 'person'), true, service + ' does not reveal other content');
-  wc.sendInputEvent({ type: 'mouseMove', x: 2, y: 2 }); await sleep(50);
+  await move(wc, 2, 2);
   assert.equal(await isBlurred(wc, 'message'), true, service + ' reblurs after hover');
   await save({ ...config, revealOnHover: false });
-  await hover(wc, 'message'); console.log('BLUR-HOVER-OFF', JSON.stringify({ service, config: settings.blur, filter: await evaluate(wc, 'getComputedStyle(document.getElementById("message")).filter') })); assert.equal(await isBlurred(wc, 'message'), true, service + ' honors reveal off');
+  await hover(wc, 'message'); assert.equal(await isBlurred(wc, 'message'), true, service + ' honors reveal off');
   const ids = { messages: 'message', previews: 'preview', names: 'person', avatars: 'avatar', media: 'media' };
   for (const [category, id] of Object.entries(ids)) {
    if (service === 'threads' && category === 'previews') continue;
@@ -87,6 +87,9 @@ module.exports = async ({ app, win, views, settings, handleAccountAction, blurCo
   for (const id of ['message', 'person', 'avatar', 'media', 'editor']) assert.equal(await isBlurred(wc, id), false, service + ' restores original styles');
   assert.match(await evaluate(wc, 'getComputedStyle(document.getElementById("message")).filter'), /sepia/, service + ' restores service filters');
   await save({ enabled: true });
+  if (service === 'whatsapp') {
+   await require('./whatsapp-blur-smoke.cjs')({ wc, save, move, hover, isBlurred });
+  }
   if (service === 'instagram') {
    await wc.loadURL('https://www.facebook.com/login'); await settled(wc);
    assert.equal(await isBlurred(wc, 'message'), false, 'Facebook login does not inherit Instagram CSS');

@@ -57,3 +57,10 @@ test('navigation invalidates pending CSS insertion, errors are reported, and fut
  await controller.refresh(); assert.equal(states.at(-1), 'error');
  wc.insertCSS = Contents.prototype.insertCSS.bind(wc); await controller.refresh(); assert.equal(states.at(-1), 'active'); assert.equal(wc.sheets.size, 1);
 });
+
+test('WhatsApp adapter supports message metadata without depending on message-in/out wrappers', () => {
+ const css = blurCSS('whatsapp', { enabled: true });
+ for (const marker of ['[data-testid="msg-container"]', '[data-id]', '[data-pre-plain-text]', '[data-lexical-text="true"]']) assert.ok(css.includes(marker), marker);
+ assert.ok(css.includes('[contenteditable]:not([contenteditable="false"])'));
+ assert.ok(!css.includes(':not([role="textbox"])'));
+});

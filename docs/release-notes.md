@@ -1,5 +1,7 @@
-DuoChat 0.3.0-beta.2 — pilih sendiri yang mau diburamin.
+DuoChat 0.3.0-beta.3 — perbaikan blur pesan WhatsApp.
 
+- Memperbaiki teks pesan WhatsApp yang terlewat: pesan read-only tidak lagi dianggap kolom ketik, dan selector diperluas untuk metadata pesan serta markup Lexical.
+- Tes tambahan mencakup pesan masuk/keluar, kutipan/balasan, caption, dan pesan baru tanpa reload.
 - Blur interaktif langsung pada elemen layanan, menggantikan blur gambar snapshot.
 - Atur sekali untuk semua panel dan akun: pesan/postingan, preview, nama, foto profil, media, dan kolom ketik.
 - Hover atau fokus keyboard untuk membuka elemen sementara; tingkat blur 4–20 px.
