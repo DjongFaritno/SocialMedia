@@ -2,7 +2,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const { layout, cleanSettings } = require('./core.cjs');
-module.exports = async ({ app, win, views, settings, state, overlay, showOverlay, handleAccountAction, about }) => {
+module.exports = async ({ app, win, views, settings, state, overlay, showOverlay, handleAccountAction, privacy, childWindows, powerMonitor, about }) => {
  const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
  const ready = async () => { const deadline = Date.now() + 8000; while (Object.values(views).some(view => view.webContents.isLoading())) { if (Date.now() > deadline) throw Error('Views did not load'); await sleep(40); } await sleep(100); };
  const ui = code => win.webContents.executeJavaScript(code);
@@ -68,5 +68,47 @@ module.exports = async ({ app, win, views, settings, state, overlay, showOverlay
  assert.match(await aboutWindow.webContents.executeJavaScript('document.body.textContent'), /prompt by TjongFaritno/);
  assert.equal(await ui('window.duo.getAbout()'), null);
  await new Promise((resolve, reject) => { const timer = setTimeout(() => reject(Error('About close timed out')), 5000); aboutWindow.once('closed', () => { clearTimeout(timer); resolve(); }); void aboutWindow.webContents.executeJavaScript("document.querySelector('#close-about').click()").catch(() => {}); });
+
+ showOverlay('privacy'); await sleep(100);
+ assert.equal(await overlay.webContents.executeJavaScript("document.querySelector('#privacy-dialog').open"), true);
+ const privateUI = code => overlay.webContents.executeJavaScript(code);
+ const password = 'smoke-only-password';
+ assert.equal((await privateUI(`window.duo.privacyAction('save',{newPassword:${JSON.stringify(password)},confirmPassword:${JSON.stringify(password)},lockOnStart:true,lockOnOS:true})`)).ok, true);
+ assert.equal(privacy.snapshot().configured, true);
+ const beforeLock = Object.fromEntries(Object.entries(views).map(([id, view]) => [id, view.webContents.id]));
+ showOverlay(null);
+ await ui("window.duo.privacyAction('cover',{side:'left'})"); await sleep(50);
+ assert.equal(views.whatsapp.getVisible(), false); assert.equal(views.telegram.getVisible(), true);
+ assert.equal(await ui("document.querySelector('#left-cover').hidden"), false);
+ await ui("window.duo.privacyAction('cover',{side:'left'})"); assert.equal(views.whatsapp.getVisible(), true);
+ // Native popup, not a DOM simulation: it must hide with its account.
+ const { BrowserWindow } = require('electron');
+ const popup = new BrowserWindow({ show: true, webPreferences: { sandbox: true, nodeIntegration: false } });
+ await popup.loadURL('data:text/html,<h1>Private popup fixture</h1>');
+ childWindows.set('whatsapp', new Set([popup]));
+ await ui("window.duo.privacyAction('lock')"); await sleep(100);
+ assert.equal(state().privacy.locked, true); assert.equal(popup.isVisible(), false);
+ assert.equal(overlay.getVisible(), true); assert.equal(overlay.getBounds().width, win.getContentSize()[0]);
+ assert.equal(await privateUI("document.querySelector('#lock-screen').hidden"), false);
+ for (const view of Object.values(views)) assert.equal(view.getVisible(), false);
+ assert.equal(JSON.stringify(await ui('window.duo.getState()')).includes('credential'), false);
+ const originalRatio = settings.ratio; await ui('window.duo.setRatio(.3)'); assert.equal(settings.ratio, originalRatio);
+ assert.equal(await ui("window.duo.accountAction('add',{service:'whatsapp',name:'Must not add'})"), null);
+ const count = settings.accounts.length; assert.equal((await handleAccountAction('add', { service: 'whatsapp', name: 'Blocked' })).ok, false); assert.equal(settings.accounts.length, count);
+ await ui("window.duo.overlay(null)"); assert.equal(overlay.getVisible(), true, 'Escape/close cannot remove lock');
+ assert.equal((await ui(`window.duo.privacyAction('unlock',{password:${JSON.stringify(password)}})`)).ok, false, 'Unlock restricted to lock renderer');
+ assert.equal((await privateUI("window.duo.privacyAction('unlock',{password:'wrong-password'})")).ok, false);
+ await sleep(1100);
+ assert.equal((await privateUI(`window.duo.privacyAction('unlock',{password:${JSON.stringify(password)}})`)).ok, true);
+ await sleep(50);
+ assert.equal(privacy.snapshot().locked, false); assert.equal(popup.isVisible(), true);
+ assert.equal(views.whatsapp.getVisible(), true); assert.equal(views.telegram.getVisible(), true);
+ for (const [id, wcId] of Object.entries(beforeLock)) assert.equal(views[id].webContents.id, wcId, 'Lock does not reload services or terminate sessions');
+ powerMonitor.emit('lock-screen'); assert.equal(privacy.snapshot().locked, true);
+ await privateUI(`window.duo.privacyAction('unlock',{password:${JSON.stringify(password)}})`);
+ popup.destroy(); childWindows.delete('whatsapp');
+ assert.equal((await privateUI(`window.duo.privacyAction('disable',{currentPassword:${JSON.stringify(password)}})`)).ok, true);
+ console.log('PRIVACY SMOKE PASS: settings UI, opaque native-view covers, real popup hidden/restored, full lock overlay, mutation/IPC guards, password rejection/unlock, preserved service processes and OS-lock event.');
+
  console.log('BIG UPDATE SMOKE PASS: migration, isolated dual WhatsApp, lazy profiles, switching/swapping, background/pause, all providers, native overlay hover bounds, modal, escaped labels, themes, About, sandbox and preserved session cookies.');
 };

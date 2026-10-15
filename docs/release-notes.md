@@ -1,17 +1,19 @@
-DuoChat 0.2.0-beta.2 — dua ruang, lebih banyak akun.
+DuoChat 0.3.0-beta.1 — sebentar, ini ruang sendiri.
 
-- Login Instagram melalui Facebook tetap di DuoChat, menggunakan sesi akun yang sama untuk popup dan redirect login.
-- Tambahkan beberapa akun WhatsApp, Telegram, Discord, X, Instagram, atau Threads. Setiap akun memakai sesi login tersendiri.
-- Pilih akun untuk panel kiri/kanan. Memilih akun di sisi lain menukar kedua panel.
-- Header dan sidebar tersembunyi pada mode ringkas; sidebar muncul saat hover tepi kiri tanpa menggeser percakapan.
-- Kelola nama akun, pilih Tetap aktif di latar belakang, atau hapus sesi akun dari DuoChat. Akun dijeda berhenti menerima notifikasi dan panggilan.
-- Sesi WhatsApp/Telegram lama dipertahankan saat upgrade. Tema, rasio, About dengan versi/Tutup, dan cek pembaruan tetap tersedia.
+- Kunci aplikasi dengan password, pintasan Ctrl/Cmd+Shift+L, serta pilihan kunci saat dibuka, komputer dikunci/sleep, atau idle.
+- Touch ID opsional pada Mac yang mendukung. Windows dan Linux memakai password; Windows Hello/fingerprint Linux belum tersedia.
+- Penutup polos per panel: sembunyikan sementara, lalu tampilkan lagi tanpa memuat ulang akun.
+- Saat terkunci, tampilan layanan dan popup disembunyikan; permintaan izin/notifikasi baru, popup baru, serta perubahan akun diblokir. Sesi dan panggilan yang sudah berjalan tetap aktif.
+- Pengaturan/password hanya dapat diubah setelah verifikasi password saat ini. Password memakai verifier scrypt dengan salt acak.
+- Mempertahankan multiakun, enam layanan, tema, mode ringkas, cek update, dan perbaikan login Instagram melalui Facebook di dalam DuoChat.
+
+Kunci ini melindungi tampilan, bukan enkripsi data profil. Notifikasi yang sudah tampil di OS dan suara dari situs tidak otomatis dihapus/dimatikan. Penutup panel belum menyediakan blur. Simpan password karena pemulihan password belum tersedia. Lihat [panduan privasi](privacy.md).
 
 Windows x64: Setup.exe. macOS Intel/Apple Silicon: DMG universal atau ZIP. Linux x64: AppImage/deb, dengan script installer Fedora.
 
-Pada Mac, seret DuoChat ke Applications. Bila muncul “DuoChat” Not Opened, pilih Done lalu System Settings → Privacy & Security → Open Anyway, dan konfirmasikan Touch ID/password jika diminta. Paket masih ad-hoc, belum dinotarize Apple. Windows juga belum memakai sertifikat signing.
+Paket macOS masih ad-hoc, belum dinotarize Apple. Windows belum memakai sertifikat signing. Build kandidat di pull request tidak otomatis diterbitkan atau menjadi pembaruan pengguna.
 
-Smoke dan tes otomatis memakai fixture lokal. Login, notifikasi, upload/download, serta panggilan mengikuti web resmi layanan dan masih membutuhkan pengujian akun nyata pada OS pengguna. Versi beta ini tidak menjamin dukungan semua fitur tiap layanan.
+Tes otomatis memakai fixture lokal. Touch ID fisik, login, banner notifikasi, serta panggilan akun nyata tetap perlu diuji pada perangkat pengguna.
 
 by Codex · prompt by TjongFaritno
 https://djongfaritno.github.io/

@@ -21,6 +21,10 @@ function render(state) {
  const active = state.accounts.filter(item => Object.values(state.slots).includes(item.id) || item.keepActive).length;
  document.querySelector('#active-status').textContent = `${active} akun aktif · ${state.accounts.length - active} akun dijeda`;
  for (const side of ['left', 'right']) {
+  const covered = state.privacy?.covered?.[side] === true;
+  document.querySelector(`#${side}-cover`).hidden = !covered;
+  document.querySelectorAll(`[data-cover="${side}"]`).forEach(button => { button.setAttribute('aria-pressed', String(covered)); });
+  document.querySelector(`[data-cover="${side}"]`).textContent = covered ? '◉' : '◌';
   const account = state.accounts.find(item => item.id === state.slots[side]), select = document.querySelector(`#${side}-account`);
   const choices = state.accounts.map(item => `<option value="${item.id}">${escapeHTML(item.name)} · ${providerNames[item.service]}</option>`).join('');
   if (select.innerHTML !== choices) select.innerHTML = choices; select.value = account.id;
@@ -44,3 +48,6 @@ document.querySelector('#update-button').addEventListener('click', event => wind
 const trigger = document.querySelector('#rail-trigger'); trigger.addEventListener('pointerenter', () => window.duo.overlay('rail')); trigger.addEventListener('click', () => window.duo.overlay('rail', true));
 trigger.addEventListener('keydown', event => { if (['Enter', 'ArrowRight', ' '].includes(event.key)) { event.preventDefault(); void window.duo.overlay('rail', true); } });
 railEvents(() => currentState); window.duo.onState(render); window.duo.getState().then(render);
+
+document.querySelectorAll('[data-cover]').forEach(button => button.addEventListener('click', () => window.duo.privacyAction('cover', { side: button.dataset.cover })));
+document.querySelector('#lock-app').addEventListener('click', () => currentState?.privacy?.configured ? window.duo.privacyAction('lock') : window.duo.overlay('privacy'));

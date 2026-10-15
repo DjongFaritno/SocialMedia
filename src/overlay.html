@@ -2,4 +2,25 @@
 <aside id="account-rail" aria-label="Akun tersimpan"><div id="rail-accounts"></div><button data-overlay="add" class="rail-add" aria-label="Tambah akun">+</button><div class="rail-bottom"><button data-overlay="manage" aria-label="Kelola akun">⚙</button><button data-overlay="close" aria-label="Tutup sidebar">‹</button></div></aside>
 <dialog id="add-dialog"><form id="add-form"><div class="modal-heading"><div><span class="eyebrow">RUANG BARU</span><h1>Tambah akun, yuk.</h1></div><button type="button" data-overlay="close" aria-label="Tutup">×</button></div><p>Pilih layanan dan beri nama. Kamu akan login saat akun dibuka di panel.</p><label for="provider">Layanan</label><div id="provider-options"></div><select id="provider" hidden><option value="whatsapp">WhatsApp</option><option value="telegram">Telegram</option><option value="discord">Discord</option><option value="x">X</option><option value="instagram">Instagram</option><option value="threads">Threads</option></select><label for="account-name">Nama akun</label><input id="account-name" maxlength="40" placeholder="Contoh: Pribadi atau Toko kedua" required><p class="notice">Akun baru punya sesi sendiri. Akun yang dijeda tidak menerima notifikasi sampai dibuka lagi.</p><div class="modal-buttons"><button type="button" data-overlay="close">Nanti dulu</button><button type="submit" class="primary-button">Tambah akun</button></div></form></dialog>
 <dialog id="manage-dialog"><div class="modal-heading"><div><span class="eyebrow">AKUN & AKTIVITAS</span><h1>Atur ritmemu.</h1></div><button data-overlay="close" aria-label="Tutup">×</button></div><p>Dua akun tampil berdampingan. Atur akun lainnya sesuai kebutuhan.</p><div id="account-settings"></div><p class="notice">Untuk melanjutkan panggilan saat pindah akun, pilih Tetap aktif. Akun dijeda berhenti menerima notifikasi. Panggilan mengikuti dukungan web masing-masing layanan.</p></dialog>
-<div id="toast" role="status" hidden></div><script src="account-ui.js"></script><script src="overlay.js"></script></body></html>
+<dialog id="privacy-dialog" aria-labelledby="privacy-heading"><form id="privacy-form">
+<div class="modal-heading"><div><span class="eyebrow">RUANG SENDIRI</span><h1 id="privacy-heading">Biar ngobrol tetap privat.</h1></div><button type="button" data-overlay="close" aria-label="Tutup pengaturan privasi">×</button></div>
+<p>Pasang password untuk mengunci DuoChat. Akun tetap terhubung saat layar dikunci; panggilan yang sedang berjalan tidak sengaja diputus.</p>
+<div id="current-password-row" hidden><label for="current-password">Password DuoChat sekarang</label><input id="current-password" type="password" autocomplete="current-password" maxlength="1024"></div>
+<label for="new-password" id="new-password-label">Password baru · minimal 8 karakter</label><input id="new-password" type="password" autocomplete="new-password" maxlength="1024">
+<label for="confirm-password">Ulangi password baru</label><input id="confirm-password" type="password" autocomplete="new-password" maxlength="1024">
+<p id="password-help" class="privacy-help"></p>
+<label class="privacy-check"><input id="lock-on-start" type="checkbox" checked> Minta password saat DuoChat dibuka</label>
+<label class="privacy-check"><input id="lock-on-os" type="checkbox" checked> Ikut terkunci saat komputer dikunci / sleep</label>
+<label for="idle-minutes">Kunci setelah komputer tidak digunakan</label><select id="idle-minutes"><option value="0">Manual saja</option><option value="1">1 menit</option><option value="5">5 menit</option><option value="15">15 menit</option><option value="30">30 menit</option></select>
+<label class="privacy-check" id="biometric-row" hidden><input id="enable-biometric" type="checkbox"> Boleh buka dengan Touch ID juga</label>
+<p id="biometric-help" class="privacy-help"></p>
+<p class="notice">Ini kunci tampilan aplikasi. Data sesi di komputer tidak dienkripsi oleh password ini. Simpan passwordmu; DuoChat belum punya pemulihan password.</p>
+<p id="privacy-error" role="alert" class="privacy-error"></p><div class="modal-buttons"><button id="disable-lock" type="button" hidden>Matikan kunci</button><button type="submit" class="primary-button">Simpan privasi</button></div>
+</form></dialog>
+<section id="lock-screen" class="lock-screen" aria-labelledby="lock-heading" hidden><form id="unlock-form" class="lock-card">
+<img src="assets/duochat-ui.png" alt="" width="64" height="64"><span class="eyebrow">DUOCHAT · WAKTU SENDIRI</span>
+<h1 id="lock-heading">Obrolanmu, ruangmu.</h1><p>DuoChat sedang dikunci. Masukkan password untuk lanjut.</p>
+<label for="unlock-password">Password DuoChat</label><input id="unlock-password" type="password" autocomplete="current-password" maxlength="1024" required>
+<button type="submit" class="primary-button">Buka DuoChat</button><button id="unlock-biometric" type="button" hidden>Buka dengan Touch ID</button><p id="unlock-error" role="alert" class="privacy-error"></p><small>Sesi tetap terhubung. Kamu bisa menutup aplikasi seperti biasa.</small>
+</form></section>
+<div id="toast" role="status" hidden></div><script src="account-ui.js"></script><script src="privacy-ui.js"></script><script src="overlay.js"></script></body></html>

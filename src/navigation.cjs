@@ -12,7 +12,7 @@ function navigationAllowed(service, value) {
 function popupAllowed(service, value, openerURL) {
   return navigationAllowed(service, value) || (['instagram', 'threads'].includes(service) && value === 'about:blank' && navigationAllowed(service, openerURL));
 }
-function protectNavigation(contents, { service, external, popupPreferences, onChild }) {
+function protectNavigation(contents, { service, external, popupPreferences, onChild, canOpen = () => true }) {
   contents.on('will-navigate', (event, url) => {
     if (!navigationAllowed(service, url)) { event.preventDefault(); void external(url); }
   });
@@ -20,6 +20,7 @@ function protectNavigation(contents, { service, external, popupPreferences, onCh
     if (!navigationAllowed(service, url)) event.preventDefault();
   });
   contents.setWindowOpenHandler(({ url }) => {
+    if (!canOpen()) return { action: 'deny' };
     if (!popupAllowed(service, url, contents.getURL())) { void external(url); return { action: 'deny' }; }
     return { action: 'allow', overrideBrowserWindowOptions: popupPreferences() };
   });

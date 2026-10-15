@@ -2,7 +2,7 @@
 
 Dua ruang. Akunnya terserah kamu.
 
-DuoChat membuka dua akun layanan web berdampingan dalam satu aplikasi desktop. Versi pengembangan **0.2.0-beta.2** menambahkan multiakun WhatsApp, Telegram, Discord, X, Instagram, dan Threads. Panel memakai tampilan web resmi masing-masing layanan.
+DuoChat membuka dua akun layanan web berdampingan dalam satu aplikasi desktop. Versi pengembangan **0.3.0-beta.1** menambahkan multiakun WhatsApp, Telegram, Discord, X, Instagram, dan Threads. Panel memakai tampilan web resmi masing-masing layanan.
 
 ## Coba dan jalankan
 
@@ -34,6 +34,10 @@ Slider/pembatas mengatur lebar panel kiri; tombol panah dan Home juga tersedia. 
 Tema **White / Dark / Auto** mengikuti pilihan pengguna dan mengirim preferensi warna ke layanan. UI layanan dengan pengaturan tema manual dapat memerlukan pengaturan System/Auto sendiri.
 
 Tombol **Izin** berlaku per akun untuk kamera, mikrofon, dan notifikasi. OS dapat meminta izin tambahan. Pencabutan memblokir permintaan berikutnya; tutup panggilan/muat ulang untuk menghentikan akses yang sudah berlangsung. **Muat ulang** mempertahankan sesi. **↗** membuka layanan di browser sesudah konfirmasi; browser memakai sesi tersendiri.
+
+## Privasi
+
+Buka **Privasi** untuk memasang password, memilih kunci saat mulai, saat komputer dikunci/sleep, atau setelah idle. **Ctrl/Cmd+Shift+L** mengunci aplikasi. Mac yang mendukung juga bisa memakai Touch ID. Ikon **◌** pada setiap panel menutup tampilannya sementara tanpa memutus sesi. [Panduan privasi dan batas perlindungan](docs/privacy.md).
 
 ## Update, platform, dan batas
 
