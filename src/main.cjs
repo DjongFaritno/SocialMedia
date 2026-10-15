@@ -11,7 +11,7 @@ const { createUpdates } = require('./updates.cjs');
 const { createPrivacy, defaults: privacyDefaults } = require('./privacy.cjs');
 let updates, privacy, idleTimer;
 const privacyHiddenChildren = new Set();
-const panelPreviews = { left: null, right: null }, previewAccounts = {}, previewGeneration = { left: 0, right: 0 };
+const panelPreviews = { left: null, right: null }, previewAccounts = {}, previewGeneration = { left: 0, right: 0 }, previewCaptureBusy = { left: false, right: false };
 const mediaGate = nativeMediaGate(process.platform, systemPreferences);
 const smoke = process.argv.includes('--smoke');
 if (smoke) app.setPath('userData', fs.mkdtempSync(path.join(require('node:os').tmpdir(), 'duochat-smoke-')));
@@ -252,13 +252,14 @@ function togglePanelCover(input) {
   const side = input.side, covering = !privacy.snapshot().covered[side], id = settings.slots[side], view = views[id];
   const generation = ++previewGeneration[side]; previewAccounts[side] = id; panelPreviews[side] = null;
   const result = privacy.action('cover', input);
-  if (covering && input.mode === 'blur' && view && !view.webContents.isDestroyed()) {
+  if (covering && input.mode === 'blur' && view && !view.webContents.isDestroyed() && !previewCaptureBusy[side]) {
+    previewCaptureBusy[side] = true;
     // Capture once after hiding the real view. Only a 32x32 color preview
     // reaches the trusted shell, never the original full-resolution snapshot.
     void view.webContents.capturePage(undefined, { stayHidden: true }).then(image => {
       if (image.isEmpty() || generation !== previewGeneration[side] || privacy.snapshot().locked || !privacy.snapshot().covered[side] || settings.slots[side] !== id) return;
       panelPreviews[side] = image.resize({ width: 32, height: 32, quality: 'good' }).toDataURL(); send();
-    }).catch(() => {}); // Keep the opaque cover if the platform cannot capture.
+    }).catch(() => {}).finally(() => { previewCaptureBusy[side] = false; }); // Opaque fallback on capture failure.
   }
   return result;
 }

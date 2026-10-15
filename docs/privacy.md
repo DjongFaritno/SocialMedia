@@ -23,6 +23,6 @@ Pengaturan kunci berada di **privacy.json** dalam direktori userData Electron, t
 
 Unit test memeriksa hashing, password salah, jeda percobaan, perubahan password, pengaturan rusak, kegagalan tulis, idle, penutup panel, serta pembatalan dan balapan autentikasi Touch ID. Smoke aplikasi terkemas memeriksa UI privasi, visibilitas WebContentsView dan popup asli, batas IPC saat terkunci, unlock, dan sesi/proses layanan yang tetap sama. Runner tidak membuktikan sensor Touch ID, panggilan akun nyata, atau banner notifikasi OS pengguna.
 
-Tidak ada renderer atau engine baru untuk privasi. Layar kunci memakai overlay yang sudah digunakan aplikasi. Preview blur dikurangi menjadi 32×32 piksel sebelum dikirim ke UI, dengan CSS blur tambahan; tidak ada screenshot resolusi penuh di snapshot UI. Scrypt dan pengambilan snapshot memerlukan memori sementara; penambahan RAM aktual belum diukur.
+Tidak ada renderer atau engine baru untuk privasi. Layar kunci memakai overlay yang sudah digunakan aplikasi. Pengambilan preview dibatasi satu proses per panel agar klik berulang tidak menumpuk screenshot. Preview blur dikurangi menjadi 32×32 piksel sebelum dikirim ke UI, dengan CSS blur tambahan; tidak ada screenshot resolusi penuh di snapshot UI. Scrypt dan pengambilan snapshot memerlukan memori sementara; penambahan RAM aktual belum diukur.
 
 Referensi implementasi: [Electron Touch ID](https://www.electronjs.org/docs/latest/api/system-preferences#systempreferencesprompttouchidreason-macos), [Electron powerMonitor](https://www.electronjs.org/docs/latest/api/power-monitor).

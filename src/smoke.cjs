@@ -113,6 +113,7 @@ module.exports = async ({ app, win, views, settings, state, overlay, showOverlay
  await ui("window.duo.privacyAction('lock')"); await sleep(100);
  assert.equal(state().privacy.locked, true); assert.equal(popup.isVisible(), false);
  assert.equal(await notificationPermission(), 'denied', 'Lock blocks notifications even after prior grant');
+ assert.equal(await views.whatsapp.webContents.executeJavaScript("window.open('https://web.whatsapp.com/private-popup') === null"), true, 'Locked service cannot open a popup');
  assert.equal(overlay.getVisible(), true); assert.equal(overlay.getBounds().width, win.getContentSize()[0]);
  assert.equal(await privateUI("document.querySelector('#lock-screen').hidden"), false);
  for (const view of Object.values(views)) assert.equal(view.getVisible(), false);
