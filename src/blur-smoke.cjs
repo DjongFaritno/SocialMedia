@@ -67,7 +67,7 @@ module.exports = async ({ app, win, views, settings, handleAccountAction, blurCo
   wc.sendInputEvent({ type: 'mouseMove', x: 2, y: 2 }); await sleep(50);
   assert.equal(await isBlurred(wc, 'message'), true, service + ' reblurs after hover');
   await save({ ...config, revealOnHover: false });
-  await hover(wc, 'message'); assert.equal(await isBlurred(wc, 'message'), true, service + ' honors reveal off');
+  await hover(wc, 'message'); console.log('BLUR-HOVER-OFF', JSON.stringify({ service, config: settings.blur, filter: await evaluate(wc, 'getComputedStyle(document.getElementById("message")).filter') })); assert.equal(await isBlurred(wc, 'message'), true, service + ' honors reveal off');
   const ids = { messages: 'message', previews: 'preview', names: 'person', avatars: 'avatar', media: 'media' };
   for (const [category, id] of Object.entries(ids)) {
    if (service === 'threads' && category === 'previews') continue;

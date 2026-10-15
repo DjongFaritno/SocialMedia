@@ -119,6 +119,9 @@ jobs:
       - run: npm ci
       - run: npm run check
       - run: npm test
+      - name: Fast Chromium interaction smoke before packaging
+        timeout-minutes: 3
+        run: xvfb-run -a --server-args="-screen 0 1440x1000x24" npm run smoke -- --no-sandbox --disable-gpu --skip-capture
       - name: Build AppImage and Debian package
         run: npm run dist:linux
         env:

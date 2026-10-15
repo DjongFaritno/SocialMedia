@@ -92,6 +92,7 @@ function attachBlur(contents, service, getConfig, report = () => {}) {
     if (css) next = await contents.insertCSS(css, { cssOrigin: 'user' });
     if (disposed || contents.isDestroyed() || token !== revision) { if (next && !contents.isDestroyed()) await contents.removeInsertedCSS(next).catch(() => {}); return; }
     const previous = key; key = next;
+    if (process.argv.includes('--smoke')) console.log('BLUR-SHEET', JSON.stringify({ service, previous, next, reveal: getConfig().revealOnHover }));
     if (previous) await contents.removeInsertedCSS(previous).catch(() => {});
     report(css ? 'active' : 'off');
    } catch { report('error'); }
