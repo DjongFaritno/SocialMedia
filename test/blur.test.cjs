@@ -25,7 +25,7 @@ test('category toggles build local CSS and no whole-page overlay or resources', 
  assert.equal(blurCSS('unknown', { enabled: true }), '');
  const css = blurCSS('whatsapp', { enabled: true, elements: { ...empty, messages: true }, strength: 7 });
  assert.ok(css.includes('blur(7px)')); assert.ok(css.includes('.selectable-text')); assert.ok(!css.includes('cell-frame-title'));
- assert.ok(css.includes(':hover')); assert.ok(css.includes('filter:revert!important'));
+ assert.ok(css.includes(':hover')); assert.ok(css.includes('filter:revert-layer!important'));
  assert.ok(!blurCSS('whatsapp', { enabled: true, revealOnHover: false }).includes(':hover'));
  for (const service of Object.keys(ADAPTERS)) assert.doesNotMatch(blurCSS(service, { enabled: true }), /@import|url\(|backdrop-filter|position:fixed/);
 });
@@ -33,7 +33,7 @@ class Contents extends EventEmitter {
  constructor() { super(); this.url = 'https://web.whatsapp.com/'; this.sheets = new Map(); this.sequence = 0; }
  isDestroyed() { return false; }
  getURL() { return this.url; }
- async insertCSS(css, options) { assert.equal(options.cssOrigin, 'user'); const key = String(++this.sequence); this.sheets.set(key, css); return key; }
+ async insertCSS(css, options) { assert.equal(options.cssOrigin, 'author'); const key = String(++this.sequence); this.sheets.set(key, css); return key; }
  async removeInsertedCSS(key) { this.sheets.delete(key); }
 }
 test('rapid changes and hash navigation do not accumulate styles; disabled/login pages restore originals', async () => {

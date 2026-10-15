@@ -73,9 +73,9 @@ function blurCSS(service, raw) {
  // Blur each outer selected element once; nested matches must not compound blur.
  const target = selected + ':not(' + selected + ' *)';
  let css = target + '{filter:blur(' + config.strength + 'px)!important;transition:none!important;}';
- // User-origin revert restores the service's own filter (e.g. native spoilers).
- if (config.revealOnHover) css += target + ':is(:hover,:focus-within){filter:revert!important;}';
- return css;
+ // Revert only our layer on reveal, preserving service filters (e.g. spoilers).
+ if (config.revealOnHover) css += target + ':is(:hover,:focus-within){filter:revert-layer!important;}';
+ return '@layer duochatPrivacyBlur{' + css + '}';
 }
 function blurSupport() {
  return Object.fromEntries(Object.entries(ADAPTERS).map(([service, adapter]) => [service, { name: SERVICES[service].name, elements: ELEMENTS.filter(key => adapter[key].length), experimental: !['whatsapp', 'telegram'].includes(service) }]));
@@ -89,7 +89,9 @@ function attachBlur(contents, service, getConfig, report = () => {}) {
    const css = allowed(service, contents.getURL()) ? blurCSS(service, getConfig()) : '';
    let next = null;
    try {
-    if (css) next = await contents.insertCSS(css, { cssOrigin: 'user' });
+    // Electron 44's removal API uses Blink's default author origin.
+    // A dedicated author layer is removable and preserves original filters.
+    if (css) next = await contents.insertCSS(css, { cssOrigin: 'author' });
     if (disposed || contents.isDestroyed() || token !== revision) { if (next && !contents.isDestroyed()) await contents.removeInsertedCSS(next).catch(() => {}); return; }
     const previous = key; key = next;
     if (process.argv.includes('--smoke')) console.log('BLUR-SHEET', JSON.stringify({ service, previous, next, reveal: getConfig().revealOnHover }));
