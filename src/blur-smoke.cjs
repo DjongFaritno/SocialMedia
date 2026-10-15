@@ -25,16 +25,23 @@ module.exports = async ({ app, win, views, settings, handleAccountAction, blurCo
  const settled = wc => blurControllers.get(wc.id).refresh();
  const evaluate = (wc, code) => wc.executeJavaScript(code);
  const isBlurred = (wc, id) => evaluate(wc, '(() => {let e=document.getElementById(' + JSON.stringify(id) + ');for(;e;e=e.parentElement)if(getComputedStyle(e).filter.includes("blur("))return true;return false;})()');
+ async function move(wc, x, y) {
+  // Drive Chromium's pointer directly. macOS runner window focus/coordinate
+  // routing can drop synthetic native mouse moves in WebContentsViews.
+  if (!wc.debugger.isAttached()) wc.debugger.attach('1.3');
+  await wc.debugger.sendCommand('Input.dispatchMouseEvent', { type: 'mouseMoved', x, y, buttons: 0 });
+  await sleep(80);
+ }
  async function hover(wc, id) {
   const point = await evaluate(wc, '(() => {const r=document.getElementById(' + JSON.stringify(id) + ').getBoundingClientRect();return {x:Math.round(r.x+r.width/2),y:Math.round(r.y+r.height/2)};})()');
-  wc.focus(); wc.sendInputEvent({ type: 'mouseMove', ...point }); await sleep(80);
+  win.focus(); wc.focus(); await move(wc, point.x, point.y);
  }
  async function mount(account, service) {
   await handleAccountAction('select', { side: 'left', id: account.id });
   const wc = views[account.id].webContents, ses = wc.session;
   await ses.protocol.handle('https', () => new Response(html(service), { headers: { 'Content-Type': 'text/html' } }));
   await wc.loadURL(SERVICES[service].url); await settled(wc);
-  wc.sendInputEvent({ type: 'mouseMove', x: 2, y: 2 }); await sleep(50);
+  await move(wc, 2, 2);
   return wc;
  }
  // Exercise the real configuration form without ever setting an app password.
@@ -84,6 +91,7 @@ module.exports = async ({ app, win, views, settings, handleAccountAction, blurCo
    await wc.loadURL('https://www.facebook.com/login'); await settled(wc);
    assert.equal(await isBlurred(wc, 'message'), false, 'Facebook login does not inherit Instagram CSS');
   }
+  if (wc.debugger.isAttached()) wc.debugger.detach();
   wc.session.protocol.unhandle('https');
  }
  // Both visible panels pick up one saved configuration, including a newly re-created view.
@@ -103,7 +111,7 @@ module.exports = async ({ app, win, views, settings, handleAccountAction, blurCo
  await ui('window.duo.blurAction("toggle")');
  assert.equal(await isBlurred(views.whatsapp.webContents, 'message'), false);
  assert.equal(await isBlurred(views.telegram.webContents, 'message'), false);
- for (const service of ['whatsapp', 'telegram']) views[service].webContents.session.protocol.unhandle('https');
+ for (const service of ['whatsapp', 'telegram']) { const wc = views[service].webContents; if (wc.debugger.isAttached()) wc.debugger.detach(); wc.session.protocol.unhandle('https'); }
  await save(originalBlur);
  await handleAccountAction('select', { side: 'left', id: originalSlots.left });
  await handleAccountAction('select', { side: 'right', id: originalSlots.right });
