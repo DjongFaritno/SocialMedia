@@ -9,7 +9,7 @@ const { MAX_ACCOUNTS, partition, switchAccount, liveAccounts } = require('./acco
 const { navigationAllowed, protectNavigation } = require('./navigation.cjs');
 const { createUpdates } = require('./updates.cjs');
 const { createPrivacy, defaults: privacyDefaults } = require('./privacy.cjs');
-const { cleanBlur, blurSupport, attachBlur } = require('./blur.cjs');
+const { cleanBlurPreferences, accountBlur, blurSupport, attachBlur } = require('./blur.cjs');
 const blurControllers = new Map(), blurStatuses = {};
 let updates, privacy, idleTimer;
 const privacyHiddenChildren = new Set();
@@ -153,7 +153,7 @@ function privacyChanged() {
 }
 function protect(contents, account) {
   const service = account.service;
-  const blurController = attachBlur(contents, service, () => settings.blur, value => {
+  const blurController = attachBlur(contents, service, () => accountBlur(settings, account.id), value => {
     if (views[account.id]?.webContents === contents) { blurStatuses[account.id] = value; send(); }
   });
   blurControllers.set(contents.id, blurController);
@@ -220,14 +220,16 @@ function closeAccount(id) {
   const view = views[id]; delete views[id]; delete blurStatuses[id]; statuses[id] = { state: 'paused' };
   if (view) { win.contentView.removeChildView(view); if (!view.webContents.isDestroyed()) view.webContents.close(); }
 }
-function syncAccounts() {
+async function syncAccounts() {
   const live = new Set(liveAccounts(settings).map(item => item.id));
   for (const id of Object.keys(views)) if (!live.has(id)) closeAccount(id);
   for (const account of liveAccounts(settings)) if (!views[account.id]) addService(account);
   // Native child views cover the HTML shell. Keep our trusted overlay above them.
   if (overlay) { win.contentView.removeChildView(overlay); win.contentView.addChildView(overlay); }
   arrange();
+  await refreshBlur();
 }
+function refreshBlur() { return Promise.allSettled([...blurControllers.values()].map(controller => controller.refresh())); }
 function showOverlay(mode, focus = false) {
   if (privacy.snapshot().locked) mode = 'lock';
   if (!['rail', 'add', 'manage', 'privacy', 'blur', 'lock', null].includes(mode)) return;
@@ -258,13 +260,21 @@ ipcMain.handle('blur:action', (event, action, input) => {
   if (!editableUI(event)) return { ok: false, error: 'Buka kunci dulu.' };
   const run = async () => {
     if (!editableUI(event)) return { ok: false, error: 'Buka kunci dulu.' };
-    const previous = settings.blur;
-    if (action === 'toggle') settings.blur = cleanBlur({ ...settings.blur, enabled: !settings.blur.enabled });
-    else if (action === 'save' && input && typeof input === 'object' && !Array.isArray(input)) settings.blur = cleanBlur(input);
+    const previous = settings.blur, previousPanels = { ...settings.blurPanels };
+    if (action === 'toggle' || action === 'set') {
+      if (!input || !['left', 'right'].includes(input.side) || (action === 'set' && typeof input.enabled !== 'boolean')) return { ok: false, error: 'Pilih panel kiri atau kanan.' };
+      settings.blurPanels = { ...settings.blurPanels, [input.side]: action === 'toggle' ? !settings.blurPanels[input.side] : input.enabled };
+    } else if (action === 'save' && input && typeof input === 'object' && !Array.isArray(input)) settings.blur = cleanBlurPreferences(input);
     else return { ok: false, error: 'Pengaturan blur tidak valid.' };
-    if (settings.blur.enabled && !Object.values(settings.blur.elements).some(Boolean)) { settings.blur = previous; return { ok: false, error: 'Pilih minimal satu elemen untuk mengaktifkan blur.' }; }
-    try { save(); } catch { settings.blur = previous; return { ok: false, error: 'Pengaturan belum tersimpan. Periksa penyimpanan lalu coba lagi.' }; } send();
-    await Promise.allSettled([...blurControllers.values()].map(controller => controller.refresh()));
+    if (Object.values(settings.blurPanels).some(Boolean) && !Object.values(settings.blur.elements).some(Boolean)) {
+      settings.blur = previous; settings.blurPanels = previousPanels;
+      return { ok: false, error: 'Pilih minimal satu elemen untuk mengaktifkan blur.' };
+    }
+    try { save(); } catch {
+      settings.blur = previous; settings.blurPanels = previousPanels;
+      return { ok: false, error: 'Pengaturan belum tersimpan. Periksa penyimpanan lalu coba lagi.' };
+    }
+    send(); await refreshBlur();
     return { ok: true };
   };
   const operation = blurActions.then(run, run); blurActions = operation.catch(() => {});
@@ -351,7 +361,7 @@ async function handleAccountAction(action, input = {}) {
     try { await ses.clearStorageData(); await ses.clearCache(); await ses.closeAllConnections(); } catch { return { ok: false, error: 'Data sesi belum berhasil dihapus. Coba lagi.' }; }
     settings.accounts = settings.accounts.filter(item => item.id !== account.id);
   } else return { ok: false, error: 'Aksi akun tidak dikenal.' };
-  save(); syncAccounts(); return { ok: true, id: account.id };
+  save(); await syncAccounts(); return { ok: true, id: account.id };
 }
 if (primaryInstance) app.whenReady().then(async () => {
   app.userAgentFallback = browserUserAgent(app.userAgentFallback, app.getName());
@@ -393,7 +403,7 @@ if (primaryInstance) app.whenReady().then(async () => {
   overlay.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
   overlay.webContents.on('will-navigate', event => event.preventDefault()); shortcuts(overlay.webContents);
   await overlay.webContents.loadFile(path.join(__dirname, 'overlay.html'));
-  syncAccounts();
+  await syncAccounts();
   privacyChanged(); win.show();
   updatePresentation(); win.on('resize', arrange);
   if (!smoke && app.isPackaged) updates.start();

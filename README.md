@@ -2,7 +2,7 @@
 
 Dua ruang. Akunnya terserah kamu.
 
-DuoChat membuka dua akun layanan web berdampingan dalam satu aplikasi desktop. Versi pengembangan **0.3.0-beta.3** menambahkan multiakun WhatsApp, Telegram, Discord, X, Instagram, dan Threads. Panel memakai tampilan web resmi masing-masing layanan.
+DuoChat membuka dua akun layanan web berdampingan dalam satu aplikasi desktop. Versi pengembangan **0.3.0-beta.4** menambahkan multiakun WhatsApp, Telegram, Discord, X, Instagram, dan Threads. Panel memakai tampilan web resmi masing-masing layanan.
 
 ## Coba dan jalankan
 
@@ -37,7 +37,7 @@ Tombol **Izin** berlaku per akun untuk kamera, mikrofon, dan notifikasi. OS dapa
 
 ## Privasi
 
-Buka **Privasi** untuk memasang password, memilih kunci saat mulai, saat komputer dikunci/sleep, atau setelah idle. **Ctrl/Cmd+Shift+L** mengunci aplikasi. Mac yang mendukung juga bisa memakai Touch ID. **Atur blur** memilih elemen yang diburamkan di semua panel dan akun: pesan/postingan, preview, nama, foto profil, media, atau kolom ketik. Hover/fokus menampilkan bagian yang ditunjuk; tingkat blur 4–20 px dapat diatur. **Blur semua / Blur ON** mengaktifkan atau mematikan efek bersama. Ikon **◌** menutup satu panel sepenuhnya tanpa memutus sesi. [Panduan privasi dan batas perlindungan](docs/privacy.md).
+Buka **Privasi** untuk memasang password, memilih kunci saat mulai, saat komputer dikunci/sleep, atau setelah idle. **Ctrl/Cmd+Shift+L** mengunci aplikasi. Mac yang mendukung juga bisa memakai Touch ID. **Atur blur** memilih elemen yang diburamkan di semua panel dan akun: pesan/postingan, preview, nama, foto profil, media, atau kolom ketik. Hover/fokus menampilkan bagian yang ditunjuk; tingkat blur 4–20 px dapat diatur. **Blur ON/OFF** mengaktifkan atau mematikan efek di panel tersebut. Ikon **◌** menutup satu panel sepenuhnya tanpa memutus sesi. [Panduan privasi dan batas perlindungan](docs/privacy.md).
 
 ## Update, platform, dan batas
 
@@ -70,3 +70,8 @@ Lihat [catatan big update](docs/big-update.md), [matriks penerimaan](docs/accept
 About menampilkan versi aplikasi, tombol Tutup, dan **by Codex · prompt by TjongFaritno**. Website: https://djongfaritno.github.io/.
 
 Login Instagram lewat Facebook dibuka di DuoChat dengan profil akun Instagram yang sama. Login di browser luar tidak otomatis masuk ke sesi DuoChat. Jika tadi sudah login di browser, ulangi login dari panel setelah memasang beta terbaru.
+
+
+Blur dinyalakan terpisah lewat tombol di panel kiri atau kanan. Pilihan elemen, kekuatan blur, dan hover tetap satu pengaturan bersama. Mengganti akun tidak mengubah status blur panel tersebut. Pengaturan lama yang aktif dimigrasikan menjadi aktif pada kedua panel.
+
+Instagram dan Threads: gambar/video dapat dibuka sementara saat hover di atas kontrol media, termasuk media dengan pointer-events nonaktif. Pemeriksaan posisi elemen berjalan lokal saat interaksi, tanpa membaca atau mengirim isi pesan. Overlay dialog lain tidak membuka media di belakangnya.

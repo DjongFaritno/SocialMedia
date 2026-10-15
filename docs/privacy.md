@@ -9,7 +9,7 @@ Buka **Privasi** di footer atau menu DuoChat. Pasang password minimal 8 karakter
 - **Touch ID** ditampilkan hanya jika macOS melaporkan dukungan. Aktifkan lewat Privasi; password tetap tersedia jika dibatalkan atau sensor tidak bisa dipakai. Windows Hello dan fingerprint Linux belum diintegrasikan.
 - Ikon **◌** di kepala panel menutup seluruh panel sementara tanpa password. **Tampilkan panel** membukanya lagi. Penutup mengikuti sisi kiri/kanan sampai dibuka kembali dan direset saat aplikasi ditutup.
 - **Atur blur** membuka konfigurasi bersama untuk semua panel/akun, termasuk akun yang dibuka nanti. Pilih pesan/postingan, preview pesan, nama kontak/grup/pengguna, foto profil, media, dan kolom ketik. Default semua dipilih kecuali kolom ketik; blur sendiri masih opt-in.
-- **Blur semua / Blur ON** pada kedua panel memakai satu pengaturan yang sama. Mengaktifkan blur tidak menutup panel atau memblokir interaksinya. Pengaturan ini tidak memerlukan password; perubahan ditolak ketika aplikasi terkunci.
+- **Blur ON/OFF** bekerja terpisah pada masing-masing panel; konfigurasi elemen, kekuatan, dan hover tetap bersama. Mengaktifkan blur tidak menutup panel atau memblokir interaksinya. Pengaturan ini tidak memerlukan password; perubahan ditolak ketika aplikasi terkunci.
 - Tingkat blur: **4–20 px**. **Hover atau fokus keyboard** membuka elemen yang ditunjuk sementara. Nonaktifkan opsi ini agar elemen selalu buram sampai blur dimatikan. Kolom ketik tetap jelas secara default dan tidak menyentuh password/login.
 - Aturan dipasang hanya pada origin resmi tiap layanan, bukan halaman login Facebook atau tautan luar. CSS mengikuti elemen baru saat percakapan diperbarui dan dipasang ulang setelah reload/SPA navigation. Tidak mengambil screenshot, tidak membaca pesan untuk dikirim ke proses utama, dan tidak menambah bridge Node/IPC pada halaman layanan.
 
@@ -38,3 +38,8 @@ Smoke aplikasi terkemas menggunakan fixture HTTPS lokal untuk keenam layanan. Ia
 Tidak ada renderer atau engine baru. Blur langsung memakai CSS pada elemen halaman tanpa polling atau snapshot. Filter media/video masih bisa menambah beban GPU; RAM/GPU akun nyata belum diukur.
 
 Referensi: [Electron insertCSS](https://www.electronjs.org/docs/latest/api/web-contents#contentsinsertcsscss-options), [referensi selector dan atribusi](third-party-notices.md), [Touch ID](https://www.electronjs.org/docs/latest/api/system-preferences#systempreferencesprompttouchidreason-macos), [powerMonitor](https://www.electronjs.org/docs/latest/api/power-monitor).
+
+
+Blur dinyalakan terpisah lewat tombol di panel kiri atau kanan. Pilihan elemen, kekuatan blur, dan hover tetap satu pengaturan bersama. Mengganti akun tidak mengubah status blur panel tersebut. Pengaturan lama yang aktif dimigrasikan menjadi aktif pada kedua panel.
+
+Instagram dan Threads: gambar/video dapat dibuka sementara saat hover di atas kontrol media, termasuk media dengan pointer-events nonaktif. Pemeriksaan posisi elemen berjalan lokal saat interaksi, tanpa membaca atau mengirim isi pesan. Overlay dialog lain tidak membuka media di belakangnya.

@@ -2,15 +2,15 @@ const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const { EventEmitter } = require('node:events');
 const { cleanSettings } = require('../src/core.cjs');
-const { ELEMENTS, ADAPTERS, cleanBlur, allowed, blurCSS, attachBlur } = require('../src/blur.cjs');
+const { ELEMENTS, ADAPTERS, cleanBlur, cleanBlurPreferences, cleanBlurPanels, accountBlur, allowed, blurCSS, attachBlur } = require('../src/blur.cjs');
 test('shared blur preferences migrate and persist without accepting CSS or unknown fields', () => {
- const defaults = cleanSettings().blur; assert.equal(defaults.enabled, false); assert.equal(defaults.elements.composer, false);
+ const defaults = cleanSettings().blur; assert.equal(defaults.enabled, undefined); assert.equal(defaults.elements.composer, false);
  const input = { enabled: true, strength: 200, revealOnHover: false, elements: { names: false, messages: true, css: 'body{}' }, css: '@import evil' };
  const clean = cleanSettings({ blur: input }).blur;
  assert.equal(clean.strength, 20); assert.equal(clean.revealOnHover, false); assert.equal(clean.elements.names, false);
  assert.deepEqual(cleanSettings(JSON.parse(JSON.stringify({ blur: clean }))).blur, clean);
  assert.ok(!JSON.stringify(clean).includes('evil')); assert.ok(!Object.hasOwn(clean.elements, 'css'));
- for (const raw of [null, [], true, 'on']) assert.deepEqual(cleanBlur(raw), defaults);
+ for (const raw of [null, [], true, 'on']) assert.deepEqual(cleanBlurPreferences(raw), defaults);
  assert.equal(cleanBlur({ strength: NaN }).strength, 10); assert.equal(cleanBlur({ strength: -1 }).strength, 4);
 });
 test('only official HTTPS service origins receive blur, never Meta login or arbitrary pages', () => {
@@ -63,4 +63,27 @@ test('WhatsApp adapter supports message metadata without depending on message-in
  for (const marker of ['[data-testid="msg-container"]', '[data-id]', '[data-pre-plain-text]', '[data-lexical-text="true"]']) assert.ok(css.includes(marker), marker);
  assert.ok(css.includes('[contenteditable]:not([contenteditable="false"])'));
  assert.ok(!css.includes(':not([role="textbox"])'));
+});
+
+test('activation migrates once and stays per physical panel while preferences stay shared', () => {
+ const migrated = cleanSettings({blur:{enabled:true,strength:13}});
+ assert.deepEqual(migrated.blurPanels,{left:true,right:true});
+ assert.equal(migrated.blur.enabled,undefined);
+ const settings = cleanSettings({...migrated,blurPanels:{left:false,right:true}});
+ assert.deepEqual(cleanSettings(JSON.parse(JSON.stringify(settings))),settings);
+ assert.equal(accountBlur(settings,settings.slots.left).enabled,false);
+ assert.equal(accountBlur(settings,settings.slots.right).enabled,true);
+ const left=settings.slots.left;settings.slots.left=settings.slots.right;settings.slots.right=left;
+ assert.equal(accountBlur(settings,left).enabled,true);
+ assert.equal(accountBlur(settings,'background').enabled,false);
+ assert.deepEqual(cleanBlurPanels({left:'yes',right:true,unknown:true}),{left:false,right:true});
+ assert.deepEqual(cleanBlurPanels(null),{left:false,right:false});
+});
+test('Instagram media helper is isolated and removed when hover is disabled', async () => {
+ const wc = new Contents(); wc.url='https://www.instagram.com/'; const calls=[];
+ wc.executeJavaScriptInIsolatedWorld=async (world,scripts)=>{assert.equal(world,42);calls.push(scripts[0].code);};
+ let config={enabled:true};const controller=attachBlur(wc,'instagram',()=>config);
+ await controller.refresh();assert.match(calls.at(-1),/,true\);$/);
+ config={enabled:true,revealOnHover:false};await controller.refresh();assert.match(calls.at(-1),/,false\);$/);
+ wc.url='https://www.facebook.com/login';await controller.refresh();assert.equal(calls.length,2);
 });

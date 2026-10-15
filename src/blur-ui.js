@@ -8,7 +8,6 @@ function renderBlur(state) {
  const signature = JSON.stringify(state.blur);
  if (!entering && signature === blurSignature) return;
  blurSignature = signature;
- document.querySelector('#blur-enabled').checked = state.blur.enabled;
  document.querySelector('#blur-hover').checked = state.blur.revealOnHover;
  document.querySelector('#blur-strength').value = state.blur.strength;
  document.querySelectorAll('[data-blur-element]').forEach(input => { input.checked = state.blur.elements[input.dataset.blurElement]; });
@@ -28,7 +27,7 @@ document.querySelector('#blur-reset').addEventListener('click', () => {
 });
 blurForm.addEventListener('submit', async event => {
  event.preventDefault(); const button = blurForm.querySelector('[type="submit"]'); if (button.disabled) return; button.disabled = true;
- const input = { enabled: document.querySelector('#blur-enabled').checked, revealOnHover: document.querySelector('#blur-hover').checked, strength: Number(document.querySelector('#blur-strength').value),
+ const input = { revealOnHover: document.querySelector('#blur-hover').checked, strength: Number(document.querySelector('#blur-strength').value),
   elements: Object.fromEntries([...document.querySelectorAll('[data-blur-element]')].map(element => [element.dataset.blurElement, element.checked])) };
  try {
   const result = await window.duo.blurAction('save', input);

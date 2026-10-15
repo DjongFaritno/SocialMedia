@@ -105,9 +105,9 @@ module.exports = async ({ app, win, views, settings, state, overlay, showOverlay
  assert.equal(await privateUI("document.querySelector('#lock-screen').hidden"), false);
  for (const view of Object.values(views)) assert.equal(view.getVisible(), false);
  assert.equal(JSON.stringify(await ui('window.duo.getState()')).includes('credential'), false);
- const lockedBlur = JSON.stringify(settings.blur);
- assert.equal((await privateUI("window.duo.blurAction('toggle')")).ok, false);
- assert.equal(JSON.stringify(settings.blur), lockedBlur);
+ const lockedBlur = JSON.stringify([settings.blur,settings.blurPanels]);
+ assert.equal((await privateUI("window.duo.blurAction('toggle',{side:'left'})")).ok, false);
+ assert.equal(JSON.stringify([settings.blur,settings.blurPanels]), lockedBlur);
  const originalRatio = settings.ratio; await ui('window.duo.setRatio(.3)'); assert.equal(settings.ratio, originalRatio);
  assert.equal(await ui("window.duo.accountAction('add',{service:'whatsapp',name:'Must not add'})"), null);
  const count = settings.accounts.length; assert.equal((await handleAccountAction('add', { service: 'whatsapp', name: 'Blocked' })).ok, false); assert.equal(settings.accounts.length, count);

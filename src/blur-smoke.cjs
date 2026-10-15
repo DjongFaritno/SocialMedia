@@ -19,9 +19,9 @@ function html(service) {
 module.exports = async ({ app, win, views, settings, handleAccountAction, blurControllers }) => {
  const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
  const ui = code => win.webContents.executeJavaScript(code);
- const originalSlots = { ...settings.slots }, originalBlur = settings.blur;
+ const originalSlots = { ...settings.slots }, originalBlur = settings.blur, originalPanels = {...settings.blurPanels};
  let config = cleanBlur({ enabled: true });
- const save = async next => { config = cleanBlur(next); assert.equal((await ui('window.duo.blurAction("save",' + JSON.stringify(config) + ')')).ok, true); };
+ const save = async next => { config = cleanBlur(next); assert.equal((await ui('window.duo.blurAction("save",' + JSON.stringify(config) + ')')).ok, true); for(const side of ["left","right"]) assert.equal((await ui('window.duo.blurAction("set",'+JSON.stringify({side,enabled:config.enabled})+')')).ok,true); };
  const settled = wc => blurControllers.get(wc.id).refresh();
  const evaluate = (wc, code) => wc.executeJavaScript(code);
  const isBlurred = (wc, id) => evaluate(wc, '(() => {let e=document.getElementById(' + JSON.stringify(id) + ');for(;e;e=e.parentElement)if(getComputedStyle(e).filter.includes("blur("))return true;return false;})()');
@@ -48,10 +48,10 @@ module.exports = async ({ app, win, views, settings, handleAccountAction, blurCo
  await ui('window.duo.overlay("blur")'); await sleep(80);
  const overlay = require('electron').webContents.getAllWebContents().find(wc => wc.getURL().endsWith('/overlay.html'));
  assert.ok(overlay);
- await overlay.executeJavaScript('document.querySelector("#blur-enabled").checked=true;document.querySelector("#blur-strength").value=12;document.querySelector("#blur-form").requestSubmit()');
+ await overlay.executeJavaScript('document.querySelector("#blur-strength").value=12;document.querySelector("#blur-form").requestSubmit()');
  const deadline = Date.now() + 5000;
  while (settings.blur.strength !== 12) { assert.ok(Date.now() < deadline, 'Blur form did not save'); await sleep(30); }
- assert.equal(settings.blur.enabled, true);
+ assert.deepEqual(settings.blurPanels, originalPanels);
  assert.deepEqual(JSON.parse(fs.readFileSync(path.join(app.getPath('userData'), 'settings.json'), 'utf8')).blur, settings.blur);
  await ui('window.duo.overlay(null)');
  await save(config);
@@ -90,6 +90,7 @@ module.exports = async ({ app, win, views, settings, handleAccountAction, blurCo
   if (service === 'whatsapp') {
    await require('./whatsapp-blur-smoke.cjs')({ wc, save, move, hover, isBlurred });
   }
+  if (['instagram','threads'].includes(service)) await require('./media-blur-smoke.cjs')({wc,save,move,hover,isBlurred,service});
   if (service === 'instagram') {
    await wc.loadURL('https://www.facebook.com/login'); await settled(wc);
    assert.equal(await isBlurred(wc, 'message'), false, 'Facebook login does not inherit Instagram CSS');
@@ -111,11 +112,18 @@ module.exports = async ({ app, win, views, settings, handleAccountAction, blurCo
  assert.equal(await isBlurred(views.whatsapp.webContents, 'person'), false);
  assert.equal(await isBlurred(views.telegram.webContents, 'person'), false);
  assert.equal(views.whatsapp.getVisible(), true); assert.equal(views.telegram.getVisible(), true);
- await ui('window.duo.blurAction("toggle")');
+ assert.equal((await ui('window.duo.blurAction("toggle")')).ok,false);
+ await ui('window.duo.blurAction("toggle",{side:"left"})');
  assert.equal(await isBlurred(views.whatsapp.webContents, 'message'), false);
- assert.equal(await isBlurred(views.telegram.webContents, 'message'), false);
+ assert.equal(await isBlurred(views.telegram.webContents, 'message'), true);
+ assert.deepEqual(settings.blurPanels,{left:false,right:true});
+ await ui('window.duo.blurAction("save",'+JSON.stringify({...config,strength:14})+')');
+ assert.deepEqual(settings.blurPanels,{left:false,right:true});
+ assert.equal(await isBlurred(views.whatsapp.webContents,'message'),false);
+ assert.equal(await isBlurred(views.telegram.webContents,'message'),true);
  for (const service of ['whatsapp', 'telegram']) { const wc = views[service].webContents; if (wc.debugger.isAttached()) wc.debugger.detach(); wc.session.protocol.unhandle('https'); }
  await save(originalBlur);
+ for (const side of ["left","right"]) await ui('window.duo.blurAction("set",'+JSON.stringify({side,enabled:originalPanels[side]})+')');
  await handleAccountAction('select', { side: 'left', id: originalSlots.left });
  await handleAccountAction('select', { side: 'right', id: originalSlots.right });
  console.log('INTERACTIVE BLUR PASS: shared configuration form/persistence, six service fixtures, selective categories, native Chromium hover/reblur and typing, original filters, no remote bridge, origin boundary and simultaneous panels. Real-account coverage still needs device testing.');

@@ -20,7 +20,7 @@
 <dialog id="blur-dialog" aria-labelledby="blur-heading"><form id="blur-form">
 <div class="modal-heading"><div><span class="eyebrow">SATU SETTING, SEMUA RUANG</span><h1 id="blur-heading">Yang privat, diburamin.</h1></div><button type="button" data-overlay="close" aria-label="Tutup pengaturan blur">×</button></div>
 <p>Pilih bagian yang mau disamarkan. Berlaku bersama untuk panel kiri, kanan, dan semua akun yang kamu buka nanti. Chat tetap bisa dipakai.</p>
-<label class="blur-switch"><input type="checkbox" id="blur-enabled"> Aktifkan blur untuk semua panel</label>
+<p>Pilihan di sini berlaku untuk semua panel. Nyalakan atau matikan blur lewat tombol Blur di masing-masing panel.</p>
 <fieldset class="blur-elements"><legend>Apa saja yang diburamkan?</legend>
 <label><input type="checkbox" data-blur-element="messages"><span><strong>Isi pesan & postingan</strong><small>Teks percakapan atau konten tulisan.</small></span></label>
 <label><input type="checkbox" data-blur-element="previews"><span><strong>Preview pesan</strong><small>Cuplikan pesan di daftar percakapan.</small></span></label>
@@ -35,7 +35,7 @@
 <label for="blur-strength">Tingkat blur <output id="blur-strength-value">10 px</output></label><input id="blur-strength" type="range" min="4" max="20" step="1" value="10">
 <details class="blur-support"><summary>Cakupan per layanan</summary><div id="blur-support-list"></div><p class="privacy-help">WhatsApp dan Telegram punya aturan khusus. Discord, X, Instagram, dan Threads memakai aturan awal yang masih perlu dicoba pada akun nyata. Elemen yang tidak tersedia dilewati.</p></details>
 <p class="notice">Blur menyamarkan elemen yang dikenali dan tetap membiarkan layanan dipakai. Periksa tampilan sebelum berbagi layar. Untuk menutup seluruh panel, gunakan Tutup sementara atau Kunci DuoChat.</p>
-<p id="blur-error" role="alert" class="privacy-error"></p><div class="modal-buttons"><button type="button" data-overlay="close">Batal</button><button type="submit" class="primary-button">Simpan & terapkan ke semua panel</button></div>
+<p id="blur-error" role="alert" class="privacy-error"></p><div class="modal-buttons"><button type="button" data-overlay="close">Batal</button><button type="submit" class="primary-button">Simpan pengaturan bersama</button></div>
 </form></dialog>
 <section id="lock-screen" class="lock-screen" aria-labelledby="lock-heading" hidden><form id="unlock-form" class="lock-card">
 <img src="assets/duochat-ui.png" alt="" width="64" height="64"><span class="eyebrow">DUOCHAT · WAKTU SENDIRI</span>
