@@ -1,19 +1,16 @@
-DuoChat 0.3.0-beta.1 — sebentar, ini ruang sendiri.
+DuoChat 0.3.0-beta.2 — pilih sendiri yang mau diburamin.
 
-- Kunci aplikasi dengan password, pintasan Ctrl/Cmd+Shift+L, serta pilihan kunci saat dibuka, komputer dikunci/sleep, atau idle.
-- Touch ID opsional pada Mac yang mendukung. Windows dan Linux memakai password; Windows Hello/fingerprint Linux belum tersedia.
-- Penutup polos atau preview blur per panel: sembunyikan sementara, lalu tampilkan lagi tanpa memuat ulang akun.
-- Saat terkunci, tampilan layanan dan popup disembunyikan; permintaan izin/notifikasi baru, popup baru, serta perubahan akun diblokir. Sesi dan panggilan yang sudah berjalan tetap aktif.
-- Pengaturan/password hanya dapat diubah setelah verifikasi password saat ini. Password memakai verifier scrypt dengan salt acak.
-- Mempertahankan multiakun, enam layanan, tema, mode ringkas, cek update, dan perbaikan login Instagram melalui Facebook di dalam DuoChat.
+- Blur interaktif langsung pada elemen layanan, menggantikan blur gambar snapshot.
+- Atur sekali untuk semua panel dan akun: pesan/postingan, preview, nama, foto profil, media, dan kolom ketik.
+- Hover atau fokus keyboard untuk membuka elemen sementara; tingkat blur 4–20 px.
+- Kolom ketik tetap jelas secara default. Blur tidak menutup panel, jadi layanan tetap dapat dipakai.
+- Pengaturan tersimpan dan mengikuti akun yang dibuka berikutnya. Adapter khusus WhatsApp/Telegram dan aturan awal Discord, X, Instagram, Threads; cakupan ditampilkan pada dialog.
+- Penutup sementara dan kunci password/Touch ID tetap terpisah. Kunci otomatis saat mulai, OS lock/sleep atau idle tetap tersedia.
+- Mempertahankan perbaikan login Instagram melalui Facebook di dalam sesi DuoChat.
 
-Kunci ini melindungi tampilan, bukan enkripsi data profil. Notifikasi yang sudah tampil di OS dan suara dari situs tidak otomatis dihapus/dimatikan. Simpan password karena pemulihan password belum tersedia. Lihat [panduan privasi](privacy.md).
+Elemen yang tidak dikenali atau berubah setelah update situs dapat terlewat. Fixture otomatis menguji mekanisme di keenam layanan; akun nyata, sensor Touch ID, panggilan dan banner OS masih perlu diuji. Blur/kunci tidak mengenkripsi data profil. Lihat panduan privasi.
 
-Windows x64: Setup.exe. macOS Intel/Apple Silicon: DMG universal atau ZIP. Linux x64: AppImage/deb, dengan script installer Fedora.
-
-Paket macOS masih ad-hoc, belum dinotarize Apple. Windows belum memakai sertifikat signing. Build kandidat di pull request tidak otomatis diterbitkan atau menjadi pembaruan pengguna.
-
-Tes otomatis memakai fixture lokal. Touch ID fisik, login, banner notifikasi, serta panggilan akun nyata tetap perlu diuji pada perangkat pengguna.
+Windows x64: Setup.exe. macOS universal: DMG/ZIP ad-hoc, belum dinotarize Apple. Linux x64: AppImage/deb. Installer PR adalah kandidat uji, belum pembaruan publik.
 
 by Codex · prompt by TjongFaritno
 https://djongfaritno.github.io/

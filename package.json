@@ -1,6 +1,6 @@
 {
   "name": "duochat-desktop",
-  "version": "0.3.0-beta.1",
+  "version": "0.3.0-beta.2",
   "description": "Dua panel bebas untuk beberapa akun WhatsApp, Telegram, Discord, X, Instagram, dan Threads",
   "main": "src/main.cjs",
   "author": "DuoChat",
@@ -8,7 +8,7 @@
   "scripts": {
     "start": "electron .",
     "test": "node --test test/*.test.cjs",
-    "check": "node --check src/main.cjs && node --check src/preload.cjs && node --check src/renderer.js && node --check src/about.js && node --check src/permissions.cjs && node --check scripts/prepare-linux-release.cjs && node scripts/check-release-docs.cjs && node --check scripts/notification-smoke.cjs && node --check src/telegram-preload.cjs && node --check scripts/memory-audit.cjs && node --check scripts/single-instance-smoke.cjs && node --check src/update-core.cjs && node --check src/updates.cjs && node --check scripts/verify-update-metadata.cjs && node --check scripts/update-smoke.cjs && node --check src/accounts.cjs && node --check src/account-ui.js && node --check src/overlay.js && node --check src/smoke.cjs && node --check src/navigation.cjs && node --check scripts/auth-smoke.cjs && node --check src/privacy.cjs && node --check src/privacy-ui.js",
+    "check": "node --check src/main.cjs && node --check src/preload.cjs && node --check src/renderer.js && node --check src/about.js && node --check src/permissions.cjs && node --check scripts/prepare-linux-release.cjs && node scripts/check-release-docs.cjs && node --check scripts/notification-smoke.cjs && node --check src/telegram-preload.cjs && node --check scripts/memory-audit.cjs && node --check scripts/single-instance-smoke.cjs && node --check src/update-core.cjs && node --check src/updates.cjs && node --check scripts/verify-update-metadata.cjs && node --check scripts/update-smoke.cjs && node --check src/accounts.cjs && node --check src/account-ui.js && node --check src/overlay.js && node --check src/smoke.cjs && node --check src/navigation.cjs && node --check scripts/auth-smoke.cjs && node --check src/privacy.cjs && node --check src/privacy-ui.js && node --check src/blur.cjs && node --check src/blur-ui.js && node --check src/blur-smoke.cjs",
     "dist": "electron-builder",
     "pack": "electron-builder --dir",
     "smoke": "electron . --smoke",

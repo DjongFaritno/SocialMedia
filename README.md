@@ -2,7 +2,7 @@
 
 Dua ruang. Akunnya terserah kamu.
 
-DuoChat membuka dua akun layanan web berdampingan dalam satu aplikasi desktop. Versi pengembangan **0.3.0-beta.1** menambahkan multiakun WhatsApp, Telegram, Discord, X, Instagram, dan Threads. Panel memakai tampilan web resmi masing-masing layanan.
+DuoChat membuka dua akun layanan web berdampingan dalam satu aplikasi desktop. Versi pengembangan **0.3.0-beta.2** menambahkan multiakun WhatsApp, Telegram, Discord, X, Instagram, dan Threads. Panel memakai tampilan web resmi masing-masing layanan.
 
 ## Coba dan jalankan
 
@@ -37,7 +37,7 @@ Tombol **Izin** berlaku per akun untuk kamera, mikrofon, dan notifikasi. OS dapa
 
 ## Privasi
 
-Buka **Privasi** untuk memasang password, memilih kunci saat mulai, saat komputer dikunci/sleep, atau setelah idle. **Ctrl/Cmd+Shift+L** mengunci aplikasi. Mac yang mendukung juga bisa memakai Touch ID. Ikon **◌** atau **Blur** pada setiap panel menutup tampilannya sementara tanpa memutus sesi. [Panduan privasi dan batas perlindungan](docs/privacy.md).
+Buka **Privasi** untuk memasang password, memilih kunci saat mulai, saat komputer dikunci/sleep, atau setelah idle. **Ctrl/Cmd+Shift+L** mengunci aplikasi. Mac yang mendukung juga bisa memakai Touch ID. **Atur blur** memilih elemen yang diburamkan di semua panel dan akun: pesan/postingan, preview, nama, foto profil, media, atau kolom ketik. Hover/fokus menampilkan bagian yang ditunjuk; tingkat blur 4–20 px dapat diatur. **Blur semua / Blur ON** mengaktifkan atau mematikan efek bersama. Ikon **◌** menutup satu panel sepenuhnya tanpa memutus sesi. [Panduan privasi dan batas perlindungan](docs/privacy.md).
 
 ## Update, platform, dan batas
 

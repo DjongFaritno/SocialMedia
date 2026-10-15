@@ -2,7 +2,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const { layout, cleanSettings } = require('./core.cjs');
-module.exports = async ({ app, win, views, settings, state, overlay, showOverlay, handleAccountAction, privacy, childWindows, powerMonitor, about }) => {
+module.exports = async ({ app, win, views, settings, state, overlay, showOverlay, handleAccountAction, privacy, childWindows, powerMonitor, blurControllers, about }) => {
  const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
  const ready = async () => { const deadline = Date.now() + 8000; while (Object.values(views).some(view => view.webContents.isLoading())) { if (Date.now() > deadline) throw Error('Views did not load'); await sleep(40); } await sleep(100); };
  const ui = code => win.webContents.executeJavaScript(code);
@@ -69,6 +69,7 @@ module.exports = async ({ app, win, views, settings, state, overlay, showOverlay
  assert.equal(await ui('window.duo.getAbout()'), null);
  await new Promise((resolve, reject) => { const timer = setTimeout(() => reject(Error('About close timed out')), 5000); aboutWindow.once('closed', () => { clearTimeout(timer); resolve(); }); void aboutWindow.webContents.executeJavaScript("document.querySelector('#close-about').click()").catch(() => {}); });
 
+ await require('./blur-smoke.cjs')({ app, win, views, settings, handleAccountAction, blurControllers });
  showOverlay('privacy'); await sleep(100);
  assert.equal(await overlay.webContents.executeJavaScript("document.querySelector('#privacy-dialog').open"), true);
  const privateUI = code => overlay.webContents.executeJavaScript(code);
@@ -91,20 +92,6 @@ module.exports = async ({ app, win, views, settings, state, overlay, showOverlay
  assert.equal(await notificationPermission(), 'denied', 'Covered account cannot show new notifications');
  assert.equal(await ui("document.querySelector('#left-cover').hidden"), false);
  await ui("window.duo.privacyAction('cover',{side:'left'})"); assert.equal(views.whatsapp.getVisible(), true);
- // Static blur must hide the real view too. Capture may fall back to opaque
- // on platforms without a compositor; no full-size image enters UI state.
- await ui("window.duo.privacyAction('cover',{side:'left',mode:'blur'})");
- assert.equal(views.whatsapp.getVisible(), false);
- if (!process.argv.includes('--skip-capture')) {
-   const deadline = Date.now() + 5000;
-   while (!state().panelPreviews.left && Date.now() < deadline) await sleep(50);
-   if (state().panelPreviews.left) {
-     const { nativeImage } = require('electron');
-     assert.deepEqual(nativeImage.createFromDataURL(state().panelPreviews.left).getSize(), { width: 32, height: 32 });
-   }
- }
- await ui("window.duo.privacyAction('cover',{side:'left'})");
- assert.equal(state().panelPreviews.left, null);
  // Native popup, not a DOM simulation: it must hide with its account.
  const { BrowserWindow } = require('electron');
  const popup = new BrowserWindow({ show: true, webPreferences: { sandbox: true, nodeIntegration: false } });
@@ -118,6 +105,9 @@ module.exports = async ({ app, win, views, settings, state, overlay, showOverlay
  assert.equal(await privateUI("document.querySelector('#lock-screen').hidden"), false);
  for (const view of Object.values(views)) assert.equal(view.getVisible(), false);
  assert.equal(JSON.stringify(await ui('window.duo.getState()')).includes('credential'), false);
+ const lockedBlur = JSON.stringify(settings.blur);
+ assert.equal((await privateUI("window.duo.blurAction('toggle')")).ok, false);
+ assert.equal(JSON.stringify(settings.blur), lockedBlur);
  const originalRatio = settings.ratio; await ui('window.duo.setRatio(.3)'); assert.equal(settings.ratio, originalRatio);
  assert.equal(await ui("window.duo.accountAction('add',{service:'whatsapp',name:'Must not add'})"), null);
  const count = settings.accounts.length; assert.equal((await handleAccountAction('add', { service: 'whatsapp', name: 'Blocked' })).ok, false); assert.equal(settings.accounts.length, count);

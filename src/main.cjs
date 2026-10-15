@@ -9,9 +9,10 @@ const { MAX_ACCOUNTS, partition, switchAccount, liveAccounts } = require('./acco
 const { navigationAllowed, protectNavigation } = require('./navigation.cjs');
 const { createUpdates } = require('./updates.cjs');
 const { createPrivacy, defaults: privacyDefaults } = require('./privacy.cjs');
+const { cleanBlur, blurSupport, attachBlur } = require('./blur.cjs');
+const blurControllers = new Map(), blurStatuses = {};
 let updates, privacy, idleTimer;
 const privacyHiddenChildren = new Set();
-const panelPreviews = { left: null, right: null }, previewAccounts = {}, previewGeneration = { left: 0, right: 0 }, previewCaptureBusy = { left: false, right: false };
 const mediaGate = nativeMediaGate(process.platform, systemPreferences);
 const smoke = process.argv.includes('--smoke');
 if (smoke) app.setPath('userData', fs.mkdtempSync(path.join(require('node:os').tmpdir(), 'duochat-smoke-')));
@@ -42,7 +43,7 @@ function save() { clearTimeout(saveTimer); fs.writeFileSync(settingsPath, JSON.s
 function queueSave() { clearTimeout(saveTimer); saveTimer = setTimeout(save, 250); }
 function state() {
   const fullscreen = win.isFullScreen();
-  return { ...settings, panelPreviews: { ...panelPreviews }, privacy: privacy?.snapshot(), updates: updates?.snapshot(), statuses, fullscreen, effectiveTheme: nativeTheme.shouldUseDarkColors ? 'dark' : 'light', headerHidden: fullscreen ? !fullscreenHeaderVisible : settings.hideHeader };
+  return { ...settings, blurSupport: blurSupport(), blurStatuses, privacy: privacy?.snapshot(), updates: updates?.snapshot(), statuses, fullscreen, effectiveTheme: nativeTheme.shouldUseDarkColors ? 'dark' : 'light', headerHidden: fullscreen ? !fullscreenHeaderVisible : settings.hideHeader };
 }
 function send() { if (win && !win.isDestroyed()) win.webContents.send('state', state()); if (overlay && !overlay.webContents.isDestroyed()) overlay.webContents.send('state', { ...state(), overlayMode }); }
 function updateColors() {
@@ -138,7 +139,6 @@ function lockOrSetup() {
 function privacyChanged() {
   if (!win || win.isDestroyed() || !overlay) return;
   const locked = privacy.snapshot().locked;
-  if (locked) for (const side of ['left', 'right']) { panelPreviews[side] = null; previewGeneration[side]++; }
   if (locked && aboutWindow && !aboutWindow.isDestroyed()) aboutWindow.close();
   for (const [id, children] of childWindows) for (const child of children) {
     if (child.isDestroyed()) { privacyHiddenChildren.delete(child); continue; }
@@ -153,6 +153,11 @@ function privacyChanged() {
 }
 function protect(contents, account) {
   const service = account.service;
+  const blurController = attachBlur(contents, service, () => settings.blur, value => {
+    if (views[account.id]?.webContents === contents) { blurStatuses[account.id] = value; send(); }
+  });
+  blurControllers.set(contents.id, blurController);
+  contents.once('destroyed', () => blurControllers.delete(contents.id));
   protectNavigation(contents, {
     service, external: url => external(url, account.id), canOpen: () => !accountConcealed(account.id),
     popupPreferences: () => ({ width: 760, height: 680, autoHideMenuBar: true, webPreferences: { ...(service === 'telegram' ? { preload: path.join(__dirname, 'telegram-preload.cjs') } : {}), partition: partition(account), nodeIntegration: false, contextIsolation: true, sandbox: true } }),
@@ -212,13 +217,10 @@ function addService(account) {
 function closeAccount(id) {
   for (const child of childWindows.get(id) || []) if (!child.isDestroyed()) child.destroy();
   childWindows.delete(id);
-  const view = views[id]; delete views[id]; statuses[id] = { state: 'paused' };
+  const view = views[id]; delete views[id]; delete blurStatuses[id]; statuses[id] = { state: 'paused' };
   if (view) { win.contentView.removeChildView(view); if (!view.webContents.isDestroyed()) view.webContents.close(); }
 }
 function syncAccounts() {
-  for (const side of ['left', 'right']) if (previewAccounts[side] !== settings.slots[side]) {
-    panelPreviews[side] = null; previewGeneration[side]++; previewAccounts[side] = settings.slots[side];
-  }
   const live = new Set(liveAccounts(settings).map(item => item.id));
   for (const id of Object.keys(views)) if (!live.has(id)) closeAccount(id);
   for (const account of liveAccounts(settings)) if (!views[account.id]) addService(account);
@@ -228,7 +230,7 @@ function syncAccounts() {
 }
 function showOverlay(mode, focus = false) {
   if (privacy.snapshot().locked) mode = 'lock';
-  if (!['rail', 'add', 'manage', 'privacy', 'lock', null].includes(mode)) return;
+  if (!['rail', 'add', 'manage', 'privacy', 'blur', 'lock', null].includes(mode)) return;
   if (mode === 'rail' && !state().headerHidden) return;
   if (mode && !overlayMode) overlayReturnFocus = webContents.getFocusedWebContents();
   const hadOverlayFocus = overlay.webContents.isFocused();
@@ -249,20 +251,25 @@ ipcMain.handle('privacy:action', (event, action, input) => {
 });
 function togglePanelCover(input) {
   if (!input || !['left', 'right'].includes(input.side) || privacy.snapshot().locked) return { ok: false };
-  const side = input.side, covering = !privacy.snapshot().covered[side], id = settings.slots[side], view = views[id];
-  const generation = ++previewGeneration[side]; previewAccounts[side] = id; panelPreviews[side] = null;
-  const result = privacy.action('cover', input);
-  if (covering && input.mode === 'blur' && view && !view.webContents.isDestroyed() && !previewCaptureBusy[side]) {
-    previewCaptureBusy[side] = true;
-    // Capture once after hiding the real view. Only a 32x32 color preview
-    // reaches the trusted shell, never the original full-resolution snapshot.
-    void view.webContents.capturePage(undefined, { stayHidden: true }).then(image => {
-      if (image.isEmpty() || generation !== previewGeneration[side] || privacy.snapshot().locked || !privacy.snapshot().covered[side] || settings.slots[side] !== id) return;
-      panelPreviews[side] = image.resize({ width: 32, height: 32, quality: 'good' }).toDataURL(); send();
-    }).catch(() => {}).finally(() => { previewCaptureBusy[side] = false; }); // Opaque fallback on capture failure.
-  }
-  return result;
+  return privacy.action('cover', { side: input.side });
 }
+let blurActions = Promise.resolve();
+ipcMain.handle('blur:action', (event, action, input) => {
+  if (!editableUI(event)) return { ok: false, error: 'Buka kunci dulu.' };
+  const run = async () => {
+    if (!editableUI(event)) return { ok: false, error: 'Buka kunci dulu.' };
+    const previous = settings.blur;
+    if (action === 'toggle') settings.blur = cleanBlur({ ...settings.blur, enabled: !settings.blur.enabled });
+    else if (action === 'save' && input && typeof input === 'object' && !Array.isArray(input)) settings.blur = cleanBlur(input);
+    else return { ok: false, error: 'Pengaturan blur tidak valid.' };
+    if (settings.blur.enabled && !Object.values(settings.blur.elements).some(Boolean)) { settings.blur = previous; return { ok: false, error: 'Pilih minimal satu elemen untuk mengaktifkan blur.' }; }
+    try { save(); } catch { settings.blur = previous; return { ok: false, error: 'Pengaturan belum tersimpan. Periksa penyimpanan lalu coba lagi.' }; } send();
+    await Promise.allSettled([...blurControllers.values()].map(controller => controller.refresh()));
+    return { ok: true };
+  };
+  const operation = blurActions.then(run, run); blurActions = operation.catch(() => {});
+  return operation;
+});
 function ownUI(event) { return win && ((event.sender === win.webContents && event.senderFrame?.url === uiURL) || (overlay && event.sender === overlay.webContents && event.senderFrame?.url === overlayURL)); }
 ipcMain.handle('state:get', event => ownUI(event) ? { ...state(), overlayMode } : null);
 ipcMain.handle('about:info', event => ownAbout(event) ? { version: app.getVersion() } : null);
@@ -372,7 +379,7 @@ if (primaryInstance) app.whenReady().then(async () => {
   nativeTheme.themeSource = settings.theme === 'auto' ? 'system' : settings.theme;
   win = new BrowserWindow({ show: false, icon: windowIcon, width: settings.width, height: settings.height, minWidth: 1000, minHeight: 650, title: 'DuoChat', backgroundColor: '#edf2f1', webPreferences: { preload: path.join(__dirname, 'preload.cjs'), sandbox: true, contextIsolation: true, nodeIntegration: false } });
   updates = createUpdates({ app, net, dialog, shell, getWindow: () => aboutWindow && !aboutWindow.isDestroyed() ? aboutWindow : win, getSettings: () => settings, save, notify: send });
-  Menu.setApplicationMenu(Menu.buildFromTemplate([{ label: 'DuoChat', submenu: [{ label: 'About DuoChat', click: showAbout }, { label: 'Tambah akun…', click: () => showOverlay('add') }, { label: 'Kelola akun…', click: () => showOverlay('manage') }, { label: 'Privasi…', click: () => showOverlay('privacy') }, { label: 'Kunci DuoChat', accelerator: 'CommandOrControl+Shift+L', click: lockOrSetup }, { label: 'Cek pembaruan…', click: () => void updates.check(true) }, { type: 'separator' }, { label: 'Periksa pembaruan otomatis', type: 'checkbox', checked: settings.autoCheckUpdates, click: item => updates.preference('autoCheckUpdates', item.checked) }, { label: 'Unduh pembaruan otomatis', type: 'checkbox', checked: settings.autoDownloadUpdates, enabled: updates.snapshot().mode === 'native', click: item => updates.preference('autoDownloadUpdates', item.checked) }, { type: 'separator' }, { role: 'quit' }] }, { label: 'Edit', submenu: [{ role: 'undo' }, { role: 'redo' }, { type: 'separator' }, { role: 'cut' }, { role: 'copy' }, { role: 'paste' }, { role: 'selectAll' }] }, { label: 'Window', submenu: [{ role: 'minimize' }, { role: 'zoom' }, { type: 'separator' }, { label: 'Layar penuh (F11)', click: () => windowAction('fullscreen') }, { label: 'Tampilkan/sembunyikan header (Ctrl+Shift+H)', click: () => windowAction('header') }] }]));
+  Menu.setApplicationMenu(Menu.buildFromTemplate([{ label: 'DuoChat', submenu: [{ label: 'About DuoChat', click: showAbout }, { label: 'Tambah akun…', click: () => showOverlay('add') }, { label: 'Kelola akun…', click: () => showOverlay('manage') }, { label: 'Privasi…', click: () => showOverlay('privacy') }, { label: 'Atur blur semua panel…', click: () => showOverlay('blur') }, { label: 'Kunci DuoChat', accelerator: 'CommandOrControl+Shift+L', click: lockOrSetup }, { label: 'Cek pembaruan…', click: () => void updates.check(true) }, { type: 'separator' }, { label: 'Periksa pembaruan otomatis', type: 'checkbox', checked: settings.autoCheckUpdates, click: item => updates.preference('autoCheckUpdates', item.checked) }, { label: 'Unduh pembaruan otomatis', type: 'checkbox', checked: settings.autoDownloadUpdates, enabled: updates.snapshot().mode === 'native', click: item => updates.preference('autoDownloadUpdates', item.checked) }, { type: 'separator' }, { role: 'quit' }] }, { label: 'Edit', submenu: [{ role: 'undo' }, { role: 'redo' }, { type: 'separator' }, { role: 'cut' }, { role: 'copy' }, { role: 'paste' }, { role: 'selectAll' }] }, { label: 'Window', submenu: [{ role: 'minimize' }, { role: 'zoom' }, { type: 'separator' }, { label: 'Layar penuh (F11)', click: () => windowAction('fullscreen') }, { label: 'Tampilkan/sembunyikan header (Ctrl+Shift+H)', click: () => windowAction('header') }] }]));
   nativeTheme.on('updated', () => { if (win && !win.isDestroyed()) updateColors(); });
   updateColors();
   shortcuts(win.webContents);
@@ -392,7 +399,7 @@ if (primaryInstance) app.whenReady().then(async () => {
   if (!smoke && app.isPackaged) updates.start();
   if (pendingFocus) focusExistingWindow();
   win.on('close', () => { save(); clearTimeout(saveTimer); for (const id of Object.keys(views)) closeAccount(id); if (overlay && !overlay.webContents.isDestroyed()) overlay.webContents.close(); });
-  if (smoke) setTimeout(() => require('./smoke.cjs')({ app, win, views, settings, state, overlay, showOverlay, handleAccountAction, privacy, childWindows, powerMonitor, mediaGate, about: () => aboutWindow }).then(() => app.exit(0)).catch(error => { console.error(error); app.exit(1); }), 1600);
+  if (smoke) setTimeout(() => require('./smoke.cjs')({ app, win, views, settings, state, overlay, showOverlay, handleAccountAction, privacy, childWindows, powerMonitor, blurControllers, mediaGate, about: () => aboutWindow }).then(() => app.exit(0)).catch(error => { console.error(error); app.exit(1); }), 1600);
 });
 app.on('before-quit', () => { clearInterval(idleTimer); updates?.stop(); });
 app.on('window-all-closed', () => app.quit());
