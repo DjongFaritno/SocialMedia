@@ -218,7 +218,7 @@ function closeAccount(id) {
   for (const child of childWindows.get(id) || []) if (!child.isDestroyed()) child.destroy();
   childWindows.delete(id);
   const view = views[id]; delete views[id]; delete blurStatuses[id]; statuses[id] = { state: 'paused' };
-  if (view) { win.contentView.removeChildView(view); if (!view.webContents.isDestroyed()) view.webContents.close(); }
+  if (view) { blurControllers.delete(view.webContents.id); win.contentView.removeChildView(view); if (!view.webContents.isDestroyed()) view.webContents.close(); }
 }
 async function syncAccounts() {
   const live = new Set(liveAccounts(settings).map(item => item.id));
