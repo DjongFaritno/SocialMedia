@@ -11,6 +11,8 @@ if (platform === 'windows') {
   assert.equal(data.subarray(0, 2).toString(), 'MZ', 'Installer is not a Windows executable');
   assert.ok(data.length > 1024 * 1024);
   assert.ok(fs.existsSync('dist/win-unpacked/DuoChat.exe'));
+  const binding = fs.readFileSync('dist/win-unpacked/resources/native/duochat_hello.node');
+  assert.equal(binding.subarray(0, 2).toString(), 'MZ', 'Windows Hello binding missing or invalid');
 } else if (platform === 'macos') {
   const dmg = files.find(file => file === `DuoChat-${version}-macOS-universal.dmg`);
   const zip = files.find(file => file === `DuoChat-${version}-macOS-universal.zip`);

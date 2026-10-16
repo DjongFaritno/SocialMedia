@@ -1,5 +1,7 @@
 const { contextBridge, ipcRenderer } = require('electron');
 contextBridge.exposeInMainWorld('duo', {
+  blurAction: (action, input) => ipcRenderer.invoke('blur:action', action, input),
+  privacyAction: (action, input) => ipcRenderer.invoke('privacy:action', action, input),
   accountAction: (action, input) => ipcRenderer.invoke('account:action', action, input),
   overlay: (mode, focus = false) => ipcRenderer.invoke('ui:overlay', mode, focus),
   updateAction: action => ipcRenderer.invoke('update:action', action),

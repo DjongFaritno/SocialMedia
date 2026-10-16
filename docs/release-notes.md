@@ -1,16 +1,22 @@
-DuoChat 0.2.0-beta.1 — dua ruang, lebih banyak akun.
+DuoChat 0.3.0 — ruang ngobrolmu, sedikit lebih privat.
 
-- Tambahkan beberapa akun WhatsApp, Telegram, Discord, X, Instagram, atau Threads. Setiap akun memakai sesi login tersendiri.
-- Pilih akun untuk panel kiri/kanan. Memilih akun di sisi lain menukar kedua panel.
-- Header dan sidebar tersembunyi pada mode ringkas; sidebar muncul saat hover tepi kiri tanpa menggeser percakapan.
-- Kelola nama akun, pilih Tetap aktif di latar belakang, atau hapus sesi akun dari DuoChat. Akun dijeda berhenti menerima notifikasi dan panggilan.
-- Sesi WhatsApp/Telegram lama dipertahankan saat upgrade. Tema, rasio, About dengan versi/Tutup, dan cek pembaruan tetap tersedia.
+- Kunci DuoChat dengan password lokal, Windows Hello (Windows 11+), atau Touch ID pada Mac yang mendukung.
+- Pilih kunci saat dibuka, komputer dikunci/sleep, atau idle. Permintaan biometrik saat startup opsional; pembatalan tetap terkunci.
+- Blur ON/OFF terpisah per panel. Pilihan elemen, kekuatan blur, dan hover berlaku bersama untuk semua panel/akun.
+- Pisahkan blur pesan, preview, nama, foto profil, media, dan kolom ketik. Hover/fokus membuka bagian yang ditunjuk sementara.
+- Perbaikan WhatsApp: teks read-only, media dengan metadata baru, foto/canvas/background, galeri/viewer, avatar, dan nama pengirim grup.
+- Perbaikan Telegram Web A/K: nama daftar chat dan arsip, serta isi/nama/thumbnail reply.
+- Hover media melalui tombol play/overlay di keenam layanan; Threads membedakan tautan profil dan foto postingan.
+- Login Instagram/Facebook berlangsung dalam sesi akun DuoChat. Multiakun dan pilihan WhatsApp, Telegram, Discord, X, Instagram, Threads tetap tersedia.
+- Sesi lama dipertahankan. Tidak perlu menghapus data aplikasi atau login ulang hanya untuk mengganti versi.
 
-Windows x64: Setup.exe. macOS Intel/Apple Silicon: DMG universal atau ZIP. Linux x64: AppImage/deb, dengan script installer Fedora.
+Windows x64: Setup.exe. macOS universal: DMG/ZIP. Linux x64: AppImage/deb, dengan installer Fedora.
 
-Pada Mac, seret DuoChat ke Applications. Bila muncul “DuoChat” Not Opened, pilih Done lalu System Settings → Privacy & Security → Open Anyway, dan konfirmasikan Touch ID/password jika diminta. Paket masih ad-hoc, belum dinotarize Apple. Windows juga belum memakai sertifikat signing.
+Batasan: installer Windows belum memiliki tanda tangan penerbit; macOS masih ad-hoc, belum Developer ID/notarization. Peringatan OS masih mungkin muncul. Pembaruan Windows/AppImage dapat diunduh lewat aplikasi; pemasangan tetap menunggu persetujuan. macOS/deb/Fedora dipasang manual.
 
-Smoke dan tes otomatis memakai fixture lokal. Login, notifikasi, upload/download, serta panggilan mengikuti web resmi layanan dan masih membutuhkan pengujian akun nyata pada OS pengguna. Versi beta ini tidak menjamin dukungan semua fitur tiap layanan.
+Blur hanya mencakup elemen yang dikenali dan dapat terpengaruh perubahan situs. Discord, X, Instagram dan Threads masih memakai adapter awal. Kunci melindungi tampilan, tidak mengenkripsi cookies/cache profil. Windows Hello Face dapat meminta klik OK sesuai dialog Windows. Kunci password tetap tersedia.
+
+QC otomatis menguji kategori dan interaksi pada fixture lokal di keenam layanan, kedua sisi panel, dua akun WhatsApp, swap/reload, kunci dan pembaruan. Variasi akun nyata, panggilan, banner notifikasi OS, dan sensor biometrik tetap bergantung perangkat.
 
 by Codex · prompt by TjongFaritno
 https://djongfaritno.github.io/

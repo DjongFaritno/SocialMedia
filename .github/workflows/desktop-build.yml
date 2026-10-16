@@ -48,7 +48,11 @@ jobs:
         timeout-minutes: 3
         shell: pwsh
         run: |
-          $app = Start-Process -FilePath './dist/win-unpacked/DuoChat.exe' -ArgumentList '--smoke' -PassThru -Wait
+          $duoStdout = Join-Path $env:RUNNER_TEMP 'duochat-smoke-stdout.log'
+          $duoStderr = Join-Path $env:RUNNER_TEMP 'duochat-smoke-stderr.log'
+          $app = Start-Process -FilePath './dist/win-unpacked/DuoChat.exe' -ArgumentList '--smoke' -RedirectStandardOutput $duoStdout -RedirectStandardError $duoStderr -PassThru -Wait
+          Get-Content -Path $duoStdout -ErrorAction SilentlyContinue
+          Get-Content -Path $duoStderr -ErrorAction SilentlyContinue
           if ($app.ExitCode -ne 0) { throw "DuoChat smoke test failed: $($app.ExitCode)" }
       - uses: actions/upload-artifact@v4
         with:
@@ -119,6 +123,9 @@ jobs:
       - run: npm ci
       - run: npm run check
       - run: npm test
+      - name: Fast Chromium interaction smoke before packaging
+        timeout-minutes: 3
+        run: xvfb-run -a --server-args="-screen 0 1440x1000x24" npm run smoke -- --no-sandbox --disable-gpu --skip-capture
       - name: Build AppImage and Debian package
         run: npm run dist:linux
         env:
@@ -133,6 +140,9 @@ jobs:
       - name: Test service-worker notification permissions
         timeout-minutes: 2
         run: xvfb-run -a ./node_modules/electron/dist/electron scripts/notification-smoke.cjs --no-sandbox --disable-gpu
+      - name: Verify Instagram Facebook login navigation
+        timeout-minutes: 2
+        run: xvfb-run -a ./node_modules/electron/dist/electron scripts/auth-smoke.cjs --no-sandbox --disable-gpu
       - name: Verify updater download integrity
         timeout-minutes: 2
         run: xvfb-run -a ./node_modules/electron/dist/electron scripts/update-smoke.cjs --no-sandbox --disable-gpu
@@ -157,7 +167,7 @@ jobs:
 
   release:
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-    name: Publish prototype downloads
+    name: Publish verified desktop release
     needs: [windows, macos, linux]
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -177,22 +187,9 @@ jobs:
           pattern: duochat-*
           path: release-assets
           merge-multiple: true
-      - name: Checksums and release
+      - name: Validate all installers and publish complete release
         env:
           GH_TOKEN: ${{ github.token }}
-        shell: bash
         run: |
-          set -euo pipefail
-          version="$(node -p "require('./package.json').version")"
-          tag="v${version}"
           node scripts/release-checksums.cjs release-assets
-          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            release_commit="$(gh api "repos/$GITHUB_REPOSITORY/commits/$tag" --jq .sha)"
-            if [ "$release_commit" != "$GITHUB_SHA" ]; then
-              echo 'Version already published for another commit. Bump package.json version before publishing.' >&2
-              exit 1
-            fi
-          else
-            gh release create "$tag" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --prerelease --title "DuoChat ${version} — Desktop prototype" --notes-file docs/release-notes.md
-          fi
-          gh release upload "$tag" release-assets/* --repo "$GITHUB_REPOSITORY" --clobber
+          node scripts/publish-release.cjs release-assets

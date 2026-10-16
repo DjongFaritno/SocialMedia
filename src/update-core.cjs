@@ -13,15 +13,18 @@ function compare(a, b) {
   if (!semver.valid(left) || !semver.valid(right)) throw new Error('Versi rilis tidak valid');
   return semver.compare(left, right);
 }
+function requiredAssetNames(version) {
+  return [`DuoChat-${version}-Windows-x64-Setup.exe`, `DuoChat-${version}-macOS-universal.dmg`,
+      `DuoChat-${version}-macOS-universal.zip`, `DuoChat-${version}.AppImage`, `duochat-desktop_${version}_amd64.deb`,
+      'install-fedora.sh', 'SHA256SUMS.txt', 'latest.yml', 'latest-mac.yml', 'latest-linux.yml'];
+}
 function latestRelease(releases) {
   if (!Array.isArray(releases)) throw new Error('Respons GitHub tidak valid');
   const complete = releases.flatMap(release => {
     if (release?.draft || !release?.published_at || !numbers(release.tag_name) || !release.tag_name.startsWith('v')) return [];
     const version = release.tag_name.slice(1);
     const base = `https://github.com/${REPO}/releases/download/v${version}/`;
-    const required = [`DuoChat-${version}-Windows-x64-Setup.exe`, `DuoChat-${version}-macOS-universal.dmg`,
-      `DuoChat-${version}-macOS-universal.zip`, `DuoChat-${version}.AppImage`, `duochat-desktop_${version}_amd64.deb`,
-      'install-fedora.sh', 'SHA256SUMS.txt', 'latest.yml', 'latest-mac.yml', 'latest-linux.yml'];
+    const required = requiredAssetNames(version);
     const assets = new Map((release.assets || []).filter(asset => asset?.state === 'uploaded' && asset.size > 0 &&
       asset.browser_download_url === base + encodeURIComponent(asset.name)).map(asset => [asset.name, asset]));
     if (!required.every(name => assets.has(name))) return [];
@@ -35,4 +38,4 @@ function updateMode({ packaged, platform, appImage, arch }) {
   if (platform === 'linux' && arch === 'x64' && appImage) return 'native';
   return 'manual'; // macOS ad-hoc signing and extracted/deb packages.
 }
-module.exports = { RELEASES_API, RELEASES_PAGE, compare, latestRelease, updateMode };
+module.exports = { RELEASES_API, RELEASES_PAGE, compare, latestRelease, updateMode, requiredAssetNames };

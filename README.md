@@ -2,11 +2,11 @@
 
 Dua ruang. Akunnya terserah kamu.
 
-DuoChat membuka dua akun layanan web berdampingan dalam satu aplikasi desktop. Versi pengembangan **0.2.0-beta.1** menambahkan multiakun WhatsApp, Telegram, Discord, X, Instagram, dan Threads. Panel memakai tampilan web resmi masing-masing layanan.
+DuoChat membuka dua akun layanan web berdampingan dalam satu aplikasi desktop. Versi **0.3.0** menambahkan multiakun WhatsApp, Telegram, Discord, X, Instagram, dan Threads. Panel memakai tampilan web resmi masing-masing layanan.
 
 ## Coba dan jalankan
 
-Installer yang sudah diterbitkan ada di [GitHub Releases](https://github.com/DjongFaritno/SocialMedia/releases). Build kandidat dapat ditemukan pada artifact [GitHub Actions](https://github.com/DjongFaritno/SocialMedia/actions). Versi pada branch pengembangan belum otomatis tersedia sebagai rilis publik.
+Installer Windows, macOS, dan Linux tersedia di [rilis terbaru](https://github.com/DjongFaritno/SocialMedia/releases/latest). [Panduan signing](docs/code-signing.md) menjelaskan status tanda tangan penerbit dan persiapan yang diperlukan. Build pengembangan tetap tersedia sebagai artifact GitHub Actions.
 
 Untuk menjalankan source, gunakan Node.js 24 dan npm:
 
@@ -34,6 +34,10 @@ Slider/pembatas mengatur lebar panel kiri; tombol panah dan Home juga tersedia. 
 Tema **White / Dark / Auto** mengikuti pilihan pengguna dan mengirim preferensi warna ke layanan. UI layanan dengan pengaturan tema manual dapat memerlukan pengaturan System/Auto sendiri.
 
 Tombol **Izin** berlaku per akun untuk kamera, mikrofon, dan notifikasi. OS dapat meminta izin tambahan. Pencabutan memblokir permintaan berikutnya; tutup panggilan/muat ulang untuk menghentikan akses yang sudah berlangsung. **Muat ulang** mempertahankan sesi. **↗** membuka layanan di browser sesudah konfirmasi; browser memakai sesi tersendiri.
+
+## Privasi
+
+Buka **Privasi** untuk memasang password, memilih kunci saat mulai, saat komputer dikunci/sleep, atau setelah idle. **Ctrl/Cmd+Shift+L** mengunci aplikasi. Windows 11+ yang mendukung bisa memakai Windows Hello; Mac yang mendukung bisa memakai Touch ID. **Atur blur** memilih elemen yang diburamkan di semua panel dan akun: pesan/postingan, preview, nama, foto profil, media, atau kolom ketik. Hover/fokus menampilkan bagian yang ditunjuk; tingkat blur 4–20 px dapat diatur. **Blur ON/OFF** mengaktifkan atau mematikan efek di panel tersebut. Ikon **◌** menutup satu panel sepenuhnya tanpa memutus sesi. [Panduan privasi dan batas perlindungan](docs/privacy.md).
 
 ## Update, platform, dan batas
 
@@ -64,3 +68,22 @@ GitHub Actions membangun dan menguji aplikasi pada ketiga OS untuk pull request.
 Lihat [catatan big update](docs/big-update.md), [matriks penerimaan](docs/acceptance.md), dan [panduan unduh](downloads/README.md).
 
 About menampilkan versi aplikasi, tombol Tutup, dan **by Codex · prompt by TjongFaritno**. Website: https://djongfaritno.github.io/.
+
+Login Instagram lewat Facebook dibuka di DuoChat dengan profil akun Instagram yang sama. Login di browser luar tidak otomatis masuk ke sesi DuoChat. Jika tadi sudah login di browser, ulangi login dari panel setelah memasang beta terbaru.
+
+
+Blur dinyalakan terpisah lewat tombol di panel kiri atau kanan. Pilihan elemen, kekuatan blur, dan hover tetap satu pengaturan bersama. Mengganti akun tidak mengubah status blur panel tersebut. Pengaturan lama yang aktif dimigrasikan menjadi aktif pada kedua panel.
+
+Instagram dan Threads: gambar/video dapat dibuka sementara saat hover di atas kontrol media, termasuk media dengan pointer-events nonaktif. Pemeriksaan posisi elemen berjalan lokal saat interaksi, tanpa membaca atau mengirim isi pesan. Overlay dialog lain tidak membuka media di belakangnya.
+
+
+Privasi: checklist buka kunci dengan Windows Hello (Windows 11+) atau Touch ID, serta opsi terpisah untuk meminta verifikasi saat DuoChat dibuka. Password DuoChat tetap tersedia. Pembatalan tidak membuka kunci dan tidak mengulang prompt otomatis. [Panduan](docs/privacy.md) · [Riset](docs/biometric-research.md).
+
+
+Kutipan reply Telegram Web A dan K di dalam pesan masuk/keluar kini mengikuti kategori blur: teks kutipan memakai **Isi pesan & postingan**, nama pengirim memakai **Nama**, dan thumbnail memakai **Media**. Hover hanya membuka bagian yang ditunjuk; opsi hover-off tetap dihormati. Tombol navigasi reply dan kolom ketik tetap dapat digunakan. Pengaturan tetap bersama, sementara Blur ON/OFF tetap per panel.
+
+
+Nama kontak, grup, dan Saved Messages di daftar chat Telegram Web A kini mengikuti checklist **Nama kontak, grup & pengguna**. Ringkasan nama chat dalam arsip juga mengikuti kategori Nama, terpisah dari preview pesan dan foto profil. Label arsip, waktu, dan kontrol tetap jelas saat hanya nama dipilih. Hover membuka bagian yang ditunjuk, lalu blur kembali saat pointer pergi. Baris chat yang muncul tanpa reload ikut terlindungi.
+
+
+QC media: foto WhatsApp berbasis metadata/data-id, canvas, background, kutipan, stiker, thumbnail, galeri dan viewer mendapat cakupan tambahan. Avatar (termasuk placeholder) tetap terpisah dari Media; emoji bukan foto profil. Hover media melalui kontrol overlay diuji pada keenam layanan. Threads membedakan tautan profil dari foto yang menaut ke postingan. Pengujian terkemas mencakup tiap kategori sendiri, kedua sisi panel, dua akun WhatsApp, empat kombinasi ON/OFF, pengaturan bersama, swap akun, reload dan media baru. Cakupan otomatis memakai fixture lokal; perubahan DOM layanan atau variasi akun nyata tetap dapat memerlukan penyesuaian.

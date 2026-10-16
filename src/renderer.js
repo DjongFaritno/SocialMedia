@@ -17,14 +17,19 @@ function render(state) {
  document.querySelector('#theme').value = state.theme; document.body.classList.toggle('header-hidden', state.headerHidden);
  document.querySelector('#restore-header').hidden = !state.headerHidden; document.querySelector('#rail-trigger').hidden = !state.headerHidden;
  document.querySelectorAll('[data-window-action="fullscreen"]').forEach(button => { button.textContent = state.fullscreen ? 'Keluar fullscreen · F11' : 'Layar penuh · F11'; });
+ document.querySelectorAll('[data-blur-toggle]').forEach(button => { button.textContent = state.blurPanels[button.dataset.blurToggle] ? 'Blur ON' : 'Blur OFF'; button.setAttribute('aria-pressed', String(state.blurPanels[button.dataset.blurToggle])); });
  renderRail(state);
  const active = state.accounts.filter(item => Object.values(state.slots).includes(item.id) || item.keepActive).length;
  document.querySelector('#active-status').textContent = `${active} akun aktif · ${state.accounts.length - active} akun dijeda`;
  for (const side of ['left', 'right']) {
+  const covered = state.privacy?.covered?.[side] === true;
+  document.querySelector(`#${side}-cover`).hidden = !covered;
+  document.querySelectorAll(`[data-cover="${side}"]`).forEach(button => { button.setAttribute('aria-pressed', String(covered)); });
+  document.querySelector(`nav [data-cover="${side}"]`).textContent = covered ? '◉' : '◌';
   const account = state.accounts.find(item => item.id === state.slots[side]), select = document.querySelector(`#${side}-account`);
   const choices = state.accounts.map(item => `<option value="${item.id}">${escapeHTML(item.name)} · ${providerNames[item.service]}</option>`).join('');
   if (select.innerHTML !== choices) select.innerHTML = choices; select.value = account.id;
-  const status = state.statuses?.[account.id]; document.querySelector(`#${side}-status`).textContent = status?.state === 'ready' ? 'Web dimuat' : status?.state === 'error' ? status.message || 'Gagal memuat' : 'Memuat…';
+  const status = state.statuses?.[account.id]; document.querySelector(`#${side}-status`).textContent = state.blurPanels[side] && state.blurStatuses?.[account.id] === 'error' ? 'Blur gagal · muat ulang' : status?.state === 'ready' ? 'Web dimuat' : status?.state === 'error' ? status.message || 'Gagal memuat' : 'Memuat…';
   const icon = document.querySelector(`#${side}-icon`); icon.className = 'provider-icon ' + account.service; icon.innerHTML = providerIcon(account.service);
   document.querySelector(`#${side}-name`).textContent = account.name;
   document.querySelector(`[data-side="${side}"][data-action="permissions"]`).textContent = account.permissions ? 'Izin aktif' : 'Izin';
@@ -44,3 +49,10 @@ document.querySelector('#update-button').addEventListener('click', event => wind
 const trigger = document.querySelector('#rail-trigger'); trigger.addEventListener('pointerenter', () => window.duo.overlay('rail')); trigger.addEventListener('click', () => window.duo.overlay('rail', true));
 trigger.addEventListener('keydown', event => { if (['Enter', 'ArrowRight', ' '].includes(event.key)) { event.preventDefault(); void window.duo.overlay('rail', true); } });
 railEvents(() => currentState); window.duo.onState(render); window.duo.getState().then(render);
+
+document.querySelectorAll('[data-cover]').forEach(button => button.addEventListener('click', () => window.duo.privacyAction('cover', { side: button.dataset.cover })));
+document.querySelector('#lock-app').addEventListener('click', () => currentState?.privacy?.configured ? window.duo.privacyAction('lock') : window.duo.overlay('privacy'));
+
+document.querySelectorAll('[data-blur-toggle]').forEach(button => button.addEventListener('click', async () => {
+ try { const result = await window.duo.blurAction('toggle', { side: button.dataset.blurToggle }); if (!result?.ok) toast(result?.error || 'Blur belum berhasil diubah.'); } catch { toast('Blur belum berhasil diubah.'); }
+}));

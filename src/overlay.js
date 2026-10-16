@@ -1,6 +1,7 @@
 let currentState, lastMode, settingsSignature;
 function render(state) {
  if (!state) return; currentState = state; document.documentElement.dataset.theme = state.effectiveTheme;
+ renderPrivacy(state); renderBlur(state);
  renderRail(state); document.body.classList.toggle('rail-only', state.overlayMode === 'rail');
  const signature = JSON.stringify([state.accounts, state.slots]);
  if (signature !== settingsSignature) {
@@ -14,6 +15,9 @@ function render(state) {
  if (lastMode === state.overlayMode) return; lastMode = state.overlayMode;
  document.querySelectorAll('dialog').forEach(dialog => { if (dialog.open) dialog.close(); });
  if (state.overlayMode === 'add') { document.querySelector('#add-dialog').showModal(); document.querySelector('#account-name').focus(); }
+ if (state.overlayMode === 'blur') document.querySelector('#blur-dialog').showModal();
+ if (state.overlayMode === 'privacy') document.querySelector('#privacy-dialog').showModal();
+ if (state.overlayMode === 'lock') document.querySelector('#unlock-password').focus();
  if (state.overlayMode === 'manage') document.querySelector('#manage-dialog').showModal();
  if (state.overlayMode === 'rail') document.querySelector('#rail-accounts button')?.focus();
 }
