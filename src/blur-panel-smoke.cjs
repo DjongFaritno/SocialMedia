@@ -15,7 +15,7 @@ module.exports = async ({settings,views,handleAccountAction,waitForDocument,html
   for(const [i,side] of ['left','right'].entries())assert.equal((await handleAccountAction('select',{side,id:pair[i].id})).ok,true);
   const panels=pair.map((account,i)=>({account,side:i?'right':'left',wc:views[account.id].webContents}));
   for(const {account,wc} of panels){
-   await waitForDocument(wc);wc.session.protocol.unhandle('https');
+   await waitForDocument(wc);
    await wc.session.protocol.handle('https',()=>new Response(html(account.service),{headers:{'Content-Type':'text/html'}}));
    await wc.loadURL(SERVICES[account.service].url);await settled(wc);await move(wc,2,2);
   }
