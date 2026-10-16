@@ -35,6 +35,7 @@ class Contents extends EventEmitter {
  getURL() { return this.url; }
  async insertCSS(css, options) { assert.equal(options.cssOrigin, 'author'); const key = String(++this.sequence); this.sheets.set(key, css); return key; }
  async removeInsertedCSS(key) { this.sheets.delete(key); }
+ async executeJavaScriptInIsolatedWorld(world, scripts) { assert.equal(world,42); assert.equal(scripts.length,1); }
 }
 test('rapid changes and hash navigation do not accumulate styles; disabled/login pages restore originals', async () => {
  const wc = new Contents(); let config = { enabled: true };
@@ -86,4 +87,20 @@ test('Instagram media helper is isolated and removed when hover is disabled', as
  await controller.refresh();assert.match(calls.at(-1),/,true\);$/);
  config={enabled:true,revealOnHover:false};await controller.refresh();assert.match(calls.at(-1),/,false\);$/);
  wc.url='https://www.facebook.com/login';await controller.refresh();assert.equal(calls.length,2);
+});
+
+test('every provider installs and cleans isolated media hover when Media is toggled', async () => {
+ const { SERVICES } = require('../src/accounts.cjs');
+ for(const [service,provider] of Object.entries(SERVICES)){
+  const wc=new Contents();wc.url=provider.url;const calls=[];
+  wc.executeJavaScriptInIsolatedWorld=async(world,scripts)=>{assert.equal(world,42);calls.push(scripts[0].code);};
+  let config={enabled:true};
+  const controller=attachBlur(wc,service,()=>config);
+  await controller.refresh();assert.match(calls.at(-1),/,true\);$/,service+' enables helper');
+  config={enabled:true,elements:{media:false}};await controller.refresh();
+  assert.match(calls.at(-1),/,false\);$/,service+' cleans helper when media off');
+  assert.equal(calls.length,2);
+  config={enabled:false};await controller.refresh();assert.equal(wc.sheets.size,0);
+  assert.equal(calls.length,2,'disabled helper is not repeatedly injected');
+ }
 });

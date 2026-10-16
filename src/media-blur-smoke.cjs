@@ -3,9 +3,17 @@ module.exports = async ({wc,save,move,hover,isBlurred,service}) => {
  const evaluate=code=>wc.executeJavaScript(code);
  await save({enabled:true});
  await evaluate(`(()=>{
- const root=document.querySelector('article,[data-pressable-container="true"]');
+ let root=document.querySelector('article,[data-pressable-container="true"]');
+ if(!root){root=document.createElement('div');
+  if('${service}'==='whatsapp')root.setAttribute('data-testid','msg-container');
+  if('${service}'==='telegram'){root.className='Message';root.innerHTML='<div class="media-inner"></div>'; }
+  if('${service}'==='discord')root.className='attachment_fixture imageWrapper_fixture';
+  if('${service}'==='x')root.setAttribute('data-testid','tweetPhoto');
+  (document.getElementById('main')||document.body).append(root);
+  if('${service}'==='telegram')root=root.firstElementChild;
+ }
  const wrapper=document.createElement('div');wrapper.setAttribute('dir','auto');wrapper.id='media-wrapper';
- wrapper.innerHTML='<div style="position:relative;width:160px;height:100px"><img id="overlay-image" style="width:160px;height:100px;pointer-events:none" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"><button id="image-control" style="position:absolute;inset:0;margin:0">Photo controls</button></div><div style="position:relative;width:160px;height:100px"><video id="overlay-video" style="width:160px;height:100px;pointer-events:none"></video><img id="video-poster" style="position:absolute;inset:0;width:160px;height:100px;pointer-events:none" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"><button id="video-control" style="position:absolute;inset:0;margin:0">Play</button></div>';
+ wrapper.innerHTML='<div style="position:relative;width:160px;height:100px"><img id="overlay-image" style="width:160px;height:100px;pointer-events:none" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"><button id="image-control" style="position:absolute;inset:0;margin:0">Photo controls</button></div><div data-testid="videoPlayer" style="position:relative;width:160px;height:100px"><video id="overlay-video" style="width:160px;height:100px;pointer-events:none"></video><img id="video-poster" style="position:absolute;inset:0;width:160px;height:100px;pointer-events:none" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"><button id="video-control" style="position:absolute;inset:0;margin:0">Play</button></div>';
  root.append(wrapper);document.getElementById('image-control').onclick=()=>document.body.dataset.mediaClicked='yes';
  })()`);
  await move(wc,2,2);
@@ -35,5 +43,17 @@ module.exports = async ({wc,save,move,hover,isBlurred,service}) => {
  await save({enabled:false});
  assert.equal(await evaluate('document.querySelectorAll("[data-duochat-media-reveal]").length'),0,'disable cleans local markers');
  assert.equal(await evaluate('typeof window.__duochatMediaHoverCleanup'),'undefined','helper isolated from service page');
+ await evaluate('document.getElementById("media-wrapper").remove();window.scrollTo(0,0)');
+ if(service==='threads'){
+  await evaluate('document.body.insertAdjacentHTML("beforeend",'+JSON.stringify('<article id="threads-linked-fixture"><a href="/@author" id="threads-profile-link"><img id="threads-linked-avatar" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"></a><a href="/@author/post/example"><img id="threads-linked-photo" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"></a></article>')+')');
+  await save({enabled:true,revealOnHover:false,elements:{media:true,avatars:false,names:false}});
+  assert.equal(await isBlurred(wc,'threads-linked-photo'),true,'linked post photo remains media outside pressable container');
+  assert.equal(await isBlurred(wc,'threads-linked-avatar'),false,'unchecked profile stays clear');
+  await save({enabled:true,revealOnHover:false,elements:{media:false,avatars:true,names:false}});
+  assert.equal(await isBlurred(wc,'threads-linked-photo'),false,'avatar checkbox never blurs linked post media');
+  assert.equal(await isBlurred(wc,'threads-linked-avatar'),true,'avatar checkbox covers profile link');
+  await evaluate('document.getElementById("threads-linked-fixture").remove()');
+ }
  await save({enabled:true});
+ console.log('MEDIA OVERLAY PASS: '+service+' overlay image, video/poster, unrelated modal, click, hover-off and cleanup');
 };

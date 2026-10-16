@@ -1,6 +1,28 @@
 // Local CSS and isolated media hit testing; no message reads or remote bridge.
 const { SERVICES } = require('./accounts.cjs');
 const ELEMENTS = Object.freeze(['messages', 'previews', 'names', 'avatars', 'media', 'composer']);
+// Metadata-based media coverage supplements legacy WhatsApp wrappers.
+// Avatar boundaries are reused to prevent Media from overriding the Avatar checkbox.
+const WA_AVATARS = [
+ "#pane-side img:not(.emoji):not([data-testid=\"emoji\"])",
+ "#main header img:not(.emoji)",
+ "[data-testid=\"conversation-info-header\"] img:not(.emoji)",
+ "[data-testid=\"chat-avatar\"]",
+ "[data-testid=\"contact-avatar\"]",
+ "div.x78zum5 > div.x6s0dn4.x78zum5.x1c4vz4f.x2lah0s.x1y332i5.x18d9i69.xexx8yu.xbmws1g > div",
+ "div.x6s0dn4.x78zum5.x1c4vz4f.x2lah0s.x18d9i69.xexx8yu > div",
+ "[role=\"dialog\"] ._ak8h",
+ "header div[role=\"button\"]:first-child div.x1n2onr6.x16ye13r.x5lhr3w",
+ "div.x16ye13r.x10l6tqk.x1wnpwf8.x1vjfegm div[role=\"button\"]",
+ "div.x1okw0bk.x1g6eq07 div.x1n2onr6.x1c9tyrk.xeusxvb.x1pahc9y.x1ertn4p",
+ "div.x2lah0s.x1c4vz4f.xdl72j9.x1g6eq07",
+ "div.x1n2onr6.x1c4vz4f.x2lah0s.xdl72j9.x19991ni.x13dflua.xz4gly6.x67bb7w.x1hc1fzr",
+ "div.x78zum5.xl56j7k.xyorhqc > span > div[role=\"button\"]",
+ "div.x1n2onr6.x2pejg6.x1nbnut7.xvc5jky.x11t971q",
+ "div.overlay ._ak8h"
+];
+const WA_MEDIA_SCOPE = ':is(#main .message-in,#main .message-out,#main [data-id],[data-testid="msg-container"],[data-testid="quoted-message"],[data-testid="media-viewer"],[data-testid="link-preview-container"])';
+const WA_NOT_AVATAR = ':not(:is(' + WA_AVATARS.join(',') + ')):not(:is(' + WA_AVATARS.join(',') + ') *)';
 const ADAPTERS = Object.freeze({
  whatsapp: {
   messages: [
@@ -9,12 +31,20 @@ const ADAPTERS = Object.freeze({
    '[data-testid="msg-container"] [data-lexical-text="true"]', '#main [data-id] [data-lexical-text="true"]',
    '#main [data-pre-plain-text] .copyable-text span[dir]:not(:has([dir]))',
    '#main [data-pre-plain-text].copyable-text > span[dir]:not(:has(img, video))',
-   '[data-testid="msg-container"]:not(:has(.selectable-text, [data-lexical-text], img, video, canvas, audio))'
+   '[data-testid="msg-container"]:not(:has(.selectable-text, [data-lexical-text], img, video, canvas, audio, [style*="background-image"], [data-testid="sticker-container"], [data-testid="image-thumb"], [data-testid="video-thumb"]))'
   ],
   previews: ['#pane-side [data-testid="cell-frame-secondary"]', '#pane-side [data-testid="last-msg-preview"]', '#pane-side div.xjbqb8w.x1iyjqo2.x1f6kntn.x1fc57z9.x6ikm8r.x10wlt62.x1yc453h.xlyipyv.xuxw1ft.xo1l8bm'],
   names: ['#pane-side [data-testid="cell-frame-title"]', '#pane-side [role="gridcell"] div.x14ug900.x78zum5.x1iyjqo2.x1jchvi3.xdod15v.x6ikm8r.x10wlt62.x1mzt3pk.x1yc453h.xo1l8bm', '#pane-side ._ak8q', '#main header span[title]', '[data-testid="conversation-info-header-chat-title"]'],
-  avatars: ['#pane-side img', '#main header img', '[data-testid="conversation-info-header"] img'],
-  media: ['#main .message-in img', '#main .message-out img', '#main .message-in video', '#main .message-out video', '[data-testid="media-viewer"] img', '[data-testid="media-viewer"] video'],
+  avatars: WA_AVATARS,
+  media: [
+   WA_MEDIA_SCOPE + ' :is(img,video,canvas,[style*="background-image"]):not(.emoji):not([data-testid="emoji"])' + WA_NOT_AVATAR,
+   '[data-testid="media-editor-canvas"]', '[data-testid="sticker-container"]',
+   '[data-testid="image-thumb"]' + WA_NOT_AVATAR, '[data-testid="video-thumb"]' + WA_NOT_AVATAR,
+   '[data-testid="msgImage"]' + WA_NOT_AVATAR,
+   'div[role="listitem"] button > div[style*="background-image"]' + WA_NOT_AVATAR,
+   'div.x1conndi' + WA_NOT_AVATAR,
+   'div.x1n2onr6.x78zum5.x6s0dn4.xl56j7k.xh8yej3.xeuugli.x5yr21d.xdt5ytf > div > div:first-child' + WA_NOT_AVATAR
+  ],
   composer: ['[data-testid="conversation-compose-box-input"]', '#main footer [contenteditable="true"]']
  },
  telegram: {
@@ -28,7 +58,8 @@ const ADAPTERS = Object.freeze({
    '.Message .EmbeddedMessage .message-title', '.bubble .reply .reply-title'],
   avatars: ['.Avatar', '.avatar'],
   media: ['.Message img.full-media', '.Message .media-inner img', '.Message video', '.Message .sticker', '.bubble .attachment img', '.bubble video', '.bubble .sticker',
-   '.Message .EmbeddedMessage .embedded-thumb', '.bubble .reply .reply-media'],
+   '.Message .EmbeddedMessage .embedded-thumb', '.bubble .reply .reply-media',
+   '.Message .media-inner canvas', '.bubble .attachment canvas'],
   composer: ['.input-message-input[contenteditable="true"]', '#message-input-text', '.MessageInput [contenteditable="true"]']
  },
  discord: {
@@ -36,7 +67,7 @@ const ADAPTERS = Object.freeze({
   previews: ['[class*="lastMessage_"]', '[class*="subText_"]'],
   names: ['[class*="username_"]', '[class*="username-"]', '[class*="channelName_"]', 'a[href^="/channels/@me/"] [class*="name_"]'],
   avatars: ['img[class*="avatar_"]', 'img[class*="avatar-"]', '[class*="avatarWrapper_"]'],
-  media: ['[id^="chat-messages-"] [class*="imageWrapper_"] img', '[id^="chat-messages-"] video', '[class*="attachment_"] img', '[class*="stickerAsset_"]'],
+  media: ['[id^="chat-messages-"] [class*="imageWrapper_"] img', '[id^="chat-messages-"] video', '[class*="attachment_"] img', '[class*="stickerAsset_"]', '[class*="attachment_"] canvas', '[class*="imageWrapper_"] video'],
   composer: ['[data-slate-editor="true"][role="textbox"]']
  },
  x: {
@@ -44,7 +75,7 @@ const ADAPTERS = Object.freeze({
   previews: ['[data-testid="conversation"] [data-testid="preview"]'],
   names: ['[data-testid="User-Name"]', '[data-testid="UserName"]'],
   avatars: ['[data-testid^="UserAvatar-Container"]'],
-  media: ['[data-testid="tweetPhoto"] img', '[data-testid="videoPlayer"] video', '[data-testid="card.wrapper"] img'],
+  media: ['[data-testid="tweetPhoto"] img', '[data-testid="videoPlayer"] video', '[data-testid="card.wrapper"] img', '[data-testid="tweetPhoto"] canvas', '[data-testid="videoPlayer"] img'],
   composer: ['[data-testid="tweetTextarea_0"]', '[data-testid="dmComposerTextInput"]']
  },
  instagram: {
@@ -58,9 +89,9 @@ const ADAPTERS = Object.freeze({
  threads: {
   messages: ['[data-pressable-container="true"] [dir="auto"]:not(a *):not(:has(a)):not(:has([dir="auto"])):not(:has(img,video,picture,canvas))', '[data-testid="post-text"]'],
   previews: [],
-  names: ['[data-pressable-container="true"] a[href^="/@"]:not(:has(img))', 'article a[href^="/@"]:not(:has(img))'],
-  avatars: ['a[href^="/@"] img'],
-  media: ['[data-pressable-container="true"] img:not(a[href^="/@"] *)', '[data-pressable-container="true"] video', 'article video'],
+  names: ['[data-pressable-container="true"] a[href^="/@"]:not([href*="/post/"]):not(:has(img))', 'article a[href^="/@"]:not([href*="/post/"]):not(:has(img))'],
+  avatars: ['a[href^="/@"]:not([href*="/post/"]) img'],
+  media: ['[data-pressable-container="true"] img:not(a[href^="/@"]:not([href*="/post/"]) *)', '[data-pressable-container="true"] video', 'article img:not(a[href^="/@"]:not([href*="/post/"]) *)', 'article video'],
   composer: ['[role="main"] [contenteditable="true"][role="textbox"]', '[role="dialog"] [contenteditable="true"][role="textbox"]']
  }
 });
@@ -104,7 +135,7 @@ function blurCSS(service, raw) {
  // Revert only our layer on reveal, preserving service filters (e.g. spoilers).
  if (config.revealOnHover) {
   css += target + ':is(:hover,:focus-within){filter:revert-layer!important;}';
-  if (config.elements.media && ['instagram', 'threads'].includes(service)) {
+  if (config.elements.media && Boolean(ADAPTERS[service]?.media.length)) {
    css += target + '[data-duochat-media-reveal]{filter:revert-layer!important;}';
   }
  }
@@ -170,7 +201,7 @@ function installMediaHover(selectors, enabled) {
 }
 function mediaHoverScript(service, raw) {
  const config = cleanBlur(raw);
- const enabled = ['instagram', 'threads'].includes(service) && config.enabled && config.revealOnHover && config.elements.media;
+ const enabled = Boolean(ADAPTERS[service]?.media.length) && config.enabled && config.revealOnHover && config.elements.media;
  return '(' + installMediaHover.toString() + ')(' + JSON.stringify(ADAPTERS[service]?.media || []) + ',' + enabled + ');';
 }
 function attachBlur(contents, service, getConfig, report = () => {}) {
@@ -189,7 +220,7 @@ function attachBlur(contents, service, getConfig, report = () => {}) {
     if (disposed || contents.isDestroyed() || token !== revision) { if (next && !contents.isDestroyed()) await contents.removeInsertedCSS(next).catch(() => {}); return; }
     const previous = key; key = next;
     if (previous) await contents.removeInsertedCSS(previous).catch(() => {});
-    const hoverNeeded = trustedPage && ['instagram', 'threads'].includes(service) && config.enabled && config.revealOnHover && config.elements.media;
+    const hoverNeeded = trustedPage && Boolean(ADAPTERS[service]?.media.length) && config.enabled && config.revealOnHover && config.elements.media;
     if (trustedPage && (hoverNeeded || hoverInstalled)) {
      await contents.executeJavaScriptInIsolatedWorld(42, [{ code: mediaHoverScript(service, config) }]);
      hoverInstalled = hoverNeeded;

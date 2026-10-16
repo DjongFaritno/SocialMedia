@@ -6,7 +6,7 @@ const { cleanBlur } = require('./blur.cjs');
 const image = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 const pic = attributes => '<img src="' + image + '" ' + attributes + '>';
 const fixtures = {
- whatsapp: '<div id="pane-side"><div role="row"><span data-testid="cell-frame-title" id="person">Private contact</span><div data-testid="cell-frame-secondary" id="preview">Private preview</div>' + pic('id="avatar"') + '</div></div><div id="main"><div class="message-in"><span class="selectable-text" contenteditable="false" role="textbox" aria-readonly="true" id="message">Private message</span>' + pic('id="media"') + '</div><footer><div contenteditable="true" data-testid="conversation-compose-box-input" id="editor">Reply</div></footer></div>',
+ whatsapp: '<div id="pane-side"><div role="row"><span data-testid="cell-frame-title" id="person">Private contact</span><div data-testid="cell-frame-secondary" id="preview">Private preview</div>' + pic('id="avatar"') + '</div></div><div id="main"><div data-testid="msg-container" data-id="fixture-media"><span class="selectable-text" contenteditable="false" role="textbox" aria-readonly="true" id="message">Private message</span>' + pic('id="media"') + '</div><footer><div contenteditable="true" data-testid="conversation-compose-box-input" id="editor">Reply</div></footer></div>',
  telegram: '<div class="ChatInfo"><span class="title" id="person">Private contact</span></div><div class="ListItem Chat"><div class="subtitle" id="preview">Preview</div></div><div class="Avatar" id="avatar">AB</div><div class="Message"><span class="text-content" id="message">Private message</span>' + pic('class="full-media" id="media"') + '</div><div class="MessageInput"><div contenteditable="true" id="message-input-text"><span id="editor">Reply</span></div></div>',
  discord: '<span class="username_fixture" id="person">Private contact</span><span class="lastMessage_fixture" id="preview">Preview</span>' + pic('class="avatar_fixture" id="avatar"') + '<li id="chat-messages-1"><div id="message-content-1"><span id="message">Private message</span></div><div class="imageWrapper_fixture">' + pic('id="media"') + '</div></li><div data-slate-editor="true" role="textbox" contenteditable="true" id="editor">Reply</div>',
  x: '<div data-testid="User-Name" id="person">Private contact</div><div data-testid="conversation"><span data-testid="preview" id="preview">Preview</span></div><div data-testid="UserAvatar-Container-fixture" id="avatar">' + pic('') + '</div><div data-testid="tweetText" id="message">Private post</div><div data-testid="tweetPhoto">' + pic('id="media"') + '</div><div data-testid="tweetTextarea_0" role="textbox" contenteditable="true" id="editor">Reply</div>',
@@ -102,8 +102,9 @@ module.exports = async ({ app, win, views, settings, handleAccountAction, blurCo
   }
   if (service === 'whatsapp') {
    await require('./whatsapp-blur-smoke.cjs')({ wc, save, move, hover, isBlurred });
+   await require('./whatsapp-media-blur-smoke.cjs')({ wc, save, move, hover, isBlurred });
   }
-  if (['instagram','threads'].includes(service)) { console.log('MEDIA OVERLAY start',service); await require('./media-blur-smoke.cjs')({wc,save,move,hover,isBlurred,service}); console.log('MEDIA OVERLAY pass',service); }
+  await require('./media-blur-smoke.cjs')({wc,save,move,hover,isBlurred,service});
   if (service === 'instagram') {
    await wc.loadURL('https://www.facebook.com/login'); await settled(wc);
    assert.equal(await isBlurred(wc, 'message'), false, 'Facebook login does not inherit Instagram CSS');
@@ -111,31 +112,7 @@ module.exports = async ({ app, win, views, settings, handleAccountAction, blurCo
   if (wc.debugger.isAttached()) wc.debugger.detach();
   wc.session.protocol.unhandle('https'); console.log('BLUR FIXTURE pass',service);
  }
- // Both visible panels pick up one saved configuration, including a newly re-created view.
- await handleAccountAction('select', { side: 'left', id: 'whatsapp' });
- await handleAccountAction('select', { side: 'right', id: 'telegram' });
- for (const service of ['whatsapp', 'telegram']) {
-  const wc = views[service].webContents;
-  await waitForDocument(wc);
-  await wc.session.protocol.handle('https', () => new Response(html(service), { headers: { 'Content-Type': 'text/html' } }));
-  await wc.loadURL(SERVICES[service].url); await settled(wc);
- }
- await save({ enabled: true, revealOnHover: false, elements: { names: false } });
- assert.equal(await isBlurred(views.whatsapp.webContents, 'message'), true);
- assert.equal(await isBlurred(views.telegram.webContents, 'message'), true);
- assert.equal(await isBlurred(views.whatsapp.webContents, 'person'), false);
- assert.equal(await isBlurred(views.telegram.webContents, 'person'), false);
- assert.equal(views.whatsapp.getVisible(), true); assert.equal(views.telegram.getVisible(), true);
- assert.equal((await ui('window.duo.blurAction("toggle")')).ok,false);
- await ui('window.duo.blurAction("toggle",{side:"left"})');
- assert.equal(await isBlurred(views.whatsapp.webContents, 'message'), false);
- assert.equal(await isBlurred(views.telegram.webContents, 'message'), true);
- assert.deepEqual(settings.blurPanels,{left:false,right:true});
- await ui('window.duo.blurAction("save",'+JSON.stringify({...config,strength:14})+')');
- assert.deepEqual(settings.blurPanels,{left:false,right:true});
- assert.equal(await isBlurred(views.whatsapp.webContents,'message'),false);
- assert.equal(await isBlurred(views.telegram.webContents,'message'),true);
- for (const service of ['whatsapp', 'telegram']) { const wc = views[service].webContents; if (wc.debugger.isAttached()) wc.debugger.detach(); wc.session.protocol.unhandle('https'); }
+ await require('./blur-panel-smoke.cjs')({settings,views,handleAccountAction,waitForDocument,html,settled,ui,save,isBlurred,move});
  await save(originalBlur);
  for (const side of ["left","right"]) await ui('window.duo.blurAction("set",'+JSON.stringify({side,enabled:originalPanels[side]})+')');
  await handleAccountAction('select', { side: 'left', id: originalSlots.left });

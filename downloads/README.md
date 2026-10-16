@@ -2,7 +2,7 @@
 
 Installer yang sudah diterbitkan tersedia di [GitHub Releases](https://github.com/DjongFaritno/SocialMedia/releases). Folder ini hanya menyimpan panduan; installer dan checksum tidak dimasukkan ke repository.
 
-Versi pengembangan **0.3.0-beta.7** membawa multiakun dan pilihan layanan. Sebelum dipublikasikan, kandidat Windows/macOS/Linux tersedia sebagai artifact workflow [Build desktop installers](https://github.com/DjongFaritno/SocialMedia/actions). Artifact build bukan rilis publik atau update otomatis.
+Versi pengembangan **0.3.0-beta.8** membawa multiakun dan pilihan layanan. Sebelum dipublikasikan, kandidat Windows/macOS/Linux tersedia sebagai artifact workflow [Build desktop installers](https://github.com/DjongFaritno/SocialMedia/actions). Artifact build bukan rilis publik atau update otomatis.
 
 - Windows x64: pilih installer Setup.exe.
 - macOS Intel/Apple Silicon: pilih DMG universal, lalu seret DuoChat ke Applications. [Panduan instalasi Mac](../docs/install-macos.md).
@@ -25,3 +25,6 @@ Kutipan reply Telegram Web A dan K di dalam pesan masuk/keluar kini mengikuti ka
 
 
 Nama kontak, grup, dan Saved Messages di daftar chat Telegram Web A kini mengikuti checklist **Nama kontak, grup & pengguna**. Ringkasan nama chat dalam arsip juga mengikuti kategori Nama, terpisah dari preview pesan dan foto profil. Label arsip, waktu, dan kontrol tetap jelas saat hanya nama dipilih. Hover membuka bagian yang ditunjuk, lalu blur kembali saat pointer pergi. Baris chat yang muncul tanpa reload ikut terlindungi.
+
+
+QC media: foto WhatsApp berbasis metadata/data-id, canvas, background, kutipan, stiker, thumbnail, galeri dan viewer mendapat cakupan tambahan. Avatar (termasuk placeholder) tetap terpisah dari Media; emoji bukan foto profil. Hover media melalui kontrol overlay diuji pada keenam layanan. Threads membedakan tautan profil dari foto yang menaut ke postingan. Pengujian terkemas mencakup tiap kategori sendiri, kedua sisi panel, dua akun WhatsApp, empat kombinasi ON/OFF, pengaturan bersama, swap akun, reload dan media baru. Cakupan otomatis memakai fixture lokal; perubahan DOM layanan atau variasi akun nyata tetap dapat memerlukan penyesuaian.
