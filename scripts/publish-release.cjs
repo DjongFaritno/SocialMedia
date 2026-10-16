@@ -29,6 +29,12 @@ function publishRelease({repo,sha,version,folder,assets,run}){
  const staged=api();
  if(!staged.draft||staged.target_commitish!==sha)throw Error('Draft release target changed');
  assertAssets(staged,assets);
+ // A draft may refer to an already existing tag; target_commitish alone is
+ // insufficient because GitHub ignores --target when the tag already exists.
+ try{
+  const tagged=JSON.parse(run(['api','repos/'+repo+'/commits/'+tag]));
+  if(tagged.sha!==sha)throw Error('Existing tag points to another commit');
+ }catch(error){if(error.status!==404&&!/HTTP 404/.test(error.stderr?.toString()||''))throw error;}
  run(['release','edit',tag,'--repo',repo,'--draft=false','--prerelease='+prerelease,prerelease?'--latest=false':'--latest']);
  const published=api();
  if(published.draft||published.prerelease!==prerelease||published.target_commitish!==sha)throw Error('Release publication verification failed');

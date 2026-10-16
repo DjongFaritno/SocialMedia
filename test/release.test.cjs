@@ -51,7 +51,9 @@ test('matching incomplete draft can resume without creating a second release',()
 test('API failures and a mismatched published tag fail the release verification',()=>{
  const f=fixture();f.run=()=>{const error=Error('GitHub unavailable');error.status=503;throw error;};
  assert.throws(()=>publishRelease(f),/GitHub unavailable/);
- assert.throws(()=>publishRelease(fixture('0.3.0',{badTag:true})),/another commit/);
+ const bad=fixture('0.3.0',{badTag:true});
+ assert.throws(()=>publishRelease(bad),/another commit/);
+ assert.equal(bad.calls.some(a=>a[1]==='edit'),false,'foreign tag never becomes public');
 });
 test('local checksum manifest verifies file contents and includes its own digest',async()=>{
  const folder=fs.mkdtempSync(path.join(os.tmpdir(),'duochat-manifest-'));
