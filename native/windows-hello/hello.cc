@@ -104,7 +104,7 @@ static napi_value Start(napi_env env, napi_callback_info info, bool verify) {
   }
  }
  if (napi_queue_async_work(env, task->work) != napi_ok) {
-  napi_delete_async_work(env, task->work); delete task;
+  napi_delete_async_work(env, task->work); Dispose(task, true);
   napi_throw_error(env, nullptr, "Cannot queue Windows Hello request"); return nullptr;
  }
  return promise;
