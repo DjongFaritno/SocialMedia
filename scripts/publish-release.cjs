@@ -43,7 +43,8 @@ function publishRelease({repo,sha,version,folder,assets,run,resumeDraftFrom}){
  // A draft may refer to an already existing tag; target_commitish alone is
  // insufficient because GitHub ignores --target when the tag already exists.
  try{
-  const tagged=JSON.parse(run(['api','repos/'+repo+'/commits/'+tag]));
+  const ref=JSON.parse(run(['api','repos/'+repo+'/git/ref/tags/'+tag]));
+  const tagged=ref.object.type==='commit'?ref.object:JSON.parse(run(['api','repos/'+repo+'/commits/'+tag]));
   if(tagged.sha!==sha)throw Error('Existing tag points to another commit');
  }catch(error){if(error.status!==404&&!/HTTP 404/.test(error.stderr?.toString()||''))throw error;}
  run(['release','edit',tag,'--repo',repo,'--draft=false','--prerelease='+prerelease,prerelease?'--latest=false':'--latest']);

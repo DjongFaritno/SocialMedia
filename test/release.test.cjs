@@ -10,6 +10,10 @@ function fixture(version='0.3.0',options={}){
  const run=args=>{
   calls.push(args);
   if(args[0]==='api'){
+   if(args[1].includes('/git/ref/tags/')){
+    if(options.missingTag){const error=Error('Tag absent');error.status=404;throw error;}
+    return JSON.stringify({object:{type:'commit',sha:options.badTag?'c'.repeat(40):sha}});
+   }
    if(args[1].includes('/commits/'))return JSON.stringify({sha:options.badTag?'c'.repeat(40):sha});
    if(args[1].includes('/releases?'))return JSON.stringify([release?[{...release,tag_name:'v'+version}]:[]]);
    throw Error('Drafts must not be looked up by tag endpoint');
@@ -80,4 +84,11 @@ test('explicit recovery retargets only the expected unpublished draft, never a p
  publicRelease.resumeDraftFrom=old;
  assert.throws(()=>publishRelease(publicRelease),/already public/);
  assert.equal(publicRelease.calls.some(a=>a[1]==='edit'),false);
+});
+
+test('a fresh draft without a tag ref can publish and verifies the created tag afterward',()=>{
+ const f=fixture('0.3.0',{missingTag:true});
+ assert.equal(publishRelease(f).draft,false);
+ assert.ok(f.calls.some(a=>a[1].includes('/git/ref/tags/')));
+ assert.ok(f.calls.some(a=>a[1].includes('/commits/')));
 });
