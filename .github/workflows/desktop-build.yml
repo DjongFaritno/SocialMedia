@@ -167,7 +167,7 @@ jobs:
 
   release:
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-    name: Publish prototype downloads
+    name: Publish verified desktop release
     needs: [windows, macos, linux]
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -187,22 +187,9 @@ jobs:
           pattern: duochat-*
           path: release-assets
           merge-multiple: true
-      - name: Checksums and release
+      - name: Validate all installers and publish complete release
         env:
           GH_TOKEN: ${{ github.token }}
-        shell: bash
         run: |
-          set -euo pipefail
-          version="$(node -p "require('./package.json').version")"
-          tag="v${version}"
           node scripts/release-checksums.cjs release-assets
-          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            release_commit="$(gh api "repos/$GITHUB_REPOSITORY/commits/$tag" --jq .sha)"
-            if [ "$release_commit" != "$GITHUB_SHA" ]; then
-              echo 'Version already published for another commit. Bump package.json version before publishing.' >&2
-              exit 1
-            fi
-          else
-            gh release create "$tag" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --prerelease --title "DuoChat ${version} — Desktop prototype" --notes-file docs/release-notes.md
-          fi
-          gh release upload "$tag" release-assets/* --repo "$GITHUB_REPOSITORY" --clobber
+          node scripts/publish-release.cjs release-assets

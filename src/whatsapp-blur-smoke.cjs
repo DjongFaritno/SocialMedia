@@ -14,6 +14,8 @@ module.exports = async ({ wc, save, move, hover, isBlurred }) => {
   '<div data-id="editor-guard"><div role="textbox" contenteditable="true" id="wa-editor"><span class="selectable-text" id="wa-draft">Draft remains readable</span><span contenteditable="false" class="selectable-text" id="wa-editor-mention">Mention inside editor</span></div></div>',
   '<div data-id="empty-editor-guard"><div contenteditable="" id="wa-empty-editor"><span class="selectable-text" id="wa-empty-draft">Editable empty attribute</span></div></div>',
   '<div data-id="plaintext-editor-guard"><div contenteditable="plaintext-only" id="wa-plaintext-editor"><span class="selectable-text" id="wa-plaintext-draft">Plaintext editor</span></div></div>'
+  ,'<div data-testid="msg-container"><div><span data-testid="author" id="wa-group-author">Private group sender</span></div><span class="selectable-text" id="wa-group-body">Group body</span></div>',
+  '<div data-id="group-reply"><div data-testid="quoted-message"><div><span data-testid="author" id="wa-quote-author">Private quoted sender</span></div><span class="selectable-text" id="wa-quote-body">Quoted body</span></div></div>'
  ].join('');
  await wc.executeJavaScript('(()=>{const e=document.createElement("section");e.id="wa-variants";e.innerHTML=' + JSON.stringify(markup) + ';document.getElementById("main").appendChild(e);})()');
  const messages = ['wa-incoming', 'wa-outgoing', 'wa-quote', 'wa-reply', 'wa-readonly', 'wa-readonly-role', 'wa-plain', 'wa-caption'];
@@ -33,7 +35,24 @@ module.exports = async ({ wc, save, move, hover, isBlurred }) => {
  assert.equal(await isBlurred(wc, 'wa-late'), true);
  await save({ enabled: true, revealOnHover: false, elements: { messages: false, media: true, names: true } });
  for (const id of messages) assert.equal(await isBlurred(wc, id), false, id + ' honors message category off');
+ const authorIds=['wa-group-author','wa-quote-author'];
+ const bodyIds=['wa-group-body','wa-quote-body'];
+ for(const category of ['names','messages','media']){
+  const elements=Object.fromEntries(['messages','previews','names','avatars','media','composer'].map(key=>[key,key===category]));
+  await save({enabled:true,revealOnHover:false,elements});
+  for(const id of authorIds)assert.equal(await isBlurred(wc,id),category==='names','group/reply sender follows Names only');
+  for(const id of bodyIds)assert.equal(await isBlurred(wc,id),category==='messages','sender name selection does not cover body');
+ }
+ await save({enabled:true});
+ await wc.executeJavaScript('document.getElementById("wa-group-author").scrollIntoView({block:"center"})');
+ await hover(wc,'wa-group-author');assert.equal(await isBlurred(wc,'wa-group-author'),false,'sender hover reveal');
+ assert.equal(await isBlurred(wc,'wa-group-body'),true,'sender hover keeps body private');
+ assert.equal(await isBlurred(wc,'wa-quote-author'),true,'sender hover keeps other sender private');
+ await move(wc,2,2);assert.equal(await isBlurred(wc,'wa-group-author'),true,'sender reblur');
+ await wc.executeJavaScript('(()=>{const n=document.getElementById("wa-group-author").cloneNode(true);n.id="wa-new-author";document.querySelector("#wa-variants [data-testid=msg-container]").append(n);})()');
+ assert.equal(await isBlurred(wc,'wa-new-author'),true,'new group sender blurs without reload');
  await save({ enabled: false });
+ for(const id of [...authorIds,...bodyIds,'wa-new-author'])assert.equal(await isBlurred(wc,id),false,'panel off restores group/reply sender');
  for (const id of [...messages, 'wa-late']) assert.equal(await isBlurred(wc, id), false, id + ' clears after disabling blur');
  await wc.executeJavaScript('document.getElementById("wa-variants").remove();window.scrollTo(0,0)');
  await save({ enabled: true });

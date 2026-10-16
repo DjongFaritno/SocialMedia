@@ -2,11 +2,11 @@
 
 Dua ruang. Akunnya terserah kamu.
 
-DuoChat membuka dua akun layanan web berdampingan dalam satu aplikasi desktop. Versi pengembangan **0.3.0-beta.8** menambahkan multiakun WhatsApp, Telegram, Discord, X, Instagram, dan Threads. Panel memakai tampilan web resmi masing-masing layanan.
+DuoChat membuka dua akun layanan web berdampingan dalam satu aplikasi desktop. Versi **0.3.0** menambahkan multiakun WhatsApp, Telegram, Discord, X, Instagram, dan Threads. Panel memakai tampilan web resmi masing-masing layanan.
 
 ## Coba dan jalankan
 
-Installer yang sudah diterbitkan ada di [GitHub Releases](https://github.com/DjongFaritno/SocialMedia/releases). Build kandidat dapat ditemukan pada artifact [GitHub Actions](https://github.com/DjongFaritno/SocialMedia/actions). Versi pada branch pengembangan belum otomatis tersedia sebagai rilis publik.
+Installer Windows, macOS, dan Linux tersedia di [rilis terbaru](https://github.com/DjongFaritno/SocialMedia/releases/latest). [Panduan signing](docs/code-signing.md) menjelaskan status tanda tangan penerbit dan persiapan yang diperlukan. Build pengembangan tetap tersedia sebagai artifact GitHub Actions.
 
 Untuk menjalankan source, gunakan Node.js 24 dan npm:
 

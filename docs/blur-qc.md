@@ -1,4 +1,4 @@
-# Blur QC — 0.3.0-beta.8
+# Blur QC — 0.3.0
 
 Automated checks use isolated local HTTPS fixtures at the official service origins. They exercise the packaged Electron CSS engine, real configuration IPC and Chromium pointer input without logging into or fetching private accounts. Source-shaped variants cover known markup; passing fixtures does not certify every production layout or future DOM change.
 
@@ -22,3 +22,6 @@ Acceptance on a real account:
 5. Repeat supported categories in Telegram, Discord, X, Instagram and Threads. Threads has no preview adapter; Discord/X/Instagram/Threads remain experimental and unknown layouts may be missed.
 
 Use opaque panel covers or the application lock when the screen must be hidden reliably. Selective blur only covers recognized rendered elements.
+
+
+Rilis 0.3.0 menambah pengujian nama pengirim grup/reply WhatsApp (author): kategori Nama terpisah dari pesan/media, hover/reblur dan nama baru tanpa reload. Rilis memerlukan tiga job installer lulus, validasi metadata SHA-512, checksum SHA-256, dan pemeriksaan digest aset setelah upload draft. Publikasi stabil menjadikan rilis latest; versi prerelease tidak menggantikan latest stabil.

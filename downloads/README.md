@@ -2,7 +2,7 @@
 
 Installer yang sudah diterbitkan tersedia di [GitHub Releases](https://github.com/DjongFaritno/SocialMedia/releases). Folder ini hanya menyimpan panduan; installer dan checksum tidak dimasukkan ke repository.
 
-Versi pengembangan **0.3.0-beta.8** membawa multiakun dan pilihan layanan. Sebelum dipublikasikan, kandidat Windows/macOS/Linux tersedia sebagai artifact workflow [Build desktop installers](https://github.com/DjongFaritno/SocialMedia/actions). Artifact build bukan rilis publik atau update otomatis.
+Versi **0.3.0** membawa privasi, kunci aplikasi dan blur per panel. Gunakan [rilis publik terbaru](https://github.com/DjongFaritno/SocialMedia/releases/latest) untuk instalasi; artifact workflow adalah kandidat pengembangan.
 
 - Windows x64: pilih installer Setup.exe.
 - macOS Intel/Apple Silicon: pilih DMG universal, lalu seret DuoChat ke Applications. [Panduan instalasi Mac](../docs/install-macos.md).
