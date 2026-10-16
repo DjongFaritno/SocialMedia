@@ -18,11 +18,14 @@ const ADAPTERS = Object.freeze({
   composer: ['[data-testid="conversation-compose-box-input"]', '#main footer [contenteditable="true"]']
  },
  telegram: {
-  messages: ['.Message .text-content', '.message .text-content', '.bubble .message'],
+  messages: ['.Message .text-content', '.message .text-content', '.bubble .message',
+   '.Message .EmbeddedMessage .embedded-text-wrapper', '.bubble .reply .reply-subtitle'],
   previews: ['.ListItem.Chat .subtitle', '.chatlist-chat .last-message', '.chatlist-chat .dialog-subtitle'],
-  names: ['.ChatInfo .title', '.chat-info .peer-title', '.chatlist-chat .peer-title', '.Message .sender-title', '.bubble .name'],
+  names: ['.ChatInfo .title', '.chat-info .peer-title', '.chatlist-chat .peer-title', '.Message .sender-title', '.bubble .name',
+   '.Message .EmbeddedMessage .message-title', '.bubble .reply .reply-title'],
   avatars: ['.Avatar', '.avatar'],
-  media: ['.Message img.full-media', '.Message .media-inner img', '.Message video', '.Message .sticker', '.bubble .attachment img', '.bubble video', '.bubble .sticker'],
+  media: ['.Message img.full-media', '.Message .media-inner img', '.Message video', '.Message .sticker', '.bubble .attachment img', '.bubble video', '.bubble .sticker',
+   '.Message .EmbeddedMessage .embedded-thumb', '.bubble .reply .reply-media'],
   composer: ['.input-message-input[contenteditable="true"]', '#message-input-text', '.MessageInput [contenteditable="true"]']
  },
  discord: {

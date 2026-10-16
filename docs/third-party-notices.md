@@ -30,3 +30,8 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+
+## Telegram markup references
+
+Reply selectors were checked against Telegram Web A [EmbeddedMessage](https://github.com/Ajaxy/telegram-tt/blob/master/src/components/common/embedded/EmbeddedMessage.tsx) (embedded-text-wrapper, message-title, embedded-thumb) and Telegram Web K [ReplyContainer](https://github.com/morethanwords/tweb/blob/master/src/components/chat/replyContainer.ts), [DivAndCaption](https://github.com/morethanwords/tweb/blob/master/src/components/divAndCaption.ts), and [message render](https://github.com/morethanwords/tweb/blob/master/src/components/chat/messageRender.ts) (reply-subtitle, reply-title, reply-media). Reviewed 16 October 2026. DuoChat uses class identifiers to target CSS and independently written synthetic fixtures; Telegram runtime code is not bundled by this change.
