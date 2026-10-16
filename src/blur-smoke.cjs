@@ -36,9 +36,17 @@ module.exports = async ({ app, win, views, settings, handleAccountAction, blurCo
   const point = await evaluate(wc, '(() => {const r=document.getElementById(' + JSON.stringify(id) + ').getBoundingClientRect();return {x:Math.round(r.x+r.width/2),y:Math.round(r.y+r.height/2)};})()');
   win.focus(); wc.focus(); await move(wc, point.x, point.y);
  }
+ async function waitForDocument(wc) {
+  const deadline = Date.now() + 8000;
+  while (wc.isLoading() || !wc.getURL()) {
+   assert.ok(Date.now() < deadline, 'Initial service fixture did not finish loading');
+   await sleep(20);
+  }
+ }
  async function mount(account, service) {
   await handleAccountAction('select', { side: 'left', id: account.id });
   const wc = views[account.id].webContents, ses = wc.session;
+  await waitForDocument(wc);
   await ses.protocol.handle('https', () => new Response(html(service), { headers: { 'Content-Type': 'text/html' } }));
   await wc.loadURL(SERVICES[service].url); await settled(wc);
   await move(wc, 2, 2);
@@ -105,6 +113,7 @@ module.exports = async ({ app, win, views, settings, handleAccountAction, blurCo
  await handleAccountAction('select', { side: 'right', id: 'telegram' });
  for (const service of ['whatsapp', 'telegram']) {
   const wc = views[service].webContents;
+  await waitForDocument(wc);
   await wc.session.protocol.handle('https', () => new Response(html(service), { headers: { 'Content-Type': 'text/html' } }));
   await wc.loadURL(SERVICES[service].url); await settled(wc);
  }
