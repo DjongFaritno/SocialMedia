@@ -12,18 +12,29 @@ function assertAssets(release, assets) {
  }
  if(release.assets.length!==assets.length)throw Error('Unexpected release assets');
 }
-function publishRelease({repo,sha,version,folder,assets,run}){
+function publishRelease({repo,sha,version,folder,assets,run,resumeDraftFrom}){
  if(!/^[\w.-]+\/[\w.-]+$/.test(repo)||!/^[a-f0-9]{40}$/.test(sha)||!semver.valid(version))throw Error('Invalid release target');
  if(!assets.length||assets.some(a=>!/^[\w.-]+$/.test(a.name)||a.size<=0||!/^[a-f0-9]{64}$/.test(a.sha256)))throw Error('Invalid asset manifest');
  const names=new Set(assets.map(a=>a.name));
  if(names.size!==assets.length||!requiredAssetNames(version).every(name=>names.has(name)))throw Error('Incomplete release asset set');
  const tag='v'+version, prerelease=semver.prerelease(version)!==null;
- const api=()=>JSON.parse(run(['api','repos/'+repo+'/releases/tags/'+tag]));
+ // GitHub's tag endpoint excludes unpublished drafts. List authenticated
+ // releases instead; --slurp preserves pagination boundaries as valid JSON.
+ const api=()=>{
+  const pages=JSON.parse(run(['api','repos/'+repo+'/releases?per_page=100','--paginate','--slurp']));
+  const release=pages.flat().find(item=>item.tag_name===tag);
+  if(!release){const error=Error('Release not found');error.status=404;throw error;}
+  return release;
+ };
  let existing;
  try{existing=api();}catch(error){if(error.status!==404&&!/HTTP 404/.test(error.stderr?.toString()||''))throw error;}
  if(existing){
-  if(existing.target_commitish!==sha)throw Error('Version belongs to another commit');
   if(!existing.draft)throw Error('Release already public; refusing to replace installer bytes');
+  if(existing.target_commitish!==sha){
+   if(!resumeDraftFrom||existing.target_commitish!==resumeDraftFrom)throw Error('Version belongs to another commit');
+   // Explicit recovery lease: only this known unpublished draft may retarget.
+   run(['release','edit',tag,'--repo',repo,'--target',sha]);
+  }
  }else run(['release','create',tag,'--repo',repo,'--target',sha,'--draft','--title','DuoChat '+version,'--notes-file','docs/release-notes.md']);
  run(['release','upload',tag,...assets.map(a=>path.join(folder,a.name)),'--repo',repo,'--clobber']);
  const staged=api();
@@ -61,7 +72,7 @@ async function assetManifest(folder){
  return manifest;
 }
 if(require.main===module)(async()=>{
- const result=publishRelease({repo:process.env.GITHUB_REPOSITORY,sha:process.env.GITHUB_SHA,version:require('../package.json').version,
+ const result=publishRelease({repo:process.env.GITHUB_REPOSITORY,sha:process.env.GITHUB_SHA,version:require('../package.json').version,resumeDraftFrom:process.env.DUO_RESUME_DRAFT_FROM,
   folder:process.argv[2],assets:await assetManifest(process.argv[2]),
   run:args=>execFileSync('gh',args,{encoding:'utf8',maxBuffer:8*1024*1024,stdio:['ignore','pipe','pipe']})});
  console.log('RELEASE PUBLISH PASS: '+result.html_url+'; all asset sizes/SHA-256 digests and tag target verified');

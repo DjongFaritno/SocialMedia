@@ -11,13 +11,16 @@ function fixture(version='0.3.0',options={}){
   calls.push(args);
   if(args[0]==='api'){
    if(args[1].includes('/commits/'))return JSON.stringify({sha:options.badTag?'c'.repeat(40):sha});
-   if(!release){const error=Error('Not Found');error.status=404;throw error;}
-   return JSON.stringify(release);
+   if(args[1].includes('/releases?'))return JSON.stringify([release?[{...release,tag_name:'v'+version}]:[]]);
+   throw Error('Drafts must not be looked up by tag endpoint');
   }
   if(args[1]==='create')release={draft:true,prerelease:true,target_commitish:sha,assets:[],html_url:'https://github.com/'+repo+'/releases/tag/v'+version};
   if(args[1]==='upload')release.assets=assets.map(a=>({name:a.name,size:a.size,state:'uploaded',digest:'sha256:'+a.sha256}));
   if(options.corrupt&&args[1]==='upload')release.assets[0].digest='sha256:'+'0'.repeat(64);
-  if(args[1]==='edit'){release.draft=false;release.prerelease=args.includes('--prerelease=true');}
+  if(args[1]==='edit'){
+   if(args.includes('--target'))release.target_commitish=args[args.indexOf('--target')+1];
+   if(args.includes('--draft=false')){release.draft=false;release.prerelease=args.includes('--prerelease=true');}
+  }
   return '';
  };
  return {sha,repo,version,folder:'/tmp/release',assets,run,calls};
@@ -65,4 +68,16 @@ test('local checksum manifest verifies file contents and includes its own digest
   fs.writeFileSync(path.join(folder,'app.exe'),'changed');await assert.rejects(assetManifest(folder),/changed/);
   fs.writeFileSync(path.join(folder,'SHA256SUMS.txt'),sha+'  ../app.exe\n');await assert.rejects(assetManifest(folder),/Invalid/);
  }finally{fs.rmSync(folder,{recursive:true,force:true});}
+});
+
+test('explicit recovery retargets only the expected unpublished draft, never a public release',()=>{
+ const old='c'.repeat(40);
+ const f=fixture('0.3.0',{existing:{draft:true,target_commitish:old,assets:[]}});
+ f.resumeDraftFrom=old;
+ assert.equal(publishRelease(f).target_commitish,f.sha);
+ assert.ok(f.calls.some(a=>a[1]==='edit'&&a.includes('--target')));
+ const publicRelease=fixture('0.3.0',{existing:{draft:false,target_commitish:old}});
+ publicRelease.resumeDraftFrom=old;
+ assert.throws(()=>publishRelease(publicRelease),/already public/);
+ assert.equal(publicRelease.calls.some(a=>a[1]==='edit'),false);
 });
