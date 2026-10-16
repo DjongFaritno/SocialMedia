@@ -10,7 +10,8 @@
 #include <string>
 using namespace winrt::Windows::Security::Credentials::UI;
 struct Task {
- napi_deferred deferred{}; napi_async_work work{}; HWND owner{}; bool verify{};
+ napi_deferred deferred{}; napi_async_work work{}; HWND owner{}; bool verify{}, uiApartment{};
+ winrt::agile_ref<winrt::Windows::Foundation::IAsyncOperation<UserConsentVerificationResult>> pending;
  std::string result = "UnknownError";
 };
 static std::string Availability(UserConsentVerifierAvailability value) {
@@ -45,26 +46,22 @@ static void Execute(napi_env, void* data) {
  if (FAILED(apartment)) return;
  try {
   if (!task->verify) task->result = Availability(UserConsentVerifier::CheckAvailabilityAsync().get());
-  else if (!ValidOwner(task->owner)) task->result = "InvalidWindow";
-  else {
-   auto interop = winrt::get_activation_factory<UserConsentVerifier, IUserConsentVerifierInterop>();
-   winrt::Windows::Foundation::IAsyncOperation<UserConsentVerificationResult> operation{nullptr};
-   winrt::hstring reason{L"Buka ruang ngobrolmu di DuoChat"};
-   winrt::check_hresult(interop->RequestVerificationForWindowAsync(
-    task->owner, static_cast<HSTRING>(winrt::get_abi(reason)),
-    winrt::guid_of<winrt::Windows::Foundation::IAsyncOperation<UserConsentVerificationResult>>(),
-    winrt::put_abi(operation)));
-   task->result = Verification(operation.get());
-  }
+  else task->result = Verification(task->pending.get().get());
  } catch (...) { task->result = "UnknownError"; }
  RoUninitialize();
+}
+static void Dispose(Task* task, bool cancel = false) {
+ if (cancel && task->verify) { try { auto operation = task->pending.get(); if (operation) operation.Cancel(); } catch (...) {} }
+ const bool apartment = task->uiApartment;
+ delete task;
+ if (apartment) RoUninitialize();
 }
 static void Complete(napi_env env, napi_status status, void* data) {
  auto task = static_cast<Task*>(data); napi_value value;
  const auto result = status == napi_ok ? task->result : std::string("Canceled");
  if (napi_create_string_utf8(env, result.c_str(), result.size(), &value) == napi_ok)
   napi_resolve_deferred(env, task->deferred, value);
- napi_delete_async_work(env, task->work); delete task;
+ napi_delete_async_work(env, task->work); Dispose(task);
 }
 static napi_value Start(napi_env env, napi_callback_info info, bool verify) {
  auto task = new Task(); task->verify = verify;
@@ -85,6 +82,26 @@ static napi_value Start(napi_env env, napi_callback_info info, bool verify) {
      napi_create_string_utf8(env, "DuoChat Windows Hello", NAPI_AUTO_LENGTH, &name) != napi_ok ||
      napi_create_async_work(env, nullptr, name, Execute, Complete, task, &task->work) != napi_ok) {
   delete task; napi_throw_error(env, nullptr, "Cannot create Windows Hello request"); return nullptr;
+ }
+ // Begin the dialog on Electron's HWND-owning UI thread, then wait only on
+ // the worker. Never block the UI thread with IAsyncOperation::get().
+ if (verify) {
+  const HRESULT apartment = RoInitialize(RO_INIT_SINGLETHREADED);
+  task->uiApartment = SUCCEEDED(apartment);
+  try {
+   if (FAILED(apartment) && apartment != RPC_E_CHANGED_MODE) winrt::throw_hresult(apartment);
+   auto interop = winrt::get_activation_factory<UserConsentVerifier, IUserConsentVerifierInterop>();
+   winrt::Windows::Foundation::IAsyncOperation<UserConsentVerificationResult> operation{nullptr};
+   winrt::hstring reason{L"Buka ruang ngobrolmu di DuoChat"};
+   winrt::check_hresult(interop->RequestVerificationForWindowAsync(
+    task->owner, static_cast<HSTRING>(winrt::get_abi(reason)),
+    winrt::guid_of<winrt::Windows::Foundation::IAsyncOperation<UserConsentVerificationResult>>(),
+    winrt::put_abi(operation)));
+   task->pending = winrt::agile_ref{operation};
+  } catch (...) {
+   napi_delete_async_work(env, task->work); Dispose(task, true);
+   napi_throw_error(env, nullptr, "Windows Hello could not start"); return nullptr;
+  }
  }
  if (napi_queue_async_work(env, task->work) != napi_ok) {
   napi_delete_async_work(env, task->work); delete task;
