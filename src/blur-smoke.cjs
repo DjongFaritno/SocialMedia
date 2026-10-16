@@ -21,7 +21,7 @@ module.exports = async ({ app, win, views, settings, handleAccountAction, blurCo
  const ui = code => win.webContents.executeJavaScript(code);
  const originalSlots = { ...settings.slots }, originalBlur = settings.blur, originalPanels = {...settings.blurPanels};
  let config = cleanBlur({ enabled: true });
- const save = async next => { config = cleanBlur(next); assert.equal((await ui('window.duo.blurAction("save",' + JSON.stringify(config) + ')')).ok, true); for(const side of ["left","right"]) assert.equal((await ui('window.duo.blurAction("set",'+JSON.stringify({side,enabled:config.enabled})+')')).ok,true); };
+ const save = async next => { config = cleanBlur(next); const result=await ui('window.duo.blurAction("save",' + JSON.stringify(config) + ')'); assert.equal(result.ok,true,'Saving blur: '+JSON.stringify(result)+' config='+JSON.stringify(config)); for(const side of ["left","right"]) assert.equal((await ui('window.duo.blurAction("set",'+JSON.stringify({side,enabled:config.enabled})+')')).ok,true); };
  const settled = wc => blurControllers.get(wc.id).refresh();
  const evaluate = (wc, code) => wc.executeJavaScript(code);
  const isBlurred = (wc, id) => evaluate(wc, '(() => {let e=document.getElementById(' + JSON.stringify(id) + ');for(;e;e=e.parentElement)if(getComputedStyle(e).filter.includes("blur("))return true;return false;})()');

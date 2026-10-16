@@ -19,13 +19,24 @@ module.exports = async ({settings,views,handleAccountAction,waitForDocument,html
    await wc.session.protocol.handle('https',()=>new Response(html(account.service),{headers:{'Content-Type':'text/html'}}));
    await wc.loadURL(SERVICES[account.service].url);await settled(wc);await move(wc,2,2);
   }
-  for(const category of [...ELEMENTS,'none']){
-   await save({enabled:true,revealOnHover:false,elements:{...empty,...(category==='none'?{}:{[category]:true})}});
+  for(const category of ELEMENTS){
+   await save({enabled:true,revealOnHover:false,elements:{...empty,[category]:true}});
    for(const {account,wc,side} of panels)for(const [key,id] of Object.entries(ids)){
     if(account.service==='threads'&&key==='previews')continue;
     assert.equal(await isBlurred(wc,id),key===category,account.service+' '+side+' independent '+category+' / '+key);
    }
   }
+  // Production correctly rejects Blur ON with no selected categories.
+  // Exercise all-off while panels are off, then verify activation is rejected.
+  await set('left',false);await set('right',false);
+  await save({enabled:false,elements:empty});
+  for(const {account,wc} of panels)for(const [key,id] of Object.entries(ids)){
+   if(account.service==='threads'&&key==='previews')continue;
+   assert.equal(await isBlurred(wc,id),false,'no selected categories leaves '+id+' clear');
+  }
+  const rejected=await ui('window.duo.blurAction("set",{side:"left",enabled:true})');
+  assert.equal(rejected.ok,false,'empty selection cannot activate misleading Blur ON');
+  assert.deepEqual(settings.blurPanels,{left:false,right:false},'rejected activation rolls back');
   await save({enabled:true,revealOnHover:false,strength:17});
   for(const {account,wc} of panels){
    await wc.executeJavaScript('(()=>{const e=document.getElementById("media"),n=e.cloneNode(true);n.id="matrix-late-media";e.after(n);})()');
