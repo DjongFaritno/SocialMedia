@@ -21,7 +21,10 @@ const ADAPTERS = Object.freeze({
   messages: ['.Message .text-content', '.message .text-content', '.bubble .message',
    '.Message .EmbeddedMessage .embedded-text-wrapper', '.bubble .reply .reply-subtitle'],
   previews: ['.ListItem.Chat .subtitle', '.chatlist-chat .last-message', '.chatlist-chat .dialog-subtitle'],
-  names: ['.ChatInfo .title', '.chat-info .peer-title', '.chatlist-chat .peer-title', '.Message .sender-title', '.bubble .name',
+  // Web A uses FullNameTitle in chat rows; archive subtitles contain peer names,
+  // not message previews. Keep the archive label and unread badge outside blur.
+  names: ['.ListItem.Chat .title', '.ListItem.chat-item-archive .subtitle .status',
+   '.ChatInfo .title', '.chat-info .peer-title', '.chatlist-chat .peer-title', '.Message .sender-title', '.bubble .name',
    '.Message .EmbeddedMessage .message-title', '.bubble .reply .reply-title'],
   avatars: ['.Avatar', '.avatar'],
   media: ['.Message img.full-media', '.Message .media-inner img', '.Message video', '.Message .sticker', '.bubble .attachment img', '.bubble video', '.bubble .sticker',

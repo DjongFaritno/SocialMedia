@@ -96,7 +96,10 @@ module.exports = async ({ app, win, views, settings, handleAccountAction, blurCo
   for (const id of ['message', 'person', 'avatar', 'media', 'editor']) assert.equal(await isBlurred(wc, id), false, service + ' restores original styles');
   assert.match(await evaluate(wc, 'getComputedStyle(document.getElementById("message")).filter'), /sepia/, service + ' restores service filters');
   await save({ enabled: true });
-  if (service === 'telegram') await require('./telegram-blur-smoke.cjs')({ wc, save, move, hover, isBlurred });
+  if (service === 'telegram') {
+   await require('./telegram-blur-smoke.cjs')({ wc, save, move, hover, isBlurred });
+   await require('./telegram-list-blur-smoke.cjs')({ wc, save, move, hover, isBlurred });
+  }
   if (service === 'whatsapp') {
    await require('./whatsapp-blur-smoke.cjs')({ wc, save, move, hover, isBlurred });
   }
