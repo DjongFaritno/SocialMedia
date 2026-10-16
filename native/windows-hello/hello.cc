@@ -51,7 +51,7 @@ static void Execute(napi_env, void* data) {
    winrt::Windows::Foundation::IAsyncOperation<UserConsentVerificationResult> operation{nullptr};
    winrt::hstring reason{L"Buka ruang ngobrolmu di DuoChat"};
    winrt::check_hresult(interop->RequestVerificationForWindowAsync(
-    task->owner, winrt::get_abi(reason),
+    task->owner, static_cast<HSTRING>(winrt::get_abi(reason)),
     winrt::guid_of<winrt::Windows::Foundation::IAsyncOperation<UserConsentVerificationResult>>(),
     winrt::put_abi(operation)));
    task->result = Verification(operation.get());
