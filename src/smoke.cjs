@@ -7,6 +7,14 @@ module.exports = async ({ app, win, views, settings, state, overlay, showOverlay
  const ready = async () => { const deadline = Date.now() + 8000; while (Object.values(views).some(view => view.webContents.isLoading())) { if (Date.now() > deadline) throw Error('Views did not load'); await sleep(40); } await sleep(100); };
  const ui = code => win.webContents.executeJavaScript(code);
  await ready(); assert.equal(Object.keys(views).length, 2);
+ if (process.platform === 'win32' && app.isPackaged) {
+  assert.equal(state().privacy.biometricLabel, 'Windows Hello');
+  assert.ok(['Available','NotConfiguredForUser','DeviceNotPresent','DisabledByPolicy','DeviceBusy','UnknownError'].includes(state().privacy.biometricStatus), 'Native Windows Hello availability probe must load and run: ' + state().privacy.biometricStatus);
+  const binding = require(path.join(process.resourcesPath, 'native', 'duochat_hello.node'));
+  assert.throws(() => binding.verify(Buffer.alloc(0)));
+  assert.throws(() => binding.verify(Buffer.alloc(8)));
+  console.log('WINDOWS HELLO NATIVE PASS: packaged N-API binding, OS availability probe and invalid-window rejection; no CI biometric enrollment.');
+ }
  assert.equal(await ui('typeof require'), 'undefined');
  assert.equal(await ui("document.querySelector('#update-button').textContent"), 'Cek update');
  for (const view of Object.values(views)) {
@@ -72,6 +80,9 @@ module.exports = async ({ app, win, views, settings, state, overlay, showOverlay
  await require('./blur-smoke.cjs')({ app, win, views, settings, handleAccountAction, blurControllers });
  showOverlay('privacy'); await sleep(100);
  assert.equal(await overlay.webContents.executeJavaScript("document.querySelector('#privacy-dialog').open"), true);
+ assert.equal(await overlay.webContents.executeJavaScript("document.querySelector('#biometric-row').hidden"), false);
+ assert.equal(await overlay.webContents.executeJavaScript("document.querySelector('#biometric-on-start').disabled"), true);
+ assert.match(await overlay.webContents.executeJavaScript("document.querySelector('#biometric-label').textContent"), process.platform === 'win32' ? /Windows Hello/ : process.platform === 'darwin' ? /Touch ID/ : /biometrik/);
  const privateUI = code => overlay.webContents.executeJavaScript(code);
  const password = 'smoke-only-password';
  assert.equal((await privateUI(`window.duo.privacyAction('save',{newPassword:${JSON.stringify(password)},confirmPassword:${JSON.stringify(password)},lockOnStart:true,lockOnOS:true})`)).ok, true);

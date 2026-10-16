@@ -1,6 +1,6 @@
 {
   "name": "duochat-desktop",
-  "version": "0.3.0-beta.4",
+  "version": "0.3.0-beta.5",
   "description": "Dua panel bebas untuk beberapa akun WhatsApp, Telegram, Discord, X, Instagram, dan Threads",
   "main": "src/main.cjs",
   "author": "DuoChat",
@@ -8,18 +8,20 @@
   "scripts": {
     "start": "electron .",
     "test": "node --test test/*.test.cjs",
-    "check": "node --check src/main.cjs && node --check src/preload.cjs && node --check src/renderer.js && node --check src/about.js && node --check src/permissions.cjs && node --check scripts/prepare-linux-release.cjs && node scripts/check-release-docs.cjs && node --check scripts/notification-smoke.cjs && node --check src/telegram-preload.cjs && node --check scripts/memory-audit.cjs && node --check scripts/single-instance-smoke.cjs && node --check src/update-core.cjs && node --check src/updates.cjs && node --check scripts/verify-update-metadata.cjs && node --check scripts/update-smoke.cjs && node --check src/accounts.cjs && node --check src/account-ui.js && node --check src/overlay.js && node --check src/smoke.cjs && node --check src/navigation.cjs && node --check scripts/auth-smoke.cjs && node --check src/privacy.cjs && node --check src/privacy-ui.js && node --check src/blur.cjs && node --check src/blur-ui.js && node --check src/blur-smoke.cjs && node --check src/whatsapp-blur-smoke.cjs && node --check src/media-blur-smoke.cjs",
+    "check": "node --check src/main.cjs && node --check src/preload.cjs && node --check src/renderer.js && node --check src/about.js && node --check src/permissions.cjs && node --check scripts/prepare-linux-release.cjs && node scripts/check-release-docs.cjs && node --check scripts/notification-smoke.cjs && node --check src/telegram-preload.cjs && node --check scripts/memory-audit.cjs && node --check scripts/single-instance-smoke.cjs && node --check src/update-core.cjs && node --check src/updates.cjs && node --check scripts/verify-update-metadata.cjs && node --check scripts/update-smoke.cjs && node --check src/accounts.cjs && node --check src/account-ui.js && node --check src/overlay.js && node --check src/smoke.cjs && node --check src/navigation.cjs && node --check scripts/auth-smoke.cjs && node --check src/privacy.cjs && node --check src/privacy-ui.js && node --check src/blur.cjs && node --check src/blur-ui.js && node --check src/blur-smoke.cjs && node --check src/whatsapp-blur-smoke.cjs && node --check src/media-blur-smoke.cjs && node --check src/biometrics.cjs && node --check scripts/build-windows-hello.cjs",
     "dist": "electron-builder",
     "pack": "electron-builder --dir",
     "smoke": "electron . --smoke",
-    "dist:windows": "electron-builder --win nsis --x64 --publish never",
+    "dist:windows": "npm run build:windows-hello && electron-builder --win nsis --x64 --publish never",
     "dist:mac": "electron-builder --mac --universal --publish never",
     "dist:linux": "electron-builder --linux AppImage deb --x64 --publish never",
-    "smoke:notifications": "electron scripts/notification-smoke.cjs"
+    "smoke:notifications": "electron scripts/notification-smoke.cjs",
+    "build:windows-hello": "node scripts/build-windows-hello.cjs"
   },
   "devDependencies": {
     "electron": "44.6.0",
-    "electron-builder": "26.15.3"
+    "electron-builder": "26.15.3",
+    "node-gyp": "12.4.0"
   },
   "build": {
     "appId": "com.duochat.desktop",
@@ -49,7 +51,13 @@
     },
     "win": {
       "target": "nsis",
-      "artifactName": "DuoChat-${version}-Windows-${arch}-Setup.${ext}"
+      "artifactName": "DuoChat-${version}-Windows-${arch}-Setup.${ext}",
+      "extraResources": [
+        {
+          "from": "native/windows-hello/build/Release/duochat_hello.node",
+          "to": "native/duochat_hello.node"
+        }
+      ]
     },
     "linux": {
       "target": [

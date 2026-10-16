@@ -9,9 +9,10 @@ const { MAX_ACCOUNTS, partition, switchAccount, liveAccounts } = require('./acco
 const { navigationAllowed, protectNavigation } = require('./navigation.cjs');
 const { createUpdates } = require('./updates.cjs');
 const { createPrivacy, defaults: privacyDefaults } = require('./privacy.cjs');
+const { createBiometrics, createStartupUnlock } = require('./biometrics.cjs');
 const { cleanBlurPreferences, accountBlur, blurSupport, attachBlur } = require('./blur.cjs');
 const blurControllers = new Map(), blurStatuses = {};
-let updates, privacy, idleTimer;
+let updates, privacy, idleTimer, biometrics, biometricStartupError;
 const privacyHiddenChildren = new Set();
 const mediaGate = nativeMediaGate(process.platform, systemPreferences);
 const smoke = process.argv.includes('--smoke');
@@ -43,7 +44,7 @@ function save() { clearTimeout(saveTimer); fs.writeFileSync(settingsPath, JSON.s
 function queueSave() { clearTimeout(saveTimer); saveTimer = setTimeout(save, 250); }
 function state() {
   const fullscreen = win.isFullScreen();
-  return { ...settings, blurSupport: blurSupport(), blurStatuses, privacy: privacy?.snapshot(), updates: updates?.snapshot(), statuses, fullscreen, effectiveTheme: nativeTheme.shouldUseDarkColors ? 'dark' : 'light', headerHidden: fullscreen ? !fullscreenHeaderVisible : settings.hideHeader };
+  return { ...settings, blurSupport: blurSupport(), blurStatuses, privacy: privacy ? { ...privacy.snapshot(), ...biometrics.snapshot(), biometricStartupError } : undefined, updates: updates?.snapshot(), statuses, fullscreen, effectiveTheme: nativeTheme.shouldUseDarkColors ? 'dark' : 'light', headerHidden: fullscreen ? !fullscreenHeaderVisible : settings.hideHeader };
 }
 function send() { if (win && !win.isDestroyed()) win.webContents.send('state', state()); if (overlay && !overlay.webContents.isDestroyed()) overlay.webContents.send('state', { ...state(), overlayMode }); }
 function updateColors() {
@@ -231,6 +232,7 @@ async function syncAccounts() {
 }
 function refreshBlur() { return Promise.allSettled([...blurControllers.values()].map(controller => controller.refresh())); }
 function showOverlay(mode, focus = false) {
+  if (mode === 'privacy') void biometrics.refresh().then(send);
   if (privacy.snapshot().locked) mode = 'lock';
   if (!['rail', 'add', 'manage', 'privacy', 'blur', 'lock', null].includes(mode)) return;
   if (mode === 'rail' && !state().headerHidden) return;
@@ -247,8 +249,10 @@ function showOverlay(mode, focus = false) {
 function editableUI(event) { return ownUI(event) && !privacy?.snapshot().locked; }
 ipcMain.handle('privacy:action', (event, action, input) => {
   if (!ownUI(event) || !privacy) return { ok: false };
+  if (['unlock', 'biometric'].includes(action)) biometricStartupError = undefined;
   if (['save', 'disable', 'unlock', 'biometric'].includes(action) && event.sender !== overlay?.webContents) return { ok: false };
   if (action === 'cover') return togglePanelCover(input);
+  if (action === 'biometric') return biometrics.refresh().then(() => privacy.action(action, input)).finally(send);
   return privacy.action(action, input);
 });
 function togglePanelCover(input) {
@@ -367,6 +371,8 @@ if (primaryInstance) app.whenReady().then(async () => {
   app.userAgentFallback = browserUserAgent(app.userAgentFallback, app.getName());
   settingsPath = path.join(app.getPath('userData'), 'settings.json');
   try { settings = cleanSettings(JSON.parse(fs.readFileSync(settingsPath, 'utf8'))); } catch { settings = cleanSettings(); }
+  biometrics = createBiometrics({ systemPreferences, packaged: app.isPackaged, getWindow: () => win });
+  await biometrics.refresh();
   const privacyPath = path.join(app.getPath('userData'), 'privacy.json');
   let record = privacyDefaults();
   try {
@@ -374,8 +380,7 @@ if (primaryInstance) app.whenReady().then(async () => {
     privacy = createPrivacy({
       record, changed: privacyChanged,
       persist: next => { const temporary = privacyPath + '.tmp'; fs.writeFileSync(temporary, JSON.stringify(next), { mode: 0o600 }); fs.renameSync(temporary, privacyPath); },
-      canBiometric: () => process.platform === 'darwin' && systemPreferences.canPromptTouchID(),
-      promptBiometric: () => systemPreferences.promptTouchID('membuka ruang ngobrolmu di DuoChat')
+      canBiometric: biometrics.available, promptBiometric: biometrics.prompt
     });
   } catch {
     dialog.showErrorBox('Pengaturan privasi tidak terbaca', 'DuoChat tidak membuka percakapan karena pengaturan privasi rusak. Pulihkan privacy.json dari cadangan di direktori data aplikasi. Jangan hapus profil chat untuk mengatasinya.');
@@ -404,7 +409,11 @@ if (primaryInstance) app.whenReady().then(async () => {
   overlay.webContents.on('will-navigate', event => event.preventDefault()); shortcuts(overlay.webContents);
   await overlay.webContents.loadFile(path.join(__dirname, 'overlay.html'));
   await syncAccounts();
-  privacyChanged(); win.show();
+  privacyChanged();
+  const startupUnlock = createStartupUnlock({ privacy, canPrompt: () => win.isVisible() && win.isFocused() });
+  const unlockOnFirstFocus = () => { void startupUnlock().then(result => { if (!result.ok && !result.skipped) { biometricStartupError = result.error; send(); } }); };
+  win.once('focus', unlockOnFirstFocus); win.show();
+  if (win.isFocused()) unlockOnFirstFocus();
   updatePresentation(); win.on('resize', arrange);
   if (!smoke && app.isPackaged) updates.start();
   if (pendingFocus) focusExistingWindow();

@@ -1,4 +1,4 @@
-DuoChat 0.3.0-beta.4 — perbaikan blur pesan WhatsApp.
+DuoChat 0.3.0-beta.5 — perbaikan blur pesan WhatsApp.
 
 - Memperbaiki teks pesan WhatsApp yang terlewat: pesan read-only tidak lagi dianggap kolom ketik, dan selector diperluas untuk metadata pesan serta markup Lexical.
 - Tes tambahan mencakup pesan masuk/keluar, kutipan/balasan, caption, dan pesan baru tanpa reload.
@@ -21,3 +21,6 @@ https://djongfaritno.github.io/
 Blur dinyalakan terpisah lewat tombol di panel kiri atau kanan. Pilihan elemen, kekuatan blur, dan hover tetap satu pengaturan bersama. Mengganti akun tidak mengubah status blur panel tersebut. Pengaturan lama yang aktif dimigrasikan menjadi aktif pada kedua panel.
 
 Instagram dan Threads: gambar/video dapat dibuka sementara saat hover di atas kontrol media, termasuk media dengan pointer-events nonaktif. Pemeriksaan posisi elemen berjalan lokal saat interaksi, tanpa membaca atau mengirim isi pesan. Overlay dialog lain tidak membuka media di belakangnya.
+
+
+Privasi: checklist buka kunci dengan Windows Hello (Windows 11+) atau Touch ID, serta opsi terpisah untuk meminta verifikasi saat DuoChat dibuka. Password DuoChat tetap tersedia. Pembatalan tidak membuka kunci dan tidak mengulang prompt otomatis. [Panduan](../docs/privacy.md) · [Riset](../docs/biometric-research.md).
