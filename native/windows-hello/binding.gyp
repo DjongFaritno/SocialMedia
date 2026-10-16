@@ -17,7 +17,8 @@
           "AdditionalOptions": [
             "/std:c++20",
             "/permissive-"
-          ]
+          ],
+          "RuntimeLibrary": 0
         },
         "VCLinkerTool": {
           "AdditionalDependencies": [

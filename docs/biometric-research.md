@@ -12,7 +12,7 @@ Riset 16 Oktober 2026, berdasarkan dokumentasi produk dan platform.
 
 Windows memakai [IUserConsentVerifierInterop::RequestVerificationForWindowAsync](https://learn.microsoft.com/en-us/windows/win32/api/userconsentverifierinterop/nf-userconsentverifierinterop-iuserconsentverifierinterop-requestverificationforwindowasync), dengan HWND jendela DuoChat. Dokumentasi menyebut build minimum 22000: implementasi ini ditujukan untuk Windows 11+. API memerlukan konteks desktop yang benar; bukan prompt web/passkey untuk akun layanan.
 
-Binding C++/WinRT N-API berjalan pada worker, sehingga event loop Electron tidak diblokir. Binding hanya menerima handle jendela milik proses DuoChat yang terlihat/aktif dan hanya hasil Verified yang diterima. Tidak menggunakan PowerShell, shell command, autentikasi browser, atau executable unduhan saat pengguna membuka kunci. Binary dibangun dari source pada CI Windows, memakai header Electron dan delay-load hook sesuai [panduan native module Electron](https://www.electronjs.org/docs/latest/tutorial/using-native-node-modules/).
+Binding C++/WinRT N-API berjalan pada worker, sehingga event loop Electron tidak diblokir. Binding hanya menerima handle jendela milik proses DuoChat yang terlihat/aktif dan hanya hasil Verified yang diterima. Tidak menggunakan PowerShell, shell command, autentikasi browser, atau executable unduhan saat pengguna membuka kunci. Binary memakai CRT statis agar pengguna tidak harus memasang Visual C++ Redistributable tambahan. Binary dibangun dari source pada CI Windows, memakai header Electron dan delay-load hook sesuai [panduan native module Electron](https://www.electronjs.org/docs/latest/tutorial/using-native-node-modules/).
 
 macOS memakai [canPromptTouchID dan promptTouchID Electron](https://www.electronjs.org/docs/latest/api/system-preferences#systempreferencesprompttouchidreason-macos). [Apple LocalAuthentication](https://developer.apple.com/documentation/localauthentication) menyatakan data autentikasi dasarnya tidak diakses aplikasi. Tidak ada pemindaian atau penyimpanan fingerprint oleh DuoChat.
 
@@ -35,3 +35,12 @@ Ini adalah pengunci tampilan, bukan enkripsi ulang cookies/chat atau penyimpanan
 Unit test memakai provider palsu untuk hasil berhasil, batal, status tidak tersedia, permintaan bersamaan, restart, kegagalan penyimpanan, dan lock saat prompt masih berlangsung. CI Windows membangun dan memuat binding sebenarnya di aplikasi terkemas serta memeriksa availability dan penolakan HWND invalid tanpa menampilkan prompt.
 
 CI tidak memiliki sidik jari/wajah/PIN pribadi. Verifikasi sukses pada perangkat Windows Hello, Touch ID fisik, dialog foreground, pembatalan OS, dan restart aplikasi wajib diuji di perangkat sebelum rilis publik.
+
+## Uji di perangkat
+
+- Windows 11: siapkan Windows Hello lewat Settings → Accounts → Sign-in options. Mac: siapkan fingerprint lewat Touch ID & Password.
+- Simpan password DuoChat, centang metode perangkat, dan selesaikan dialog OS. Batalkan pada percobaan pertama untuk memastikan preferensi belum aktif; lalu coba lagi sampai berhasil.
+- Kunci manual. Periksa bahwa wajah/fingerprint/PIN Hello (Windows) atau Touch ID (Mac) bisa membuka kunci. Batalkan dan pastikan password masih bekerja.
+- Aktifkan opsi prompt saat dibuka, tutup DuoChat sepenuhnya, lalu buka lagi. Panel harus tertutup sebelum prompt. Membatalkan prompt tidak boleh memunculkannya otomatis lagi.
+- Lock/sleep komputer saat autentikasi masih berjalan; hasil verifikasi sebelumnya harus ditolak. Ulangi saat pengaturan pertama dan saat kunci sudah dikonfigurasi.
+- Matikan metode biometrik, restart, dan pastikan hanya password yang ditawarkan. Profil chat dan pengaturan blur tidak boleh terhapus.
