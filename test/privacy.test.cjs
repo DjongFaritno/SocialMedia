@@ -95,8 +95,11 @@ test('enrollment requires password and device verification; cancellation and per
  assert.equal((await restarted.action('biometric')).ok,true);
 });
 test('a resolved false cannot enroll or unlock, and old settings never opt into automatic startup prompts', async () => {
- const p=createPrivacy({canBiometric:()=>true,promptBiometric:async()=>false});
- assert.equal((await p.action('save',setup({biometric:true}))).ok,false);
+ for (const result of [false, undefined, null, 'Verified', 'Canceled', 0]) {
+  const p=createPrivacy({canBiometric:()=>true,promptBiometric:async()=>result});
+  assert.equal((await p.action('save',setup({biometric:true}))).ok,false);
+  assert.equal(p.snapshot().configured,false);
+ }
  const record={...defaults(),credential:await makeCredential(password),biometric:true};
  assert.equal(readPrivacy(record).biometricOnStart,false);
  const old=createPrivacy({record,canBiometric:()=>true,promptBiometric:async()=>false});

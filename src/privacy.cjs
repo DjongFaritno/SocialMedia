@@ -64,7 +64,7 @@ function createPrivacy({ record = defaults(), persist = () => {}, changed = () =
    const enablingBiometric = input.biometric === true && !record.biometric;
    if (enablingBiometric) {
     if (!available() || !promptBiometric) return { ok: false, error: 'Autentikasi perangkat belum tersedia. Aktifkan di pengaturan komputer atau gunakan password DuoChat.' };
-    try { if (await promptBiometric() === false) throw Error('Not verified'); }
+    try { if (await promptBiometric() !== true) throw Error('Not verified'); }
     catch { return { ok: false, error: 'Aktivasi biometrik dibatalkan atau belum cocok. Pengaturan belum berubah.' }; }
    }
    if (epoch !== started || locked) return { ok: false, error: 'Status kunci berubah. Silakan coba lagi.' };
