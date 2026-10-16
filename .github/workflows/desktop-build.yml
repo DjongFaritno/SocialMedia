@@ -48,7 +48,11 @@ jobs:
         timeout-minutes: 3
         shell: pwsh
         run: |
-          $app = Start-Process -FilePath './dist/win-unpacked/DuoChat.exe' -ArgumentList '--smoke' -PassThru -Wait
+          $duoStdout = Join-Path $env:RUNNER_TEMP 'duochat-smoke-stdout.log'
+          $duoStderr = Join-Path $env:RUNNER_TEMP 'duochat-smoke-stderr.log'
+          $app = Start-Process -FilePath './dist/win-unpacked/DuoChat.exe' -ArgumentList '--smoke' -RedirectStandardOutput $duoStdout -RedirectStandardError $duoStderr -PassThru -Wait
+          Get-Content -Path $duoStdout -ErrorAction SilentlyContinue
+          Get-Content -Path $duoStderr -ErrorAction SilentlyContinue
           if ($app.ExitCode -ne 0) { throw "DuoChat smoke test failed: $($app.ExitCode)" }
       - uses: actions/upload-artifact@v4
         with:

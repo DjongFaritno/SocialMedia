@@ -14,7 +14,7 @@ function createBiometrics({ platform = process.platform, release = os.release(),
  resourcesPath = process.resourcesPath, loadNative = require, getWindow = () => null } = {}) {
  const label = platform === 'win32' ? 'Windows Hello' : platform === 'darwin' ? 'Touch ID' : 'biometrik';
  let status = 'Unavailable', native, pendingCheck, prompting = false;
- const snapshot = () => ({ biometricLabel: label, biometricStatus: status, biometricReason: REASONS[status] || REASONS.Unavailable });
+ const snapshot = () => ({ biometricLabel: label, biometricStatus: status, biometricReason: platform === 'darwin' && status === 'Unavailable' ? 'Touch ID tidak tersedia atau belum diatur. Cek System Settings → Touch ID & Password; password DuoChat tetap tersedia.' : platform !== 'darwin' && platform !== 'win32' ? 'Biometrik Linux belum didukung. Gunakan password DuoChat.' : REASONS[status] || REASONS.Unavailable });
  async function refresh() {
   if (pendingCheck) { await pendingCheck; return snapshot(); }
   pendingCheck = (async () => {
@@ -43,6 +43,7 @@ function createBiometrics({ platform = process.platform, release = os.release(),
     const result = await native.verify(win.getNativeWindowHandle());
     if (result !== 'Verified') { if (Object.hasOwn(REASONS, result) && result !== 'Available') status = result; throw Error('Verification failed'); }
    }
+   return true;
   } finally { prompting = false; }
  }
  return { refresh, snapshot, available: () => status === 'Available', prompt };

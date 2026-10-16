@@ -27,7 +27,7 @@ function createPrivacy({ record = defaults(), persist = () => {}, changed = () =
  const covered = { left: false, right: false };
  const available = () => { try { return canBiometric() === true; } catch { return false; } };
  const snapshot = () => ({ configured: Boolean(record.credential), locked, covered: { ...covered }, lockOnStart: record.lockOnStart, lockOnOS: record.lockOnOS, idleMinutes: record.idleMinutes, biometric: record.biometric, biometricOnStart: record.biometricOnStart, biometricAvailable: available() });
- const lock = () => { if (!record.credential) return false; epoch++; locked = true; changed(); return true; };
+ const lock = () => { epoch++; if (!record.credential) return false; locked = true; changed(); return true; };
  const concealed = side => locked || covered[side] === true;
  const commit = next => { persist(next); record = next; changed(); };
  async function action(type, input = {}) {
@@ -47,7 +47,7 @@ function createPrivacy({ record = defaults(), persist = () => {}, changed = () =
   try {
    let authenticated = !record.credential;
    if (type === 'biometric') {
-    try { if (await promptBiometric() === false) throw Error("Not verified"); authenticated = true; } catch { return { ok: false, error: 'Autentikasi perangkat dibatalkan atau belum cocok. Coba lagi atau gunakan password DuoChat.' }; }
+    try { if (await promptBiometric() !== true) throw Error("Not verified"); authenticated = true; } catch { return { ok: false, error: 'Autentikasi perangkat dibatalkan atau belum cocok. Coba lagi atau gunakan password DuoChat.' }; }
    } else if (record.credential) authenticated = await matches(type === 'unlock' ? input.password : input.currentPassword, record.credential);
    if (epoch !== started) return { ok: false, error: 'Status kunci berubah. Silakan coba lagi.' };
    if (!authenticated) {

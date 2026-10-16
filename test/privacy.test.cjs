@@ -61,12 +61,12 @@ test('idle/system locks respect policy and panel covers survive unlock', async (
 });
 test('Touch ID cancellation fails closed and a fresh system lock invalidates pending success', async () => {
  let resolve, reject, first = true;
- const p = createPrivacy({ canBiometric: () => true, promptBiometric: () => first ? (first = false, Promise.resolve()) : new Promise((yes, no) => { resolve = yes; reject = no; }) });
+ const p = createPrivacy({ canBiometric: () => true, promptBiometric: () => first ? (first = false, Promise.resolve(true)) : new Promise((yes, no) => { resolve = yes; reject = no; }) });
  await p.action('save', setup({ biometric: true })); p.lock();
  const canceled = p.action('biometric'); reject(Error('canceled')); assert.equal((await canceled).ok, false); assert.equal(p.snapshot().locked, true);
  const pending = p.action('biometric'); assert.equal((await p.action('unlock', { password })).ok, false, 'Concurrent attempts rejected');
- p.systemLock(); resolve(); assert.equal((await pending).ok, false); assert.equal(p.snapshot().locked, true);
- const accepted = p.action('biometric'); resolve(); assert.equal((await accepted).ok, true); assert.equal(p.snapshot().locked, false);
+ p.systemLock(); resolve(true); assert.equal((await pending).ok, false); assert.equal(p.snapshot().locked, true);
+ const accepted = p.action('biometric'); resolve(true); assert.equal((await accepted).ok, true); assert.equal(p.snapshot().locked, false);
 });
 test('unsupported biometric providers never authenticate or enable the option', async () => {
  const p = createPrivacy(); assert.equal((await p.action('save', setup({ biometric: true }))).ok, false); assert.equal(p.snapshot().configured, false);
@@ -78,7 +78,7 @@ test('unsupported biometric providers never authenticate or enable the option', 
 
 test('enrollment requires password and device verification; cancellation and persistence failure leave preference unchanged', async () => {
  let verified = false, failDisk = false, disk;
- const p = createPrivacy({ canBiometric: () => true, promptBiometric: async () => { if (!verified) throw Error('canceled'); }, persist: next => { if(failDisk) throw Error('disk'); disk=next; } });
+ const p = createPrivacy({ canBiometric: () => true, promptBiometric: async () => { if (!verified) throw Error('canceled'); return true; }, persist: next => { if(failDisk) throw Error('disk'); disk=next; } });
  assert.equal((await p.action('save',setup({biometric:true,biometricOnStart:true}))).ok,false);
  assert.equal(p.snapshot().configured,false);
  await p.action('save',setup());
@@ -90,7 +90,7 @@ test('enrollment requires password and device verification; cancellation and per
  failDisk=false;
  assert.equal((await p.action('save',setup({currentPassword:password,newPassword:'',confirmPassword:'',biometric:true,biometricOnStart:true}))).ok,true);
  assert.equal(disk.biometricOnStart,true);
- const restarted=createPrivacy({record:disk,canBiometric:()=>true,promptBiometric:async()=>{}});
+ const restarted=createPrivacy({record:disk,canBiometric:()=>true,promptBiometric:async()=>true});
  assert.equal(restarted.snapshot().locked,true);
  assert.equal((await restarted.action('biometric')).ok,true);
 });
@@ -110,5 +110,14 @@ test('system lock during enrollment rejects stale verification', async () => {
  await p.action('save',setup());
  const pending=p.action('save',setup({currentPassword:password,newPassword:'',confirmPassword:'',biometric:true}));
  while(!finish) await new Promise(resolve=>setImmediate(resolve));
- p.systemLock();finish();assert.equal((await pending).ok,false);assert.equal(p.snapshot().biometric,false);assert.equal(p.snapshot().locked,true);
+ p.systemLock();finish(true);assert.equal((await pending).ok,false);assert.equal(p.snapshot().biometric,false);assert.equal(p.snapshot().locked,true);
+});
+
+test('OS lock invalidates device enrollment during the first password setup too',async()=>{
+ let finish;
+ const p=createPrivacy({canBiometric:()=>true,promptBiometric:()=>new Promise(resolve=>{finish=resolve;})});
+ const pending=p.action('save',setup({biometric:true}));
+ while(!finish) await new Promise(resolve=>setImmediate(resolve));
+ p.systemLock();finish(true);
+ assert.equal((await pending).ok,false);assert.equal(p.snapshot().configured,false);assert.equal(p.snapshot().biometric,false);
 });
