@@ -14,7 +14,7 @@ module.exports = async ({ wc, save, move, hover, isBlurred }) => {
   '<div data-id="editor-guard"><div role="textbox" contenteditable="true" id="wa-editor"><span class="selectable-text" id="wa-draft">Draft remains readable</span><span contenteditable="false" class="selectable-text" id="wa-editor-mention">Mention inside editor</span></div></div>',
   '<div data-id="empty-editor-guard"><div contenteditable="" id="wa-empty-editor"><span class="selectable-text" id="wa-empty-draft">Editable empty attribute</span></div></div>',
   '<div data-id="plaintext-editor-guard"><div contenteditable="plaintext-only" id="wa-plaintext-editor"><span class="selectable-text" id="wa-plaintext-draft">Plaintext editor</span></div></div>'
-  ,'<div data-testid="msg-container"><div><span data-testid="author" id="wa-group-author">Private group sender</span></div><span class="selectable-text" id="wa-group-body">Group body</span></div>',
+  ,'<div data-testid="msg-container"><div data-pre-plain-text="fixture"><div class="copyable-text"><div><span dir="auto" data-testid="author" id="wa-group-author">Private group sender</span></div><span dir="auto" class="selectable-text" id="wa-group-body">Group body</span></div></div></div>',
   '<div data-id="group-reply"><div data-testid="quoted-message"><div><span data-testid="author" id="wa-quote-author">Private quoted sender</span></div><span class="selectable-text" id="wa-quote-body">Quoted body</span></div></div>'
  ].join('');
  await wc.executeJavaScript('(()=>{const e=document.createElement("section");e.id="wa-variants";e.innerHTML=' + JSON.stringify(markup) + ';document.getElementById("main").appendChild(e);})()');

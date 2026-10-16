@@ -32,7 +32,7 @@ const ADAPTERS = Object.freeze({
    '#main [data-pre-plain-text] .copyable-text span[dir]:not(:has([dir]))',
    '#main [data-pre-plain-text].copyable-text > span[dir]:not(:has(img, video))',
    '[data-testid="msg-container"]:not(:has(.selectable-text, [data-lexical-text], img, video, canvas, audio, [style*="background-image"], [data-testid="sticker-container"], [data-testid="image-thumb"], [data-testid="video-thumb"]))'
-  ],
+  ].map(selector => selector + ':not([data-testid="author"]):not([data-testid="author"] *)'),
   previews: ['#pane-side [data-testid="cell-frame-secondary"]', '#pane-side [data-testid="last-msg-preview"]', '#pane-side div.xjbqb8w.x1iyjqo2.x1f6kntn.x1fc57z9.x6ikm8r.x10wlt62.x1yc453h.xlyipyv.xuxw1ft.xo1l8bm'],
   names: ['#main [data-testid="author"]', '[data-testid="msg-container"] [data-testid="author"]', '#pane-side [data-testid="cell-frame-title"]', '#pane-side [role="gridcell"] div.x14ug900.x78zum5.x1iyjqo2.x1jchvi3.xdod15v.x6ikm8r.x10wlt62.x1mzt3pk.x1yc453h.xo1l8bm', '#pane-side ._ak8q', '#main header span[title]', '[data-testid="conversation-info-header-chat-title"]'],
   avatars: WA_AVATARS,
