@@ -279,7 +279,8 @@
 });
  const supported = Object.freeze(['id', 'en']);
  const normalize = value => supported.includes(value) ? value : 'id';
- const reverse = Object.fromEntries(Object.entries(english).map(([id, en]) => [en,id]));
+ const reverse = {};
+ for (const [id,en] of Object.entries(english)) if (!Object.hasOwn(reverse,en)) reverse[en]=id;
  function translate(language, message, values = {}) {
   const key = Object.hasOwn(english,message) ? message : (Object.hasOwn(reverse,message) ? reverse[message] : message);
   const text = normalize(language) === 'en' && Object.hasOwn(english,key) ? english[key] : key;
