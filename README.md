@@ -2,7 +2,7 @@
 
 Dua ruang. Akunnya terserah kamu.
 
-DuoChat membuka dua akun layanan web berdampingan dalam satu aplikasi desktop. Versi **0.3.0** menambahkan multiakun WhatsApp, Telegram, Discord, X, Instagram, dan Threads. Panel memakai tampilan web resmi masing-masing layanan.
+DuoChat membuka dua akun layanan web berdampingan dalam satu aplikasi desktop. Versi publik tersedia lewat tautan rilis di bawah. Kandidat **0.4.0-beta.1** menambahkan Messenger, Facebook, Google Chat, dan WeChat ke pilihan WhatsApp, Telegram, Discord, X, Instagram, dan Threads. Panel memakai tampilan web resmi masing-masing layanan.
 
 ## Coba dan jalankan
 
@@ -14,6 +14,12 @@ Untuk menjalankan source, gunakan Node.js 24 dan npm:
 npm ci
 npm start
 ```
+
+## Layanan tambahan (beta)
+
+Messenger membuka `facebook.com/messages/`; Facebook membuka feed. Keduanya punya profil terpisah, sehingga login pada satu akun tidak otomatis masuk di akun lainnya. Google Chat dan WeChat bersifat eksperimental: login Google bisa ditolak pada browser dalam aplikasi; akses Web WeChat bergantung akun/kebijakan penyedia. Login di browser luar tidak memindahkan sesi ke DuoChat.
+
+Keempat layanan baru belum memiliki blur elemen yang terverifikasi. Tombol menampilkan **Blur belum tersedia**; gunakan **Tutup sementara** atau **Kunci** untuk menutup tampilannya. Pengaturan blur bersama dan adapter enam layanan sebelumnya dipertahankan. Lihat [dukungan layanan](docs/services.md).
 
 ## Akun dan dua panel
 

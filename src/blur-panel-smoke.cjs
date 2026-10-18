@@ -1,8 +1,8 @@
 const assert = require('node:assert/strict');
 const { SERVICES } = require('./accounts.cjs');
-const { ELEMENTS } = require('./blur.cjs');
+const { ELEMENTS, ADAPTERS } = require('./blur.cjs');
 module.exports = async ({settings,views,handleAccountAction,waitForDocument,html,settled,ui,save,isBlurred,move}) => {
- const providers=Object.keys(SERVICES);
+ const providers=Object.keys(ADAPTERS);
  const accounts=providers.map(service=>settings.accounts.find(a=>a.service===service));
  const secondWA=settings.accounts.find(a=>a.service==='whatsapp'&&a.id!==accounts[0].id);
  assert.ok(secondWA,'two WhatsApp accounts participate in blur QC');

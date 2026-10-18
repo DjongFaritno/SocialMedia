@@ -6,11 +6,11 @@ function navigationAllowed(service, value) {
   try {
     const url = new URL(value);
     if (url.protocol !== 'https:' || url.username || url.password) return false;
-    return trusted(service, value) || (['instagram', 'threads'].includes(service) && META_LOGIN_ORIGINS.has(url.origin));
+    return trusted(service, value) || (['instagram', 'threads'].includes(service) && META_LOGIN_ORIGINS.has(url.origin)) || (service === 'googlechat' && url.origin === 'https://accounts.google.com');
   } catch { return false; }
 }
 function popupAllowed(service, value, openerURL) {
-  return navigationAllowed(service, value) || (['instagram', 'threads'].includes(service) && value === 'about:blank' && navigationAllowed(service, openerURL));
+  return navigationAllowed(service, value) || (['instagram', 'threads', 'messenger', 'facebook', 'googlechat'].includes(service) && value === 'about:blank' && navigationAllowed(service, openerURL));
 }
 function protectNavigation(contents, { service, external, popupPreferences, onChild, canOpen = () => true }) {
   contents.on('will-navigate', (event, url) => {

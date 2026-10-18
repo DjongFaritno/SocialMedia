@@ -17,7 +17,10 @@ function render(state) {
  document.querySelector('#theme').value = state.theme; document.body.classList.toggle('header-hidden', state.headerHidden);
  document.querySelector('#restore-header').hidden = !state.headerHidden; document.querySelector('#rail-trigger').hidden = !state.headerHidden;
  document.querySelectorAll('[data-window-action="fullscreen"]').forEach(button => { button.textContent = state.fullscreen ? 'Keluar fullscreen · F11' : 'Layar penuh · F11'; });
- document.querySelectorAll('[data-blur-toggle]').forEach(button => { button.textContent = state.blurPanels[button.dataset.blurToggle] ? 'Blur ON' : 'Blur OFF'; button.setAttribute('aria-pressed', String(state.blurPanels[button.dataset.blurToggle])); });
+ document.querySelectorAll('[data-blur-toggle]').forEach(button => { const account = state.accounts.find(item => item.id === state.slots[button.dataset.blurToggle]);
+  const supported = Boolean(state.blurSupport?.[account?.service]?.elements.length);
+  button.disabled = !supported; button.title = supported ? '' : 'Blur elemen belum tersedia. Gunakan Tutup sementara atau Kunci DuoChat.';
+  button.textContent = supported ? (state.blurPanels[button.dataset.blurToggle] ? 'Blur ON' : 'Blur OFF') : 'Blur belum tersedia'; button.setAttribute('aria-pressed', String(supported && state.blurPanels[button.dataset.blurToggle])); });
  renderRail(state);
  const active = state.accounts.filter(item => Object.values(state.slots).includes(item.id) || item.keepActive).length;
  document.querySelector('#active-status').textContent = `${active} akun aktif · ${state.accounts.length - active} akun dijeda`;

@@ -2,7 +2,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const { SERVICES } = require('./accounts.cjs');
-const { cleanBlur } = require('./blur.cjs');
+const { cleanBlur, ADAPTERS } = require('./blur.cjs');
 const image = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 const pic = attributes => '<img src="' + image + '" ' + attributes + '>';
 const fixtures = {
@@ -63,7 +63,7 @@ module.exports = async ({ app, win, views, settings, handleAccountAction, blurCo
  assert.deepEqual(JSON.parse(fs.readFileSync(path.join(app.getPath('userData'), 'settings.json'), 'utf8')).blur, settings.blur);
  await ui('window.duo.overlay(null)');
  await save(config);
- for (const service of Object.keys(SERVICES)) {
+ for (const service of Object.keys(ADAPTERS)) {
   console.log('BLUR FIXTURE mount',service);
   const account = settings.accounts.find(item => item.service === service);
   assert.ok(account, 'Fixture account exists for ' + service);

@@ -1,5 +1,15 @@
-const providerNames = { whatsapp: 'WhatsApp', telegram: 'Telegram', discord: 'Discord', x: 'X', instagram: 'Instagram', threads: 'Threads' };
+const providerNames = { whatsapp: 'WhatsApp', telegram: 'Telegram', discord: 'Discord', x: 'X', instagram: 'Instagram', threads: 'Threads', messenger: 'Messenger', facebook: 'Facebook', googlechat: 'Google Chat', wechat: 'WeChat' };
+const providerNotes = {
+ messenger: 'Pesan Facebook dibuka lewat facebook.com/messages. Sesi terpisah dari akun Facebook lain di DuoChat. Blur elemen belum tersedia.',
+ facebook: 'Feed dan pesan Facebook versi web. Login, panggilan, dan notifikasi mengikuti dukungan Facebook. Blur elemen belum tersedia.',
+ googlechat: 'Eksperimental. Google dapat menolak login dari browser dalam aplikasi. Login di browser luar tidak memindahkan sesi ke DuoChat. Blur elemen belum tersedia.',
+ wechat: 'Eksperimental. Pindai QR dengan WeChat di ponsel. Akses web bergantung akun dan kebijakan WeChat; panggilan tidak dijamin. Blur elemen belum tersedia.'
+};
 const providerPaths = {
+ messenger: '<path d="M21 11a9 9 0 0 1-9 9H7l-4 2v-6a9 9 0 1 1 18-5z"/><path d="m6 14 5-6 2 4 5-2-5 6-2-4-5 2z"/>',
+ facebook: '<path d="M14 22V13h4l1-4h-5V6c0-2 1-3 4-3h2V0h-3c-5 0-7 2-7 6v3H6v4h4v9"/>',
+ googlechat: '<path d="M3 3h18v14H8l-5 4V3z"/><path d="M7 7h10M7 11h7"/>',
+ wechat: '<path d="M14 14c-2 2-5 2-7 1l-4 2 1-4C-1 5 12 0 17 7"/><path d="M21 18l1 3-4-1c-8 2-11-9-3-11 7-2 11 5 6 9z"/><circle cx="7" cy="8" r=".5"/><circle cx="12" cy="8" r=".5"/><circle cx="15" cy="14" r=".5"/><circle cx="19" cy="14" r=".5"/>',
  whatsapp: '<path d="M20.5 11.6a8.6 8.6 0 0 1-12.9 7.5L3 20.5l1.4-4.3a8.6 8.6 0 1 1 16.1-4.6z"/><path d="m8 8 2 2-1 1c1 2 2 3 4 4l1-1 2 1"/>',
  telegram: '<path d="m21 3-5 18-5-7-8-3 18-8z"/><path d="m11 14 5-6"/>',
  discord: '<path d="m8 5-3 1c-2 3-3 7-3 11l5 2 1-2h8l1 2 5-2c0-4-1-8-3-11l-3-1-1 2H9L8 5z"/><circle cx="8" cy="12" r="1"/><circle cx="16" cy="12" r="1"/>',

@@ -142,7 +142,7 @@ function blurCSS(service, raw) {
  return '@layer duochatPrivacyBlur{' + css + '}';
 }
 function blurSupport() {
- return Object.fromEntries(Object.entries(ADAPTERS).map(([service, adapter]) => [service, { name: SERVICES[service].name, elements: ELEMENTS.filter(key => adapter[key].length), experimental: !['whatsapp', 'telegram'].includes(service) }]));
+ return Object.fromEntries(Object.entries(SERVICES).map(([service, provider]) => [service, { name: provider.name, elements: ELEMENTS.filter(key => ADAPTERS[service]?.[key].length), experimental: !['whatsapp', 'telegram'].includes(service) }]));
 }
 // Runs in a separate isolated world. It only inspects local element geometry;
 // no content is read/transmitted and no API is exposed to the service page.

@@ -1,22 +1,14 @@
-DuoChat 0.3.0 — ruang ngobrolmu, sedikit lebih privat.
+DuoChat 0.4.0-beta.1 — tambah ruang buat obrolanmu.
 
-- Kunci DuoChat dengan password lokal, Windows Hello (Windows 11+), atau Touch ID pada Mac yang mendukung.
-- Pilih kunci saat dibuka, komputer dikunci/sleep, atau idle. Permintaan biometrik saat startup opsional; pembatalan tetap terkunci.
-- Blur ON/OFF terpisah per panel. Pilihan elemen, kekuatan blur, dan hover berlaku bersama untuk semua panel/akun.
-- Pisahkan blur pesan, preview, nama, foto profil, media, dan kolom ketik. Hover/fokus membuka bagian yang ditunjuk sementara.
-- Perbaikan WhatsApp: teks read-only, media dengan metadata baru, foto/canvas/background, galeri/viewer, avatar, dan nama pengirim grup.
-- Perbaikan Telegram Web A/K: nama daftar chat dan arsip, serta isi/nama/thumbnail reply.
-- Hover media melalui tombol play/overlay di keenam layanan; Threads membedakan tautan profil dan foto postingan.
-- Login Instagram/Facebook berlangsung dalam sesi akun DuoChat. Multiakun dan pilihan WhatsApp, Telegram, Discord, X, Instagram, Threads tetap tersedia.
-- Sesi lama dipertahankan. Tidak perlu menghapus data aplikasi atau login ulang hanya untuk mengganti versi.
+- Tambah akun Messenger (halaman pesan Facebook), Facebook, Google Chat, dan WeChat.
+- Sepuluh pilihan layanan; akun baru tetap punya sesi sendiri, dimuat saat dipilih, dan bisa ditempatkan di kedua panel.
+- Messenger dan Facebook memakai sesi terpisah meskipun situsnya sama.
+- Catatan dukungan saat memilih layanan: Google bisa menolak login dalam aplikasi, Web WeChat bergantung akun dan kebijakan penyedia. Login akun nyata belum dikonfirmasi pada semua OS.
+- Empat layanan baru belum mendukung blur elemen. UI menampilkannya secara eksplisit dan menolak aktivasi blur yang menyesatkan. Tutup sementara dan Kunci tetap tersedia.
+- Enam adapter blur lama, pengaturan bersama, ON/OFF per panel, password, Windows Hello/Touch ID, dan sesi lama dipertahankan.
 
-Windows x64: Setup.exe. macOS universal: DMG/ZIP. Linux x64: AppImage/deb, dengan installer Fedora.
+Build kandidat Windows x64, macOS universal, Linux AppImage/deb. Ini beta untuk pengujian, belum menggantikan rilis publik pada cek pembaruan. Windows belum ditandatangani penerbit; macOS masih ad-hoc, belum dinotarize.
 
-Batasan: installer Windows belum memiliki tanda tangan penerbit; macOS masih ad-hoc, belum Developer ID/notarization. Peringatan OS masih mungkin muncul. Pembaruan Windows/AppImage dapat diunduh lewat aplikasi; pemasangan tetap menunggu persetujuan. macOS/deb/Fedora dipasang manual.
-
-Blur hanya mencakup elemen yang dikenali dan dapat terpengaruh perubahan situs. Discord, X, Instagram dan Threads masih memakai adapter awal. Kunci melindungi tampilan, tidak mengenkripsi cookies/cache profil. Windows Hello Face dapat meminta klik OK sesuai dialog Windows. Kunci password tetap tersedia.
-
-QC otomatis menguji kategori dan interaksi pada fixture lokal di keenam layanan, kedua sisi panel, dua akun WhatsApp, swap/reload, kunci dan pembaruan. Variasi akun nyata, panggilan, banner notifikasi OS, dan sensor biometrik tetap bergantung perangkat.
+Panggilan, notifikasi, login dan DOM aktual mengikuti dukungan masing-masing situs. QC otomatis memakai fixture lokal, bukan akun pengguna.
 
 by Codex · prompt by TjongFaritno
-https://djongfaritno.github.io/

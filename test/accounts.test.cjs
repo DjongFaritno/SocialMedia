@@ -37,3 +37,13 @@ test('every provider trusts only its declared HTTPS navigation origins', () => {
  }
  assert.equal(trusted('unknown', 'https://x.com'), false);
 });
+
+test('four additional services persist independent profiles without altering legacy sessions', () => {
+ const profiles=['messenger','facebook','googlechat','wechat'].map((service,i)=>({id:'account-00000000-0000-4000-8000-00000000000'+i,service,name:service}));
+ const state=accountState({schema:2,accounts:profiles,slots:{left:profiles[0].id,right:profiles[1].id}});
+ assert.equal(state.accounts.length,4);
+ assert.deepEqual(accountState(JSON.parse(JSON.stringify(state))),state);
+ assert.equal(new Set(state.accounts.map(partition)).size,4);
+ assert.equal(SERVICES.messenger.url,'https://www.facebook.com/messages/');
+ assert.equal(SERVICES.googlechat.url,'https://chat.google.com/');
+});

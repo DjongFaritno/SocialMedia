@@ -91,7 +91,7 @@ test('Instagram media helper is isolated and removed when hover is disabled', as
 
 test('every provider installs and cleans isolated media hover when Media is toggled', async () => {
  const { SERVICES } = require('../src/accounts.cjs');
- for(const [service,provider] of Object.entries(SERVICES)){
+ for(const [service,provider] of Object.entries(SERVICES).filter(([service]) => ADAPTERS[service])){
   const wc=new Contents();wc.url=provider.url;const calls=[];
   wc.executeJavaScriptInIsolatedWorld=async(world,scripts)=>{assert.equal(world,42);calls.push(scripts[0].code);};
   let config={enabled:true};
@@ -102,5 +102,13 @@ test('every provider installs and cleans isolated media hover when Media is togg
   assert.equal(calls.length,2);
   config={enabled:false};await controller.refresh();assert.equal(wc.sheets.size,0);
   assert.equal(calls.length,2,'disabled helper is not repeatedly injected');
+ }
+});
+
+test('new web-service previews report no selective blur until verified adapters exist', () => {
+ const { blurSupport } = require('../src/blur.cjs');
+ for (const service of ['messenger', 'facebook', 'googlechat', 'wechat']) {
+  assert.deepEqual(blurSupport()[service].elements, []);
+  assert.equal(blurCSS(service, {enabled:true}), '');
  }
 });

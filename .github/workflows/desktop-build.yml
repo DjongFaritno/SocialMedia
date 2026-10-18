@@ -190,8 +190,6 @@ jobs:
       - name: Validate all installers and publish complete release
         env:
           GH_TOKEN: ${{ github.token }}
-          # One-time lease for the unpublished 0.3.0 draft from the verified release run.
-          DUO_RESUME_DRAFT_FROM: 00e88104607e9de80f3cb0f7b264071698b47fad
         run: |
           node scripts/release-checksums.cjs release-assets
           node scripts/publish-release.cjs release-assets

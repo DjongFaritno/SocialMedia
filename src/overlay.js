@@ -23,7 +23,7 @@ function render(state) {
 }
 document.querySelector('#provider-options').innerHTML = Object.entries(providerNames).map(([id, name]) => `<button type="button" data-provider="${id}" class="${id === 'whatsapp' ? 'selected' : ''}">${providerIcon(id)}<span>${name}</span></button>`).join('');
 document.addEventListener('click', event => {
- const provider = event.target.closest('[data-provider]'); if (provider) { document.querySelector('#provider').value = provider.dataset.provider; document.querySelectorAll('[data-provider]').forEach(button => button.classList.toggle('selected', button === provider)); }
+ const provider = event.target.closest('[data-provider]'); if (provider) { document.querySelector('#provider').value = provider.dataset.provider; const note = document.querySelector('#provider-note'); note.textContent = providerNotes[provider.dataset.provider] || ''; note.hidden = !note.textContent; document.querySelectorAll('[data-provider]').forEach(button => button.classList.toggle('selected', button === provider)); }
  const remove = event.target.closest('[data-remove]'); if (remove) void accountAction('remove', { id: remove.dataset.remove });
 });
 document.addEventListener('change', async event => {

@@ -267,6 +267,8 @@ ipcMain.handle('blur:action', (event, action, input) => {
     const previous = settings.blur, previousPanels = { ...settings.blurPanels };
     if (action === 'toggle' || action === 'set') {
       if (!input || !['left', 'right'].includes(input.side) || (action === 'set' && typeof input.enabled !== 'boolean')) return { ok: false, error: 'Pilih panel kiri atau kanan.' };
+      const account = settings.accounts.find(item => item.id === settings.slots[input.side]);
+      if ((action === 'toggle' ? !settings.blurPanels[input.side] : input.enabled) && !blurSupport()[account?.service]?.elements.length) return { ok: false, error: 'Blur elemen belum tersedia untuk layanan ini. Gunakan Tutup sementara atau Kunci DuoChat.' };
       settings.blurPanels = { ...settings.blurPanels, [input.side]: action === 'toggle' ? !settings.blurPanels[input.side] : input.enabled };
     } else if (action === 'save' && input && typeof input === 'object' && !Array.isArray(input)) settings.blur = cleanBlurPreferences(input);
     else return { ok: false, error: 'Pengaturan blur tidak valid.' };

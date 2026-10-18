@@ -5,7 +5,11 @@ const SERVICES = Object.freeze({
   discord: { name: 'Discord', url: 'https://discord.com/app', origins: ['https://discord.com'] },
   x: { name: 'X', url: 'https://x.com/', origins: ['https://x.com', 'https://twitter.com'] },
   instagram: { name: 'Instagram', url: 'https://www.instagram.com/', origins: ['https://www.instagram.com'] },
-  threads: { name: 'Threads', url: 'https://www.threads.com/', origins: ['https://www.threads.com', 'https://threads.com', 'https://www.threads.net'] }
+  threads: { name: 'Threads', url: 'https://www.threads.com/', origins: ['https://www.threads.com', 'https://threads.com', 'https://www.threads.net'] },
+  messenger: { name: 'Messenger', url: 'https://www.facebook.com/messages/', origins: ['https://www.facebook.com', 'https://facebook.com', 'https://m.facebook.com', 'https://web.facebook.com'] },
+  facebook: { name: 'Facebook', url: 'https://www.facebook.com/', origins: ['https://www.facebook.com', 'https://facebook.com', 'https://m.facebook.com', 'https://web.facebook.com'] },
+  googlechat: { name: 'Google Chat', url: 'https://chat.google.com/', origins: ['https://chat.google.com'] },
+  wechat: { name: 'WeChat', url: 'https://web.wechat.com/', origins: ['https://web.wechat.com', 'https://web2.wechat.com', 'https://wx.qq.com', 'https://wx2.qq.com', 'https://wx8.qq.com'] }
 });
 const MAX_ACCOUNTS = 30;
 function validId(id) { return typeof id === 'string' && /^(whatsapp|telegram|account-[a-f0-9-]{36})$/.test(id); }

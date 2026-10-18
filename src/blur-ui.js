@@ -15,7 +15,7 @@ function renderBlur(state) {
  document.querySelector('#blur-support-list').replaceChildren(...Object.values(state.blurSupport || {}).map(support => {
   const row = document.createElement('p'), title = document.createElement('strong'), detail = document.createElement('span');
   title.textContent = support.name + (support.experimental ? ' · awal' : '');
-  detail.textContent = support.elements.map(key => blurLabels[key]).join(' · ');
+  detail.textContent = support.elements.length ? support.elements.map(key => blurLabels[key]).join(' · ') : 'Blur elemen belum tersedia. Gunakan Tutup sementara atau Kunci DuoChat.';
   row.append(title, detail); return row;
  }));
 }
