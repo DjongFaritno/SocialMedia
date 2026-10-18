@@ -93,7 +93,8 @@ const ADAPTERS = Object.freeze({
   avatars: ['a[href^="/@"]:not([href*="/post/"]) img'],
   media: ['[data-pressable-container="true"] img:not(a[href^="/@"]:not([href*="/post/"]) *)', '[data-pressable-container="true"] video', 'article img:not(a[href^="/@"]:not([href*="/post/"]) *)', 'article video'],
   composer: ['[role="main"] [contenteditable="true"][role="textbox"]', '[role="dialog"] [contenteditable="true"][role="textbox"]']
- }
+ },
+ ...require('./blur-adapters.cjs')
 });
 function cleanBlur(raw = {}) {
  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) raw = {};
@@ -142,7 +143,7 @@ function blurCSS(service, raw) {
  return '@layer duochatPrivacyBlur{' + css + '}';
 }
 function blurSupport() {
- return Object.fromEntries(Object.entries(ADAPTERS).map(([service, adapter]) => [service, { name: SERVICES[service].name, elements: ELEMENTS.filter(key => adapter[key].length), experimental: !['whatsapp', 'telegram'].includes(service) }]));
+ return Object.fromEntries(Object.entries(SERVICES).map(([service, provider]) => [service, { name: provider.name, elements: ELEMENTS.filter(key => ADAPTERS[service]?.[key].length), experimental: !['whatsapp', 'telegram'].includes(service) }]));
 }
 // Runs in a separate isolated world. It only inspects local element geometry;
 // no content is read/transmitted and no API is exposed to the service page.

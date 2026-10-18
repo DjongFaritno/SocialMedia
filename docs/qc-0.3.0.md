@@ -1,6 +1,6 @@
 # DuoChat 0.3.0 — QC dan publikasi
 
-Ditinjau 16 Oktober 2026. Rilis publik: [v0.3.0](https://github.com/DjongFaritno/SocialMedia/releases/tag/v0.3.0).
+Ditinjau 16 Oktober 2026. Rilis publik: [v0.3.0](https://github.com/DjongFaritno/SocialMedia/releases).
 
 - Commit rilis/tag: 4ecdf622cc6f15ed41f2fc7ab4b63695166d50a8.
 - [Workflow publikasi berhasil](https://github.com/DjongFaritno/SocialMedia/actions/runs/38878796762).

@@ -2,14 +2,14 @@ const { RELEASES_API, RELEASES_PAGE, compare, latestRelease, updateMode } = requ
 
 // Main-process controller; remote chat pages receive no updater IPC.
 function createUpdates({ app, net, dialog, shell, getWindow, getSettings, save, notify, platform = process.platform,
-  arch = process.arch, appImage = process.env.APPIMAGE, engineFactory = () => require('electron-updater').autoUpdater }) {
+  t = (text, values) => require('./i18n.js').translate('id',text,values), arch = process.arch, appImage = process.env.APPIMAGE, engineFactory = () => require('electron-updater').autoUpdater }) {
   const mode = updateMode({ packaged: app.isPackaged, platform, arch, appImage });
   let engine, checking, downloading, selected, version = '', phase = 'idle', progress = 0;
   let startupTimer, interval, stopped = false;
   const snapshot = () => ({ phase, version, progress, mode });
   function change(next) { phase = next; notify(); }
   async function message(message, detail) {
-    await dialog.showMessageBox(getWindow(), { type: 'info', message, detail, buttons: ['Oke'] });
+    await dialog.showMessageBox(getWindow(), { type: 'info', message, detail, buttons: [t('Oke')] });
   }
   function updater() {
     if (engine) return engine;
@@ -79,13 +79,13 @@ function createUpdates({ app, net, dialog, shell, getWindow, getSettings, save, 
       const release = latestRelease(JSON.parse(text));
       if (!release || compare(release.version, app.getVersion()) <= 0) {
         selected = null; version = ''; change('current');
-        if (manual) await message('DuoChat sudah versi terbaru', `Versi ${app.getVersion()}. Belum ada rilis lebih baru dengan paket pembaruan lengkap.`);
+        if (manual) await message('DuoChat sudah versi terbaru', t('Versi {version}. Belum ada rilis lebih baru dengan paket pembaruan lengkap.',{version:app.getVersion()}));
         return;
       }
       selected = release; version = release.version; change('available');
       if (mode === 'native' && getSettings().autoDownloadUpdates) await download(false);
       else if (manual) {
-        const result = await dialog.showMessageBox(getWindow(), { type: 'info', message: `DuoChat ${version} tersedia`,
+        const result = await dialog.showMessageBox(getWindow(), { type: 'info', message: t('DuoChat {version} tersedia',{version}),
           detail: mode === 'native' ? 'Unduh pembaruan sekarang. Pemasangan menunggu tombol Pasang & mulai ulang.' :
             'Buka GitHub untuk mengunduh installer. Versi macOS saat ini belum mendukung pemasangan otomatis; paket .deb/Fedora hasil ekstraksi juga dipasang manual.',
           buttons: ['Nanti', mode === 'native' ? 'Unduh pembaruan' : 'Buka unduhan'], cancelId: 0, defaultId: 1 });
@@ -108,7 +108,7 @@ function createUpdates({ app, net, dialog, shell, getWindow, getSettings, save, 
   }
   async function install() {
     if (mode !== 'native' || phase !== 'ready') return;
-    const result = await dialog.showMessageBox(getWindow(), { type: 'question', message: `Pasang DuoChat ${version}?`,
+    const result = await dialog.showMessageBox(getWindow(), { type: 'question', message: t('Pasang DuoChat {version}?',{version}),
       detail: 'DuoChat akan ditutup lalu dibuka kembali. Selesaikan panggilan dan unduhan yang sedang berjalan sebelum melanjutkan. Sesi login tetap memakai profil yang sama.',
       buttons: ['Nanti', 'Pasang & mulai ulang'], cancelId: 0, defaultId: 0 });
     if (result.response === 1 && phase === 'ready') { save(); updater().quitAndInstall(false, true); }

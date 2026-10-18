@@ -1,6 +1,6 @@
 const assert = require('node:assert/strict');
 const { SERVICES } = require('./accounts.cjs');
-const { ELEMENTS } = require('./blur.cjs');
+const { ELEMENTS, ADAPTERS } = require('./blur.cjs');
 module.exports = async ({settings,views,handleAccountAction,waitForDocument,html,settled,ui,save,isBlurred,move}) => {
  const providers=Object.keys(SERVICES);
  const accounts=providers.map(service=>settings.accounts.find(a=>a.service===service));
@@ -22,7 +22,7 @@ module.exports = async ({settings,views,handleAccountAction,waitForDocument,html
   for(const category of ELEMENTS){
    await save({enabled:true,revealOnHover:false,elements:{...empty,[category]:true}});
    for(const {account,wc,side} of panels)for(const [key,id] of Object.entries(ids)){
-    if(account.service==='threads'&&key==='previews')continue;
+    if(!ADAPTERS[account.service][key].length)continue;
     assert.equal(await isBlurred(wc,id),key===category,account.service+' '+side+' independent '+category+' / '+key);
    }
   }
@@ -31,7 +31,7 @@ module.exports = async ({settings,views,handleAccountAction,waitForDocument,html
   await set('left',false);await set('right',false);
   await save({enabled:false,elements:empty});
   for(const {account,wc} of panels)for(const [key,id] of Object.entries(ids)){
-   if(account.service==='threads'&&key==='previews')continue;
+   if(!ADAPTERS[account.service][key].length)continue;
    assert.equal(await isBlurred(wc,id),false,'no selected categories leaves '+id+' clear');
   }
   const rejected=await ui('window.duo.blurAction("set",{side:"left",enabled:true})');
@@ -67,5 +67,5 @@ module.exports = async ({settings,views,handleAccountAction,waitForDocument,html
   for(const panel of panels){if(panel.wc.debugger.isAttached())panel.wc.debugger.detach();panel.wc.session.protocol.unhandle('https');}
  }
  assert.equal((await ui('window.duo.blurAction("toggle")')).ok,false,'panel side is required');
- console.log('BLUR PANEL MATRIX PASS: all six services on both sides plus two isolated WhatsApp accounts; every category alone/none, shared strength and settings, all four activation combinations, new media, account swap and reload.');
+ console.log('BLUR PANEL MATRIX PASS: all thirteen services on both sides plus two isolated WhatsApp accounts; every category alone/none, shared strength and settings, all four activation combinations, new media, account swap and reload.');
 };

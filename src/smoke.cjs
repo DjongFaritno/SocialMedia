@@ -51,16 +51,42 @@ module.exports = async ({ app, win, views, settings, state, overlay, showOverlay
  assert.equal(overlay.getVisible(), true); assert.equal(overlay.getBounds().width, 88); assert.deepEqual(views[added.id].getBounds(), bounds);
  await overlay.webContents.executeJavaScript("window.dispatchEvent(new MouseEvent('mouseout',{relatedTarget:null}))"); await sleep(100); assert.equal(overlay.getVisible(), false);
  showOverlay('add'); await sleep(100); assert.equal(await overlay.webContents.executeJavaScript("document.querySelector('#add-dialog').open"), true);
- assert.equal(await overlay.webContents.executeJavaScript("document.querySelectorAll('[data-provider]').length"), 6);
+ assert.equal(await overlay.webContents.executeJavaScript("document.querySelectorAll('[data-provider]').length"), Object.keys(require('./accounts.cjs').SERVICES).length);
  assert.equal(await overlay.webContents.executeJavaScript('typeof require'), 'undefined');
  await overlay.webContents.executeJavaScript("document.querySelector('[data-provider=instagram]').click();document.querySelector('#account-name').value='<img src=x onerror=alert(1)>';document.querySelector('#add-form').requestSubmit()"); await sleep(200);
  assert.equal(settings.accounts.length, 4); assert.equal(settings.accounts[3].service, 'instagram');
  assert.equal(await overlay.webContents.executeJavaScript("document.querySelectorAll('#account-settings img').length"), 0, 'Account labels are escaped');
  showOverlay(null); await ui("window.duo.windowAction('header')");
- for (const service of ['x', 'threads', 'discord']) {
+ for (const service of ['x', 'threads', 'discord', 'messenger', 'facebook', 'googlechat', 'wechat', 'slack', 'teams', 'linkedin']) {
   const result = await handleAccountAction('add', { service, name: service }); await handleAccountAction('select', { side: 'right', id: result.id }); await ready();
   assert.equal(Object.keys(views).length, 2); assert.match(await views[result.id].webContents.executeJavaScript('document.body.textContent'), /smoke fixture/);
  }
+
+ // Additional web services use the same sandbox/profile/cover infrastructure.
+ for (const service of ['messenger','facebook','googlechat','wechat','slack','teams','linkedin']) {
+  const account = settings.accounts.find(item=>item.service===service);
+  await handleAccountAction('select',{side:'left',id:account.id}); await ready(); await sleep(80);
+  const wc = views[account.id].webContents;
+  assert.equal(await wc.executeJavaScript('typeof window.duo'), 'undefined');
+  assert.equal(await wc.executeJavaScript('typeof require'), 'undefined');
+  assert.equal(await ui("document.querySelector('[data-blur-toggle=left]').disabled"),false);
+  assert.match(await ui("document.querySelector('[data-blur-toggle=left]').textContent"),/Blur (ON|OFF)/);
+  assert.equal((await ui('window.duo.blurAction("set",{side:"left",enabled:true})')).ok,true);
+  assert.equal((await ui('window.duo.blurAction("set",{side:"left",enabled:false})')).ok,true);
+  await ui('window.duo.privacyAction("cover",{side:"left"})');
+  assert.equal(views[account.id].getVisible(),false,service+' cover hides native content');
+  await ui('window.duo.privacyAction("cover",{side:"left"})');
+  assert.equal(views[account.id].getVisible(),true,service+' cover restores native content');
+ }
+ const messenger=settings.accounts.find(item=>item.service==='messenger');
+ const facebook=settings.accounts.find(item=>item.service==='facebook');
+ await handleAccountAction('select',{side:'left',id:messenger.id});
+ await handleAccountAction('select',{side:'right',id:facebook.id}); await ready();
+ const messengerSession=views[messenger.id].webContents.session,facebookSession=views[facebook.id].webContents.session;
+ assert.notEqual(messengerSession,facebookSession,'Facebook and Messenger account sessions remain independent despite shared origin');
+ await messengerSession.cookies.set({url:'https://www.facebook.com/',name:'duochat-messenger-fixture',value:'isolated'});
+ assert.equal((await facebookSession.cookies.get({name:'duochat-messenger-fixture'})).length,0);
+ console.log('NEW SERVICE PASS: seven added providers, isolated Facebook/Messenger cookies, sandbox, enabled blur controls, native panel covers.');
  await handleAccountAction('select', { side: 'left', id: 'whatsapp' }); await handleAccountAction('select', { side: 'right', id: 'telegram' }); await ready();
  assert.equal(views.whatsapp.webContents.session, oldSession); assert.equal((await oldSession.cookies.get({ name: 'duochat-fixture' }))[0].value, 'personal');
  assert.deepEqual(cleanSettings(JSON.parse(JSON.stringify(settings))).slots, settings.slots);
@@ -71,6 +97,7 @@ module.exports = async ({ app, win, views, settings, state, overlay, showOverlay
  await ui("window.duo.setTheme('auto')");
  fs.mkdirSync(path.join(process.cwd(), 'artifacts'), { recursive: true });
  if (!process.argv.includes('--skip-capture')) fs.writeFileSync(path.join(process.cwd(), 'artifacts', 'big-update.png'), (await win.capturePage()).toPNG());
+ await require('./language-smoke.cjs')({app,win,views,settings,overlay,showOverlay,handleAccountAction,about});
  await ui("window.duo.windowAction('about')"); const aboutWindow = about(); if (aboutWindow.webContents.isLoading()) await new Promise(resolve => aboutWindow.webContents.once('did-finish-load', resolve)); await sleep(100);
  assert.equal(await aboutWindow.webContents.executeJavaScript("document.querySelector('#version').textContent"), app.getVersion());
  assert.match(await aboutWindow.webContents.executeJavaScript('document.body.textContent'), /prompt by TjongFaritno/);
@@ -116,6 +143,8 @@ module.exports = async ({ app, win, views, settings, state, overlay, showOverlay
  assert.equal(await privateUI("document.querySelector('#lock-screen').hidden"), false);
  for (const view of Object.values(views)) assert.equal(view.getVisible(), false);
  assert.equal(JSON.stringify(await ui('window.duo.getState()')).includes('credential'), false);
+ assert.equal((await ui('window.duo.setLanguage("en")')).ok,false,'Locked UI cannot mutate language preferences');
+ assert.equal(settings.language,'id');
  const lockedBlur = JSON.stringify([settings.blur,settings.blurPanels]);
  assert.equal((await privateUI("window.duo.blurAction('toggle',{side:'left'})")).ok, false);
  assert.equal(JSON.stringify([settings.blur,settings.blurPanels]), lockedBlur);

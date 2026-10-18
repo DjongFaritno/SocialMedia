@@ -1,0 +1,60 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs'), path = require('node:path');
+module.exports = async ({app,win,views,settings,overlay,showOverlay,handleAccountAction,about}) => {
+ const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+ const ui=code=>win.webContents.executeJavaScript(code);
+ const locale=async value=>{
+  assert.equal((await ui('window.duo.setLanguage('+JSON.stringify(value)+')')).ok,true);
+  const deadline=Date.now()+5000;
+  while(await ui('document.documentElement.lang')!==value){assert.ok(Date.now()<deadline,'Language did not update');await pause(20);}
+  await pause(60);
+ };
+ const viewIds=Object.fromEntries(Object.entries(views).map(([id,v])=>[id,v.webContents.id]));
+ const originalLanguage=settings.language, originalNames=settings.accounts.map(a=>[a.id,a.name]);
+ await ui('document.querySelector("[data-language]").value="en";document.querySelector("[data-language]").dispatchEvent(new Event("change",{bubbles:true}))');
+ const deadline=Date.now()+5000;while(settings.language!=='en'){assert.ok(Date.now()<deadline);await pause(20);}await pause(80);
+ assert.equal(await ui('document.documentElement.lang'),'en');
+ assert.equal(await ui('document.querySelector("#update-button").textContent'),'Check updates');
+ assert.equal(await ui('document.querySelector("[data-overlay=privacy]").textContent'),'Privacy');
+ assert.equal(JSON.parse(fs.readFileSync(path.join(app.getPath('userData'),'settings.json'),'utf8')).language,'en');
+ assert.equal(require('./core.cjs').cleanSettings(JSON.parse(fs.readFileSync(path.join(app.getPath('userData'),'settings.json'),'utf8'))).language,'en');
+ const menu=require('electron').Menu.getApplicationMenu();
+ assert.ok(menu.items[0].submenu.items.some(item=>item.label==='Add account…'),'Native menu is English');
+ for(const invalid of ['fr','__proto__',null,{},42]){
+  assert.equal((await ui('window.duo.setLanguage('+JSON.stringify(invalid)+')')).ok,false);
+  assert.equal(settings.language,'en');
+ }
+ const account=settings.accounts.find(a=>a.service==='whatsapp');
+ await handleAccountAction('rename',{id:account.id,name:'Kunci'});
+ assert.equal(settings.accounts.find(a=>a.id===account.id).name,'Kunci','Account names are not translated');
+ assert.ok(await ui('Array.from(document.querySelector("#left-account").options).some(o=>o.textContent.startsWith("Kunci ·"))'));
+ showOverlay('add');await pause(80);
+ assert.equal(await overlay.webContents.executeJavaScript('document.documentElement.lang'),'en');
+ assert.equal(await overlay.webContents.executeJavaScript('document.querySelector("#add-dialog h1").textContent'),'Add another account.');
+ await overlay.webContents.executeJavaScript('document.querySelector("[data-provider=googlechat]").click()');
+ assert.match(await overlay.webContents.executeJavaScript('document.querySelector("#provider-note").textContent'),/Experimental/);
+ showOverlay('blur');await pause(80);
+ assert.equal(await overlay.webContents.executeJavaScript('document.querySelector("#blur-heading").textContent'),'Keep private things blurry.');
+ await overlay.webContents.executeJavaScript('document.querySelector("#blur-strength").value=19;document.querySelector("[data-blur-element=avatars]").checked=false');
+ await locale('id');
+ assert.equal(await overlay.webContents.executeJavaScript('document.querySelector("#blur-strength").value'),'19','Language changes preserve unsaved settings');
+ assert.equal(await overlay.webContents.executeJavaScript('document.querySelector("[data-blur-element=avatars]").checked'),false);
+ assert.equal(await overlay.webContents.executeJavaScript('document.querySelector("#blur-heading").textContent'),'Yang privat, diburamin.');
+ showOverlay(null);await locale('en');
+ await ui('window.duo.windowAction("about")');let window=about();
+ if(window.webContents.isLoading())await new Promise(resolve=>window.webContents.once('did-finish-load',resolve));await pause(80);
+ assert.equal(await window.webContents.executeJavaScript('document.documentElement.lang'),'en');
+ assert.equal(await window.webContents.executeJavaScript('document.querySelector("#close-about").textContent'),'Close');
+ await locale('id');
+ assert.equal(await window.webContents.executeJavaScript('document.querySelector("#close-about").textContent'),'Tutup','Open About follows language changes');
+ window.close();await pause(60);
+ showOverlay('privacy');await locale('en');
+ assert.equal(await overlay.webContents.executeJavaScript('document.querySelector("#privacy-heading").textContent'),'Keep your chats to yourself.');
+ const rejected=await overlay.webContents.executeJavaScript('window.duo.privacyAction("save",{newPassword:"a",confirmPassword:"a"})');
+ assert.match(rejected.error,/at least 8/,'Privacy validation uses the selected language');
+ showOverlay(null);
+ for(const [id,name]of originalNames)if(settings.accounts.some(a=>a.id===id))await handleAccountAction('rename',{id,name});
+ await locale(originalLanguage);
+ for(const [id,wcId]of Object.entries(viewIds))assert.equal(views[id].webContents.id,wcId,'Switching language never reloads chat sessions');
+ console.log('LANGUAGE SMOKE PASS: ID/EN picker, native menu, overlay/privacy/blur/About, persisted preference, invalid-language rejection, preserved user names/unsaved settings and unchanged service processes.');
+};

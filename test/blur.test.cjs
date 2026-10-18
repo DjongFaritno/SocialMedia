@@ -104,3 +104,13 @@ test('every provider installs and cleans isolated media hover when Media is togg
   assert.equal(calls.length,2,'disabled helper is not repeatedly injected');
  }
 });
+
+test('every registered service has real blur categories and unsupported preview categories are explicit', () => {
+ const { SERVICES } = require('../src/accounts.cjs'), { blurSupport } = require('../src/blur.cjs');
+ assert.deepEqual(Object.keys(blurSupport()).sort(),Object.keys(SERVICES).sort());
+ for(const service of Object.keys(SERVICES)) {
+  for(const key of ['messages','names','avatars','media','composer']) assert.ok(ADAPTERS[service][key].length,service+' '+key);
+  assert.ok(blurCSS(service,{enabled:true}).includes('filter:blur('),service);
+ }
+ assert.deepEqual(ADAPTERS.googlechat.previews,[]);
+});

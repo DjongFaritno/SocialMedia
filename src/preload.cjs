@@ -6,6 +6,7 @@ contextBridge.exposeInMainWorld('duo', {
   overlay: (mode, focus = false) => ipcRenderer.invoke('ui:overlay', mode, focus),
   updateAction: action => ipcRenderer.invoke('update:action', action),
   windowAction: action => ipcRenderer.invoke('window:action', action),
+  setLanguage: value => ipcRenderer.invoke('language:set', value),
   setTheme: value => ipcRenderer.invoke('theme:set', value),
   closeAbout: () => ipcRenderer.invoke('about:close'),
   getAbout: () => ipcRenderer.invoke('about:info'),

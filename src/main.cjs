@@ -18,6 +18,8 @@ const mediaGate = nativeMediaGate(process.platform, systemPreferences);
 const smoke = process.argv.includes('--smoke');
 if (smoke) app.setPath('userData', fs.mkdtempSync(path.join(require('node:os').tmpdir(), 'duochat-smoke-')));
 let win, aboutWindow, overlay, settings, settingsPath, saveTimer;
+const { translate } = require('./i18n.js');
+const t = (message, values) => translate(settings?.language, message, values);
 let overlayMode = null, overlayReturnFocus;
 const configuredSessions = new Set(), childWindows = new Map();
 // Use the same profile lock on every launch; never create a second pair of chats.
@@ -52,6 +54,21 @@ function updateColors() {
   win.setBackgroundColor(dark ? '#161e1b' : '#edf2f1');
   for (const view of Object.values(views)) view.setBackgroundColor(dark ? '#1c2622' : '#ffffff');
   send();
+}
+function buildMenu() {
+ Menu.setApplicationMenu(Menu.buildFromTemplate([{ label: 'DuoChat', submenu: [{ label: 'Language / Bahasa', submenu: [{label:'Bahasa Indonesia',type:'radio',checked:settings.language==='id',click:()=>setLanguage('id')},{label:'English',type:'radio',checked:settings.language==='en',click:()=>setLanguage('en')}] }, { label: 'About DuoChat', click: showAbout }, { label: t('Tambah akun…'), click: () => showOverlay('add') }, { label: t('Kelola akun…'), click: () => showOverlay('manage') }, { label: t('Privasi…'), click: () => showOverlay('privacy') }, { label: t('Atur blur semua panel…'), click: () => showOverlay('blur') }, { label: t('Kunci DuoChat'), accelerator: 'CommandOrControl+Shift+L', click: lockOrSetup }, { label: t('Cek pembaruan…'), click: () => void updates.check(true) }, { type: 'separator' }, { label: t('Periksa pembaruan otomatis'), type: 'checkbox', checked: settings.autoCheckUpdates, click: item => updates.preference('autoCheckUpdates', item.checked) }, { label: t('Unduh pembaruan otomatis'), type: 'checkbox', checked: settings.autoDownloadUpdates, enabled: updates.snapshot().mode === 'native', click: item => updates.preference('autoDownloadUpdates', item.checked) }, { type: 'separator' }, { role: 'quit', label: t('Keluar') }] }, { label: 'Edit', submenu: [{ role: 'undo', label:t('Urungkan') }, { role: 'redo', label:t('Ulangi') }, { type: 'separator' }, { role: 'cut', label:t('Potong') }, { role: 'copy', label:t('Salin') }, { role: 'paste', label:t('Tempel') }, { role: 'selectAll', label:t('Pilih semua') }] }, { label: t('Jendela'), submenu: [{ role: 'minimize' }, { role: 'zoom' }, { type: 'separator' }, { label: t('Layar penuh (F11)'), click: () => windowAction('fullscreen') }, { label: t('Tampilkan/sembunyikan header (Ctrl+Shift+H)'), click: () => windowAction('header') }] }]));
+}
+function setLanguage(value) {
+ if (!['id','en'].includes(value)) return {ok:false};
+ const previous = settings.language; settings.language = value;
+ try { save(); } catch { settings.language = previous; return {ok:false}; }
+ biometricStartupError = undefined; buildMenu(); send();
+ for(const view of Object.values(views)) {
+  const local = ['offline.html','offline-en.html'].map(name=>pathToFileURL(path.join(__dirname,name)).href);
+  if(local.includes(view.webContents.getURL()))void view.webContents.loadFile(path.join(__dirname,settings.language==='en'?'offline-en.html':'offline.html')).catch(()=>{});
+ }
+ if (aboutWindow && !aboutWindow.isDestroyed()) aboutWindow.webContents.send('state',{language:settings.language});
+ return {ok:true};
 }
 function setTheme(value) {
   if (!['auto', 'light', 'dark'].includes(value)) return;
@@ -125,7 +142,7 @@ async function external(url, accountId) {
   if (privacy?.snapshot().locked || (accountId && accountConcealed(accountId))) return;
   let parsed; try { parsed = new URL(url); } catch { return; }
   if (!['https:', 'http:'].includes(parsed.protocol)) return;
-  const result = await dialog.showMessageBox(win, { type: 'question', message: 'Buka tautan di browser?', detail: parsed.href, buttons: ['Batal', 'Buka browser'], defaultId: 0, cancelId: 0 });
+  const result = await dialog.showMessageBox(win, { type: 'question', message: t('Buka tautan di browser?'), detail: parsed.href, buttons: [t('Batal'), t('Buka browser')], defaultId: 0, cancelId: 0 });
   if (result.response === 1 && !privacy.snapshot().locked && !(accountId && accountConcealed(accountId))) await shell.openExternal(parsed.href);
 }
 function accountById(id) { return settings.accounts.find(item => item.id === id); }
@@ -203,16 +220,16 @@ function addService(account) {
   view.setVisible(false);
   views[id] = view; win.contentView.addChildView(view);
   protect(view.webContents, account); shortcuts(view.webContents);
-  const update = (value, message = '') => { if (views[id] === view) { statuses[id] = { state: value, message }; send(); } };
+  const update = (value, message = '', values = {}) => { if (views[id] === view) { statuses[id] = { state: value, message, values }; send(); } };
   view.webContents.on('did-start-loading', () => update('loading'));
   view.webContents.on('did-finish-load', () => { if (navigationAllowed(service, view.webContents.getURL()) || smoke) update('ready'); });
   view.webContents.on('did-fail-load', (_e, code, _description, _url, mainFrame) => {
     if (mainFrame && code !== -3 && views[id] === view) {
-      update('error', `Gagal memuat (${code}). Periksa koneksi, lalu muat ulang.`);
-      void view.webContents.loadFile(path.join(__dirname, 'offline.html')).catch(() => {});
+      update('error', 'Gagal memuat ({code}). Periksa koneksi, lalu muat ulang.', {code});
+      void view.webContents.loadFile(path.join(__dirname, settings.language === 'en' ? 'offline-en.html' : 'offline.html')).catch(() => {});
     }
   });
-  view.webContents.on('render-process-gone', () => update('error', 'Panel berhenti. Tekan Muat ulang.'));
+  view.webContents.on('render-process-gone', () => update('error', t('Panel berhenti. Tekan Muat ulang.')));
   void view.webContents.loadURL(smoke ? `data:text/html,<h1>${SERVICES[service].name} smoke fixture</h1>` : SERVICES[service].url).catch(() => {});
 }
 function closeAccount(id) {
@@ -261,22 +278,24 @@ function togglePanelCover(input) {
 }
 let blurActions = Promise.resolve();
 ipcMain.handle('blur:action', (event, action, input) => {
-  if (!editableUI(event)) return { ok: false, error: 'Buka kunci dulu.' };
+  if (!editableUI(event)) return { ok: false, error: t('Buka kunci dulu.') };
   const run = async () => {
-    if (!editableUI(event)) return { ok: false, error: 'Buka kunci dulu.' };
+    if (!editableUI(event)) return { ok: false, error: t('Buka kunci dulu.') };
     const previous = settings.blur, previousPanels = { ...settings.blurPanels };
     if (action === 'toggle' || action === 'set') {
-      if (!input || !['left', 'right'].includes(input.side) || (action === 'set' && typeof input.enabled !== 'boolean')) return { ok: false, error: 'Pilih panel kiri atau kanan.' };
+      if (!input || !['left', 'right'].includes(input.side) || (action === 'set' && typeof input.enabled !== 'boolean')) return { ok: false, error: t('Pilih panel kiri atau kanan.') };
+      const account = settings.accounts.find(item => item.id === settings.slots[input.side]);
+      if ((action === 'toggle' ? !settings.blurPanels[input.side] : input.enabled) && !blurSupport()[account?.service]?.elements.length) return { ok: false, error: t('Blur elemen belum tersedia untuk layanan ini. Gunakan Tutup sementara atau Kunci DuoChat.') };
       settings.blurPanels = { ...settings.blurPanels, [input.side]: action === 'toggle' ? !settings.blurPanels[input.side] : input.enabled };
     } else if (action === 'save' && input && typeof input === 'object' && !Array.isArray(input)) settings.blur = cleanBlurPreferences(input);
-    else return { ok: false, error: 'Pengaturan blur tidak valid.' };
+    else return { ok: false, error: t('Pengaturan blur tidak valid.') };
     if (Object.values(settings.blurPanels).some(Boolean) && !Object.values(settings.blur.elements).some(Boolean)) {
       settings.blur = previous; settings.blurPanels = previousPanels;
-      return { ok: false, error: 'Pilih minimal satu elemen untuk mengaktifkan blur.' };
+      return { ok: false, error: t('Pilih minimal satu elemen untuk mengaktifkan blur.') };
     }
     try { save(); } catch {
       settings.blur = previous; settings.blurPanels = previousPanels;
-      return { ok: false, error: 'Pengaturan belum tersimpan. Periksa penyimpanan lalu coba lagi.' };
+      return { ok: false, error: t('Pengaturan belum tersimpan. Periksa penyimpanan lalu coba lagi.') };
     }
     send(); await refreshBlur();
     return { ok: true };
@@ -286,10 +305,11 @@ ipcMain.handle('blur:action', (event, action, input) => {
 });
 function ownUI(event) { return win && ((event.sender === win.webContents && event.senderFrame?.url === uiURL) || (overlay && event.sender === overlay.webContents && event.senderFrame?.url === overlayURL)); }
 ipcMain.handle('state:get', event => ownUI(event) ? { ...state(), overlayMode } : null);
-ipcMain.handle('about:info', event => ownAbout(event) ? { version: app.getVersion() } : null);
+ipcMain.handle('about:info', event => ownAbout(event) ? { version: app.getVersion(), language: settings.language } : null);
 ipcMain.handle('about:close', event => { if (!ownAbout(event)) return null; aboutWindow.close(); return true; });
 ipcMain.handle('about:website', event => { if (ownAbout(event)) return shell.openExternal(authorWebsite); });
 ipcMain.handle('update:action', (event, action) => { if (!privacy?.snapshot().locked && (ownUI(event) || ownAbout(event))) return updates?.action(action); });
+ipcMain.handle('language:set', (event, value) => editableUI(event) ? setLanguage(value) : {ok:false});
 ipcMain.handle('theme:set', (event, value) => { if (editableUI(event)) setTheme(value); });
 ipcMain.handle('window:action', (event, action) => { if (ownUI(event)) windowAction(action); });
 ipcMain.handle('ratio:set', (event, value) => { if (!editableUI(event)) return; settings.ratio = ratio(value); arrange(); });
@@ -300,16 +320,16 @@ ipcMain.handle('service:action', async (event, id, action) => {
   if (action === 'reload') { if (!views[id]) return; void views[id].webContents.loadURL(smoke ? `data:text/html,<h1>${SERVICES[service].name} smoke fixture</h1>` : SERVICES[service].url).catch(() => {}); }
   if (action === 'browser') await external(SERVICES[service].url, id);
   if (action === 'permissions') {
-    const result = await dialog.showMessageBox(win, { type: 'question', message: `Izin untuk ${account.name}`, detail: 'Izinkan situs resmi layanan ini memakai kamera, mikrofon, dan notifikasi di DuoChat. Sistem operasi dapat meminta izin tambahan. Dukungan panggilan mengikuti layanan web.', buttons: ['Batal', 'Izinkan', 'Cabut izin'], defaultId: 0, cancelId: 0 });
+    const result = await dialog.showMessageBox(win, { type: 'question', message: t('Izin untuk {name}',{name:account.name}), detail: t('Izinkan situs resmi layanan ini memakai kamera, mikrofon, dan notifikasi di DuoChat. Sistem operasi dapat meminta izin tambahan. Dukungan panggilan mengikuti layanan web.'), buttons: [t('Batal'), t('Izinkan'), t('Cabut izin')], defaultId: 0, cancelId: 0 });
     if (result.response !== 0) {
       if (accountById(id) !== account || accountConcealed(id)) return; account.permissions = result.response === 1; if (['whatsapp', 'telegram'].includes(id)) settings.permissions[id] = account.permissions; save(); send();
       if (result.response === 1 && process.platform === 'darwin') {
         const microphone = await mediaGate.request('microphone');
         const camera = await mediaGate.request('camera');
         if (!microphone || !camera) await dialog.showMessageBox(win, {
-          type: 'info', message: 'Periksa izin perangkat di macOS',
-          detail: 'Buka System Settings → Privacy & Security → Microphone / Camera, lalu aktifkan DuoChat untuk perangkat yang ingin dipakai. Jika izin baru diubah, tutup dan buka lagi DuoChat. Untuk notifikasi, periksa System Settings → Notifications → DuoChat dan pengaturan notifikasi di layanan.',
-          buttons: ['Oke']
+          type: 'info', message: t('Periksa izin perangkat di macOS'),
+          detail: t('Buka System Settings → Privacy & Security → Microphone / Camera, lalu aktifkan DuoChat untuk perangkat yang ingin dipakai. Jika izin baru diubah, tutup dan buka lagi DuoChat. Untuk notifikasi, periksa System Settings → Notifications → DuoChat dan pengaturan notifikasi di layanan.'),
+          buttons: [t('Oke')]
         });
       }
     }
@@ -323,67 +343,67 @@ ipcMain.handle('account:action', (event, action, input) => {
   const operation = accountActions.then(run, run); accountActions = operation.catch(() => {}); return operation;
 });
 async function handleAccountAction(action, input = {}) {
-  if (privacy.snapshot().locked) return { ok: false, error: 'Buka kunci dulu.' };
-  if (!input || typeof input !== 'object') return { ok: false, error: 'Permintaan akun tidak valid.' };
+  if (privacy.snapshot().locked) return { ok: false, error: t('Buka kunci dulu.') };
+  if (!input || typeof input !== 'object') return { ok: false, error: t('Permintaan akun tidak valid.') };
   let account = accountById(input.id);
   if (action === 'add') {
-    if (!Object.hasOwn(SERVICES, input.service) || settings.accounts.length >= MAX_ACCOUNTS) return { ok: false, error: 'Layanan tidak valid atau batas 30 akun tercapai.' };
+    if (!Object.hasOwn(SERVICES, input.service) || settings.accounts.length >= MAX_ACCOUNTS) return { ok: false, error: t('Layanan tidak valid atau batas 30 akun tercapai.') };
     const name = typeof input.name === 'string' ? input.name.trim().slice(0, 40) : '';
-    if (!name) return { ok: false, error: 'Isi nama akun dulu.' };
+    if (!name) return { ok: false, error: t('Isi nama akun dulu.') };
     account = { id: 'account-' + randomUUID(), service: input.service, name, keepActive: false, permissions: false };
     settings.accounts.push(account); save(); send(); return { ok: true, id: account.id };
   }
-  if (!account) return { ok: false, error: 'Akun tidak ditemukan.' };
+  if (!account) return { ok: false, error: t('Akun tidak ditemukan.') };
   if (action === 'select') {
-    if (!['left', 'right'].includes(input.side)) return { ok: false, error: 'Panel tidak valid.' };
+    if (!['left', 'right'].includes(input.side)) return { ok: false, error: t('Panel tidak valid.') };
     const previous = accountById(settings.slots[input.side]);
     // Never silently terminate an account when it leaves a panel. The user
     // can keep its connection (including calls) alive or explicitly pause it.
     if (previous.id !== account.id && !previous.keepActive && !Object.values(settings.slots).includes(account.id) && !smoke) {
-      const result = await dialog.showMessageBox(win, { type: 'question', message: `Ganti panel ${input.side === 'left' ? 'kiri' : 'kanan'}?`, detail: `${previous.name} akan keluar dari panel. Menjeda akun menghentikan halaman, panggilan, dan notifikasinya. Pilih Tetap aktif jika masih ingin terhubung.`, buttons: ['Batal', 'Tetap aktif', 'Jeda akun lama'], defaultId: 1, cancelId: 0 });
-      if (result.response === 0 || privacy.snapshot().locked) return { ok: false, error: 'Pergantian akun dibatalkan.' };
+      const result = await dialog.showMessageBox(win, { type: 'question', message: t('Ganti panel {side}?',{side:t(input.side === 'left' ? 'kiri' : 'kanan')}), detail: t('{name} akan keluar dari panel. Menjeda akun menghentikan halaman, panggilan, dan notifikasinya. Pilih Tetap aktif jika masih ingin terhubung.',{name:previous.name}), buttons: [t('Batal'), t('Tetap aktif'), t('Jeda akun lama')], defaultId: 1, cancelId: 0 });
+      if (result.response === 0 || privacy.snapshot().locked) return { ok: false, error: t('Pergantian akun dibatalkan.') };
       if (result.response === 1) previous.keepActive = true;
     }
     switchAccount(settings, input.side, account.id);
   } else if (action === 'rename') {
     const name = typeof input.name === 'string' ? input.name.trim().slice(0, 40) : '';
-    if (!name) return { ok: false, error: 'Nama akun tidak boleh kosong.' }; account.name = name;
+    if (!name) return { ok: false, error: t('Nama akun tidak boleh kosong.') }; account.name = name;
   } else if (action === 'keep') {
-    if (typeof input.value !== 'boolean') return { ok: false, error: 'Status akun tidak valid.' };
+    if (typeof input.value !== 'boolean') return { ok: false, error: t('Status akun tidak valid.') };
     if (!input.value && account.keepActive && !Object.values(settings.slots).includes(account.id) && !smoke) {
-      const result = await dialog.showMessageBox(win, { type: 'question', message: `Jeda ${account.name}?`, detail: 'Halaman akun akan ditutup. Panggilan dan notifikasi akun ini berhenti sampai dibuka lagi.', buttons: ['Batal', 'Jeda'], defaultId: 0, cancelId: 0 });
-      if (result.response !== 1 || privacy.snapshot().locked) return { ok: false, error: 'Akun tetap aktif.' };
+      const result = await dialog.showMessageBox(win, { type: 'question', message: t('Jeda {name}?',{name:account.name}), detail: t('Halaman akun akan ditutup. Panggilan dan notifikasi akun ini berhenti sampai dibuka lagi.'), buttons: [t('Batal'), t('Jeda')], defaultId: 0, cancelId: 0 });
+      if (result.response !== 1 || privacy.snapshot().locked) return { ok: false, error: t('Akun tetap aktif.') };
     }
     account.keepActive = input.value;
   } else if (action === 'remove') {
-    if (settings.accounts.length <= 2) return { ok: false, error: 'Sisakan minimal dua akun untuk kedua panel.' };
-    if (Object.values(settings.slots).includes(account.id)) return { ok: false, error: 'Ganti akun di panel dulu sebelum menghapusnya.' };
-    const result = await dialog.showMessageBox(win, { type: 'warning', message: `Hapus ${account.name} dari DuoChat?`, detail: 'Sesi login dan data situs akun ini di komputer akan dihapus. Akun layanan dan percakapan di layanan tidak dihapus.', buttons: ['Batal', 'Hapus dari DuoChat'], defaultId: 0, cancelId: 0 });
-    if (result.response !== 1 || privacy.snapshot().locked) return { ok: false, error: 'Penghapusan dibatalkan.' };
+    if (settings.accounts.length <= 2) return { ok: false, error: t('Sisakan minimal dua akun untuk kedua panel.') };
+    if (Object.values(settings.slots).includes(account.id)) return { ok: false, error: t('Ganti akun di panel dulu sebelum menghapusnya.') };
+    const result = await dialog.showMessageBox(win, { type: 'warning', message: t('Hapus {name} dari DuoChat?',{name:account.name}), detail: t('Sesi login dan data situs akun ini di komputer akan dihapus. Akun layanan dan percakapan di layanan tidak dihapus.'), buttons: [t('Batal'), t('Hapus dari DuoChat')], defaultId: 0, cancelId: 0 });
+    if (result.response !== 1 || privacy.snapshot().locked) return { ok: false, error: t('Penghapusan dibatalkan.') };
     closeAccount(account.id);
     const ses = session.fromPartition(partition(account));
-    try { await ses.clearStorageData(); await ses.clearCache(); await ses.closeAllConnections(); } catch { return { ok: false, error: 'Data sesi belum berhasil dihapus. Coba lagi.' }; }
+    try { await ses.clearStorageData(); await ses.clearCache(); await ses.closeAllConnections(); } catch { return { ok: false, error: t('Data sesi belum berhasil dihapus. Coba lagi.') }; }
     settings.accounts = settings.accounts.filter(item => item.id !== account.id);
-  } else return { ok: false, error: 'Aksi akun tidak dikenal.' };
+  } else return { ok: false, error: t('Aksi akun tidak dikenal.') };
   save(); await syncAccounts(); return { ok: true, id: account.id };
 }
 if (primaryInstance) app.whenReady().then(async () => {
   app.userAgentFallback = browserUserAgent(app.userAgentFallback, app.getName());
   settingsPath = path.join(app.getPath('userData'), 'settings.json');
   try { settings = cleanSettings(JSON.parse(fs.readFileSync(settingsPath, 'utf8'))); } catch { settings = cleanSettings(); }
-  biometrics = createBiometrics({ systemPreferences, packaged: app.isPackaged, getWindow: () => win });
+  biometrics = createBiometrics({ t, systemPreferences, packaged: app.isPackaged, getWindow: () => win });
   await biometrics.refresh();
   const privacyPath = path.join(app.getPath('userData'), 'privacy.json');
   let record = privacyDefaults();
   try {
     if (fs.existsSync(privacyPath)) record = JSON.parse(fs.readFileSync(privacyPath, 'utf8'));
     privacy = createPrivacy({
-      record, changed: privacyChanged,
+      record, t, changed: privacyChanged,
       persist: next => { const temporary = privacyPath + '.tmp'; fs.writeFileSync(temporary, JSON.stringify(next), { mode: 0o600 }); fs.renameSync(temporary, privacyPath); },
       canBiometric: biometrics.available, promptBiometric: biometrics.prompt
     });
   } catch {
-    dialog.showErrorBox('Pengaturan privasi tidak terbaca', 'DuoChat tidak membuka percakapan karena pengaturan privasi rusak. Pulihkan privacy.json dari cadangan di direktori data aplikasi. Jangan hapus profil chat untuk mengatasinya.');
+    dialog.showErrorBox(t('Pengaturan privasi tidak terbaca'), t('DuoChat tidak membuka percakapan karena pengaturan privasi rusak. Pulihkan privacy.json dari cadangan di direktori data aplikasi. Jangan hapus profil chat untuk mengatasinya.'));
     app.exit(1); return;
   }
   powerMonitor.on('lock-screen', () => privacy.systemLock());
@@ -393,8 +413,8 @@ if (primaryInstance) app.whenReady().then(async () => {
   idleTimer.unref();
   nativeTheme.themeSource = settings.theme === 'auto' ? 'system' : settings.theme;
   win = new BrowserWindow({ show: false, icon: windowIcon, width: settings.width, height: settings.height, minWidth: 1000, minHeight: 650, title: 'DuoChat', backgroundColor: '#edf2f1', webPreferences: { preload: path.join(__dirname, 'preload.cjs'), sandbox: true, contextIsolation: true, nodeIntegration: false } });
-  updates = createUpdates({ app, net, dialog, shell, getWindow: () => aboutWindow && !aboutWindow.isDestroyed() ? aboutWindow : win, getSettings: () => settings, save, notify: send });
-  Menu.setApplicationMenu(Menu.buildFromTemplate([{ label: 'DuoChat', submenu: [{ label: 'About DuoChat', click: showAbout }, { label: 'Tambah akun…', click: () => showOverlay('add') }, { label: 'Kelola akun…', click: () => showOverlay('manage') }, { label: 'Privasi…', click: () => showOverlay('privacy') }, { label: 'Atur blur semua panel…', click: () => showOverlay('blur') }, { label: 'Kunci DuoChat', accelerator: 'CommandOrControl+Shift+L', click: lockOrSetup }, { label: 'Cek pembaruan…', click: () => void updates.check(true) }, { type: 'separator' }, { label: 'Periksa pembaruan otomatis', type: 'checkbox', checked: settings.autoCheckUpdates, click: item => updates.preference('autoCheckUpdates', item.checked) }, { label: 'Unduh pembaruan otomatis', type: 'checkbox', checked: settings.autoDownloadUpdates, enabled: updates.snapshot().mode === 'native', click: item => updates.preference('autoDownloadUpdates', item.checked) }, { type: 'separator' }, { role: 'quit' }] }, { label: 'Edit', submenu: [{ role: 'undo' }, { role: 'redo' }, { type: 'separator' }, { role: 'cut' }, { role: 'copy' }, { role: 'paste' }, { role: 'selectAll' }] }, { label: 'Window', submenu: [{ role: 'minimize' }, { role: 'zoom' }, { type: 'separator' }, { label: 'Layar penuh (F11)', click: () => windowAction('fullscreen') }, { label: 'Tampilkan/sembunyikan header (Ctrl+Shift+H)', click: () => windowAction('header') }] }]));
+  updates = createUpdates({ t, app, net, dialog, shell, getWindow: () => aboutWindow && !aboutWindow.isDestroyed() ? aboutWindow : win, getSettings: () => settings, save, notify: send });
+  buildMenu();
   nativeTheme.on('updated', () => { if (win && !win.isDestroyed()) updateColors(); });
   updateColors();
   shortcuts(win.webContents);

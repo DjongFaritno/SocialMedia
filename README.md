@@ -2,7 +2,7 @@
 
 Dua ruang. Akunnya terserah kamu.
 
-DuoChat membuka dua akun layanan web berdampingan dalam satu aplikasi desktop. Versi **0.3.0** menambahkan multiakun WhatsApp, Telegram, Discord, X, Instagram, dan Threads. Panel memakai tampilan web resmi masing-masing layanan.
+DuoChat membuka dua akun layanan web berdampingan dalam satu aplikasi desktop. Versi **0.4.0** menambahkan Messenger, Facebook, Google Chat, WeChat, Slack, Microsoft Teams, dan LinkedIn ke pilihan WhatsApp, Telegram, Discord, X, Instagram, dan Threads. Panel memakai tampilan web resmi masing-masing layanan.
 
 ## Coba dan jalankan
 
@@ -15,6 +15,14 @@ npm ci
 npm start
 ```
 
+## Layanan tambahan
+
+Slack, Microsoft Teams dan LinkedIn kini tersedia. Login workspace/tenant mengikuti kebijakan penyedia; IdP perusahaan pada domain lain belum diizinkan. [Cakupan blur dan QC](docs/blur-services.md).
+
+Messenger membuka `facebook.com/messages/`; Facebook membuka feed. Keduanya punya profil terpisah, sehingga login pada satu akun tidak otomatis masuk di akun lainnya. Google Chat dan WeChat bersifat eksperimental: login Google bisa ditolak pada browser dalam aplikasi; akses Web WeChat bergantung akun/kebijakan penyedia. Login di browser luar tidak memindahkan sesi ke DuoChat.
+
+Ketiga belas layanan memiliki adapter blur elemen. Pengaturan kategori tetap bersama dan ON/OFF per panel. Google Chat belum mendukung kategori preview daftar chat; kategori lainnya mengikuti struktur yang dikenali. Adapter tambahan diuji pada fixture Chromium, sedangkan variasi akun nyata tetap perlu diperiksa. Gunakan **Tutup sementara** atau **Kunci** untuk menutup seluruh tampilan. Lihat [dukungan layanan](docs/services.md).
+
 ## Akun dan dua panel
 
 - Klik **+** di sidebar atau menu **DuoChat → Tambah akun**. Pilih layanan dan nama seperti Pribadi atau Toko kedua.
@@ -26,6 +34,10 @@ npm start
 - Hapus akun hanya setelah dikeluarkan dari kedua panel. Konfirmasi menghapus sesi dan data situs lokal, bukan akun atau percakapan di layanan. Minimal dua akun disimpan; maksimal 30.
 
 Upgrade dari versi dua layanan mempertahankan partition WhatsApp/Telegram lama beserta pilihan izin, ukuran jendela, tema, dan rasio panel. Akun baru memiliki profil independen. Login tetap dapat kedaluwarsa karena kebijakan layanan.
+
+## Bahasa aplikasi
+
+Pilih **Bahasa Indonesia** atau **English** pada header, atau menu DuoChat → Language / Bahasa. Pilihan tersimpan dan berlaku langsung untuk menu, pengaturan, About, privasi, blur dan pembaruan. Sesi akun tidak dimuat ulang. Bahasa halaman layanan dan dialog keamanan OS mengikuti pengaturan masing-masing.
 
 ## Tampilan dan izin
 
@@ -86,4 +98,4 @@ Kutipan reply Telegram Web A dan K di dalam pesan masuk/keluar kini mengikuti ka
 Nama kontak, grup, dan Saved Messages di daftar chat Telegram Web A kini mengikuti checklist **Nama kontak, grup & pengguna**. Ringkasan nama chat dalam arsip juga mengikuti kategori Nama, terpisah dari preview pesan dan foto profil. Label arsip, waktu, dan kontrol tetap jelas saat hanya nama dipilih. Hover membuka bagian yang ditunjuk, lalu blur kembali saat pointer pergi. Baris chat yang muncul tanpa reload ikut terlindungi.
 
 
-QC media: foto WhatsApp berbasis metadata/data-id, canvas, background, kutipan, stiker, thumbnail, galeri dan viewer mendapat cakupan tambahan. Avatar (termasuk placeholder) tetap terpisah dari Media; emoji bukan foto profil. Hover media melalui kontrol overlay diuji pada keenam layanan. Threads membedakan tautan profil dari foto yang menaut ke postingan. Pengujian terkemas mencakup tiap kategori sendiri, kedua sisi panel, dua akun WhatsApp, empat kombinasi ON/OFF, pengaturan bersama, swap akun, reload dan media baru. Cakupan otomatis memakai fixture lokal; perubahan DOM layanan atau variasi akun nyata tetap dapat memerlukan penyesuaian.
+QC media: foto WhatsApp berbasis metadata/data-id, canvas, background, kutipan, stiker, thumbnail, galeri dan viewer mendapat cakupan tambahan. Avatar (termasuk placeholder) tetap terpisah dari Media; emoji bukan foto profil. Hover media melalui kontrol overlay diuji pada ketiga belas layanan. Threads membedakan tautan profil dari foto yang menaut ke postingan. Pengujian terkemas mencakup tiap kategori sendiri, kedua sisi panel, dua akun WhatsApp, empat kombinasi ON/OFF, pengaturan bersama, swap akun, reload dan media baru. Cakupan otomatis memakai fixture lokal; perubahan DOM layanan atau variasi akun nyata tetap dapat memerlukan penyesuaian.

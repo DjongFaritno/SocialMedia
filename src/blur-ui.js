@@ -1,21 +1,23 @@
 const blurForm = document.querySelector('#blur-form');
-let blurSignature, blurMode;
-const blurLabels = { messages: 'pesan/postingan', previews: 'preview', names: 'nama', avatars: 'foto profil', media: 'media', composer: 'kolom ketik' };
+let blurSignature, blurMode, blurLanguage;
+const blurLabels = { messages: t('pesan/postingan'), previews: 'preview', names: t('nama'), avatars: t('foto profil'), media: 'media', composer: t('kolom ketik') };
 function updateBlurStrength() { document.querySelector('#blur-strength-value').textContent = document.querySelector('#blur-strength').value + ' px'; }
 function renderBlur(state) {
  const entering = blurMode !== state.overlayMode; blurMode = state.overlayMode;
  if (state.overlayMode !== 'blur') return;
  const signature = JSON.stringify(state.blur);
- if (!entering && signature === blurSignature) return;
- blurSignature = signature;
+ if (!entering && signature === blurSignature && blurLanguage === state.language) return;
+ const changed = signature !== blurSignature; blurSignature = signature; blurLanguage = state.language;
+ if (entering || changed) {
  document.querySelector('#blur-hover').checked = state.blur.revealOnHover;
  document.querySelector('#blur-strength').value = state.blur.strength;
  document.querySelectorAll('[data-blur-element]').forEach(input => { input.checked = state.blur.elements[input.dataset.blurElement]; });
  document.querySelector('#blur-error').textContent = ''; updateBlurStrength();
+ }
  document.querySelector('#blur-support-list').replaceChildren(...Object.values(state.blurSupport || {}).map(support => {
   const row = document.createElement('p'), title = document.createElement('strong'), detail = document.createElement('span');
-  title.textContent = support.name + (support.experimental ? ' · awal' : '');
-  detail.textContent = support.elements.map(key => blurLabels[key]).join(' · ');
+  title.textContent = support.name + (support.experimental ? t(' · awal') : '');
+  detail.textContent = support.elements.length ? support.elements.map(key => t(blurLabels[key])).join(' · ') : t('Blur elemen belum tersedia. Gunakan Tutup sementara atau Kunci DuoChat.');
   row.append(title, detail); return row;
  }));
 }
@@ -31,8 +33,8 @@ blurForm.addEventListener('submit', async event => {
   elements: Object.fromEntries([...document.querySelectorAll('[data-blur-element]')].map(element => [element.dataset.blurElement, element.checked])) };
  try {
   const result = await window.duo.blurAction('save', input);
-  if (!result?.ok) document.querySelector('#blur-error').textContent = result?.error || 'Pengaturan blur belum tersimpan.';
-  else { toast('Pilihan blur tersimpan untuk semua panel.'); await window.duo.overlay(null); }
- } catch { document.querySelector('#blur-error').textContent = 'Pengaturan blur belum tersimpan. Coba lagi.'; }
+  if (!result?.ok) document.querySelector('#blur-error').textContent = result?.error || t('Pengaturan blur belum tersimpan.');
+  else { toast(t('Pilihan blur tersimpan untuk semua panel.')); await window.duo.overlay(null); }
+ } catch { document.querySelector('#blur-error').textContent = t('Pengaturan blur belum tersimpan. Coba lagi.'); }
  finally { button.disabled = false; }
 });
