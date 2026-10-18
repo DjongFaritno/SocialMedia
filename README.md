@@ -2,7 +2,7 @@
 
 Dua ruang. Akunnya terserah kamu.
 
-DuoChat membuka dua akun layanan web berdampingan dalam satu aplikasi desktop. Versi publik tersedia lewat tautan rilis di bawah. Kandidat **0.4.0-beta.2** menambahkan Messenger, Facebook, Google Chat, WeChat, Slack, Microsoft Teams, dan LinkedIn ke pilihan WhatsApp, Telegram, Discord, X, Instagram, dan Threads. Panel memakai tampilan web resmi masing-masing layanan.
+DuoChat membuka dua akun layanan web berdampingan dalam satu aplikasi desktop. Versi **0.4.0** menambahkan Messenger, Facebook, Google Chat, WeChat, Slack, Microsoft Teams, dan LinkedIn ke pilihan WhatsApp, Telegram, Discord, X, Instagram, dan Threads. Panel memakai tampilan web resmi masing-masing layanan.
 
 ## Coba dan jalankan
 
@@ -15,7 +15,7 @@ npm ci
 npm start
 ```
 
-## Layanan tambahan (beta)
+## Layanan tambahan
 
 Slack, Microsoft Teams dan LinkedIn kini tersedia. Login workspace/tenant mengikuti kebijakan penyedia; IdP perusahaan pada domain lain belum diizinkan. [Cakupan blur dan QC](docs/blur-services.md).
 
@@ -34,6 +34,10 @@ Ketiga belas layanan memiliki adapter blur elemen. Pengaturan kategori tetap ber
 - Hapus akun hanya setelah dikeluarkan dari kedua panel. Konfirmasi menghapus sesi dan data situs lokal, bukan akun atau percakapan di layanan. Minimal dua akun disimpan; maksimal 30.
 
 Upgrade dari versi dua layanan mempertahankan partition WhatsApp/Telegram lama beserta pilihan izin, ukuran jendela, tema, dan rasio panel. Akun baru memiliki profil independen. Login tetap dapat kedaluwarsa karena kebijakan layanan.
+
+## Bahasa aplikasi
+
+Pilih **Bahasa Indonesia** atau **English** pada header, atau menu DuoChat → Language / Bahasa. Pilihan tersimpan dan berlaku langsung untuk menu, pengaturan, About, privasi, blur dan pembaruan. Sesi akun tidak dimuat ulang. Bahasa halaman layanan dan dialog keamanan OS mengikuti pengaturan masing-masing.
 
 ## Tampilan dan izin
 

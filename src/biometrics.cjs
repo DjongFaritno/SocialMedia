@@ -10,11 +10,11 @@ const REASONS = {
  Unavailable: 'Autentikasi perangkat belum tersedia. Password DuoChat tetap bisa dipakai.',
  UnknownError: 'Windows Hello belum bisa diperiksa. Password DuoChat tetap bisa dipakai.'
 };
-function createBiometrics({ platform = process.platform, release = os.release(), systemPreferences = {}, packaged = false,
+function createBiometrics({ t = text => text, platform = process.platform, release = os.release(), systemPreferences = {}, packaged = false,
  resourcesPath = process.resourcesPath, loadNative = require, getWindow = () => null } = {}) {
  const label = platform === 'win32' ? 'Windows Hello' : platform === 'darwin' ? 'Touch ID' : 'biometrik';
  let status = 'Unavailable', native, pendingCheck, prompting = false;
- const snapshot = () => ({ biometricLabel: label, biometricStatus: status, biometricReason: platform === 'darwin' && status === 'Unavailable' ? 'Touch ID tidak tersedia atau belum diatur. Cek System Settings → Touch ID & Password; password DuoChat tetap tersedia.' : platform !== 'darwin' && platform !== 'win32' ? 'Biometrik Linux belum didukung. Gunakan password DuoChat.' : REASONS[status] || REASONS.Unavailable });
+ const snapshot = () => ({ biometricLabel: t(label), biometricStatus: status, biometricReason: t(platform === 'darwin' && status === 'Unavailable' ? 'Touch ID tidak tersedia atau belum diatur. Cek System Settings → Touch ID & Password; password DuoChat tetap tersedia.' : platform !== 'darwin' && platform !== 'win32' ? 'Biometrik Linux belum didukung. Gunakan password DuoChat.' : REASONS[status] || REASONS.Unavailable) });
  async function refresh() {
   if (pendingCheck) { await pendingCheck; return snapshot(); }
   pendingCheck = (async () => {
@@ -38,7 +38,7 @@ function createBiometrics({ platform = process.platform, release = os.release(),
    if (status !== 'Available') throw Error('Verification unavailable');
    const win = getWindow(); if (!win || win.isDestroyed() || !win.isVisible()) throw Error('Window unavailable');
    win.focus();
-   if (platform === 'darwin') await systemPreferences.promptTouchID('membuka ruang ngobrolmu di DuoChat');
+   if (platform === 'darwin') await systemPreferences.promptTouchID(t('membuka ruang ngobrolmu di DuoChat'));
    else {
     const result = await native.verify(win.getNativeWindowHandle());
     if (result !== 'Verified') { if (Object.hasOwn(REASONS, result) && result !== 'Available') status = result; throw Error('Verification failed'); }

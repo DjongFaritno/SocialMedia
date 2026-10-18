@@ -1,14 +1,13 @@
-DuoChat 0.4.0-beta.2 — lebih banyak tempat ngobrol, privasinya tetap bareng.
+DuoChat 0.4.0 — banyak akun, tetap santai.
 
-- Tambah Slack, Microsoft Teams dan LinkedIn. Total 13 pilihan layanan, termasuk Messenger, Facebook, Google Chat dan WeChat dari beta sebelumnya.
-- Adapter blur untuk tujuh layanan tambahan: pesan/postingan, nama, avatar, media dan kolom ketik. Preview daftar chat mengikuti cakupan selector; Google Chat belum mengklaim kategori Preview.
-- Blur ON/OFF tetap per panel. Pilihan elemen, kekuatan dan hover berlaku bersama untuk semua panel/akun.
-- Pengujian Chromium diperluas ke 13 layanan, kedua sisi, kategori terpisah, hover/reblur, kontrol media overlay, media baru, swap dan reload.
-- Sesi akun, Tutup sementara, password dan Windows Hello/Touch ID dipertahankan.
-- Auth Slack/Microsoft dibuka dalam profil akun tanpa menerima izin chat. IdP perusahaan eksternal belum didukung.
+- Pilihan Bahasa Indonesia dan English untuk UI aplikasi, menu, pengaturan, About, privasi, blur dan dialog pembaruan. Pilihan tersimpan, berubah langsung, dan tidak memuat ulang akun.
+- 13 pilihan layanan: WhatsApp, Telegram, Discord, X, Instagram, Threads, Messenger, Facebook, Google Chat, WeChat, Slack, Microsoft Teams, LinkedIn.
+- Multiakun dengan sesi terpisah, dua panel bebas dipilih, sidebar hover dan mode ringkas/fullscreen.
+- Blur per panel dengan pengaturan elemen bersama. Tujuh adapter tambahan mencakup pesan/postingan, nama, avatar, media dan kolom ketik; preview mengikuti cakupan layanan. Preview daftar chat Google Chat belum tercakup.
+- Tutup sementara, password lokal, Windows Hello/Touch ID, tema White/Dark/Auto dan cek pembaruan tetap tersedia.
 
-Ini kandidat beta. Login akun nyata, panggilan, notifikasi OS dan variasi DOM belum dikonfirmasi untuk semua layanan. Adapter baru memakai struktur yang dirujuk dan fixture lokal; bukan jaminan semua variasi UI situs. Periksa cakupan sebelum berbagi layar, atau gunakan Tutup sementara/Kunci.
+Bahasa aplikasi tidak mengganti bahasa situs layanan atau dialog keamanan OS. Login Google/WeChat dan SSO organisasi mengikuti kebijakan penyedia. Adapter selain WhatsApp/Telegram memakai aturan awal: QC fixture bukan jaminan semua variasi akun nyata, panggilan atau notifikasi OS.
 
-Windows x64, macOS universal dan Linux x64 AppImage/deb. Windows belum ditandatangani penerbit; macOS masih ad-hoc, belum dinotarize. Kandidat belum menggantikan rilis publik pada cek update.
+Windows x64, macOS universal, Linux x64 AppImage/deb dan installer Fedora. Windows belum ditandatangani penerbit; macOS memakai ad-hoc signature, belum dinotarize. Windows/AppImage mendukung unduh update dengan konfirmasi pemasangan; macOS/deb/Fedora memakai pemasangan manual.
 
 by Codex · prompt by TjongFaritno

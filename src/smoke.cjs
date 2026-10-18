@@ -97,6 +97,7 @@ module.exports = async ({ app, win, views, settings, state, overlay, showOverlay
  await ui("window.duo.setTheme('auto')");
  fs.mkdirSync(path.join(process.cwd(), 'artifacts'), { recursive: true });
  if (!process.argv.includes('--skip-capture')) fs.writeFileSync(path.join(process.cwd(), 'artifacts', 'big-update.png'), (await win.capturePage()).toPNG());
+ await require('./language-smoke.cjs')({app,win,views,settings,overlay,showOverlay,handleAccountAction,about});
  await ui("window.duo.windowAction('about')"); const aboutWindow = about(); if (aboutWindow.webContents.isLoading()) await new Promise(resolve => aboutWindow.webContents.once('did-finish-load', resolve)); await sleep(100);
  assert.equal(await aboutWindow.webContents.executeJavaScript("document.querySelector('#version').textContent"), app.getVersion());
  assert.match(await aboutWindow.webContents.executeJavaScript('document.body.textContent'), /prompt by TjongFaritno/);
@@ -142,6 +143,8 @@ module.exports = async ({ app, win, views, settings, state, overlay, showOverlay
  assert.equal(await privateUI("document.querySelector('#lock-screen').hidden"), false);
  for (const view of Object.values(views)) assert.equal(view.getVisible(), false);
  assert.equal(JSON.stringify(await ui('window.duo.getState()')).includes('credential'), false);
+ assert.equal((await ui('window.duo.setLanguage("en")')).ok,false,'Locked UI cannot mutate language preferences');
+ assert.equal(settings.language,'id');
  const lockedBlur = JSON.stringify([settings.blur,settings.blurPanels]);
  assert.equal((await privateUI("window.duo.blurAction('toggle',{side:'left'})")).ok, false);
  assert.equal(JSON.stringify([settings.blur,settings.blurPanels]), lockedBlur);

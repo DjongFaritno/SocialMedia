@@ -1,5 +1,5 @@
 window.duo.getAbout().then(info => {
-  if (info) document.querySelector('#version').textContent = info.version;
+  if (info) { document.querySelector('#version').textContent = info.version; DuoI18n.setLanguage(info.language); DuoI18n.apply(document); }
 });
 document.querySelector('#author-website').addEventListener('click', event => {
   event.preventDefault();
@@ -9,3 +9,5 @@ document.querySelector('#author-website').addEventListener('click', event => {
 document.querySelector('#close-about').addEventListener('click', () => window.duo.closeAbout());
 
 document.querySelector('#check-updates').addEventListener('click', () => window.duo.updateAction('check'));
+
+window.duo.onState(state => { DuoI18n.setLanguage(state.language); DuoI18n.apply(document); });
