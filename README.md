@@ -2,7 +2,7 @@
 
 Dua ruang. Akunnya terserah kamu.
 
-DuoChat membuka dua akun layanan web berdampingan dalam satu aplikasi desktop. Versi **0.4.0** menambahkan Messenger, Facebook, Google Chat, WeChat, Slack, Microsoft Teams, dan LinkedIn ke pilihan WhatsApp, Telegram, Discord, X, Instagram, dan Threads. Panel memakai tampilan web resmi masing-masing layanan.
+DuoChat membuka dua akun layanan web berdampingan dalam satu aplikasi desktop. Versi **2.0.0** menambahkan Messenger, Facebook, Google Chat, WeChat, Slack, Microsoft Teams, dan LinkedIn ke pilihan WhatsApp, Telegram, Discord, X, Instagram, dan Threads. Panel memakai tampilan web resmi masing-masing layanan.
 
 ## Coba dan jalankan
 

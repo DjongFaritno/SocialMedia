@@ -1,4 +1,4 @@
-# Layanan DuoChat 0.4.0
+# Layanan DuoChat 2.0.0
 
 Tiga belas pilihan: WhatsApp, Telegram, Discord, X, Instagram, Threads, Messenger, Facebook, Google Chat, WeChat, Slack, Microsoft Teams, LinkedIn.
 
