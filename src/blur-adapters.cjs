@@ -71,8 +71,8 @@ const adapters = {
       ".wR3Nid"
     ],
     "avatars": [
-      "[data-topic-id] img:not([jsname=\"bgckF\"] *):not(.Zc1Emd *):not(.rogmqd *)",
-      ".nF6pT img:not([jsname=\"bgckF\"] *):not(.Zc1Emd *):not(.rogmqd *)"
+      "[data-topic-id] img:not([jsname=\"bgckF\"] *):not(.Zc1Emd *):not(.rogmqd *):not(.wdoEHc *)",
+      ".nF6pT img:not([jsname=\"bgckF\"] *):not(.Zc1Emd *):not(.rogmqd *):not(.rogmqd *):not(.wdoEHc *)"
     ],
     "media": [
       "[jsname=\"bgckF\"] img",
@@ -80,7 +80,10 @@ const adapters = {
       "[jsname=\"bgckF\"] canvas",
       ".Zc1Emd img",
       ".nF6pT .rogmqd img",
-      ".nF6pT video"
+      ".nF6pT video",
+      ".nF6pT .wdoEHc img",
+      ".nF6pT .rogmqd canvas",
+      ".nF6pT .wdoEHc canvas"
     ],
     "composer": [
       "[role=\"textbox\"][contenteditable=\"true\"]"
@@ -170,7 +173,9 @@ const adapters = {
       "[id^=\"message-body-\"] img:not([itemtype*=\"Emoji\"]):not(.fui-Avatar *)",
       "[data-tid=\"chat-pane-message\"] video",
       "[data-tid=\"channel-pane-message\"] video",
-      "[data-tid=\"chat-pane-message\"] canvas"
+      "[data-tid=\"chat-pane-message\"] canvas",
+      "[data-tid=\"chat-pane-message\"] img:not([itemtype*=\"Emoji\"]):not(.fui-Avatar *):not([data-tid=\"message-avatar\"] *)",
+      "[data-tid=\"channel-pane-message\"] img:not([itemtype*=\"Emoji\"]):not(.fui-Avatar *):not([data-tid=\"post-message-header-avatar\"] *)"
     ],
     "composer": [
       "[contenteditable=\"true\"][role=\"textbox\"]",
@@ -198,11 +203,11 @@ const adapters = {
       ".msg-facepile-grid img",
       ".msg-s-message-group__avatar img",
       ".msg-s-message-group__profilelink img",
-      ".update-components-actor__avatar img",
-      ".feed-shared-actor__avatar img"
+      ".update-components-actor__avatar",
+      ".feed-shared-actor__avatar"
     ],
     "media": [
-      ".msg-s-event-listitem__message-bubble img:not(.msg-s-message-group__avatar *)",
+      ".msg-s-event-listitem__message-bubble img:not(.msg-s-message-group__avatar *):not(.msg-s-message-group__profilelink *):not(.msg-facepile-grid *)",
       ".msg-s-event-listitem video",
       ".feed-shared-image img",
       ".update-components-image img",

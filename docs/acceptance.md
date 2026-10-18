@@ -34,7 +34,7 @@ Tes unit mencakup batas origin, geometri panel, dan pemulihan pengaturan rusak. 
 
 Uji F11/Esc saat fokus berada di setiap panel. Header/menu harus menghilang, panggilan/chat tetap aktif, dan ukuran panel menyesuaikan. Uji Ctrl+Shift+H serta tombol Tampilkan header di bagian bawah. Tutup/buka aplikasi untuk memeriksa preferensi header/tema. Uji Dark/White/Auto; jika layanan memakai tema manual, pilih System/Auto dari pengaturan layanan untuk mengikuti browser.
 
-## Multiakun dan layanan baru — 0.2.0-beta.2
+## Multiakun dan layanan baru — 0.4.0-beta.2
 
 | Skenario | Hasil yang harus terlihat |
 | --- | --- |
@@ -45,6 +45,8 @@ Uji F11/Esc saat fokus berada di setiap panel. Header/menu harus menghilang, pan
 | Tetap aktif | Notifikasi/panggilan tetap berjalan sesuai dukungan layanan saat tidak terlihat |
 | Hapus satu akun | Hanya profil terpilih dihapus, akun lain tetap login |
 | Hover sidebar | Ringkas menyembunyikan sidebar; hover menampilkan overlay tanpa menggeser panel; Esc menutupnya |
-| Layanan baru | Uji login/restart/upload/download/notifikasi Discord, X, Instagram, Threads pada setiap OS |
+| Layanan baru | Uji login/restart/upload/download/notifikasi Discord, X, Instagram, Threads, Messenger, Facebook, Google Chat, WeChat, Slack, Teams dan LinkedIn pada setiap OS |
 
 Status akun nyata untuk skenario baru: belum diuji. Tes fixture tidak membuktikan panggilan atau notifikasi layanan baru.
+
+Blur: ulangi setiap kategori sendiri di panel kiri dan kanan, hover-off/on, pesan reply, nama, foto profil, foto/video, swap akun dan reload. Google Chat belum mencakup preview daftar chat; cek kategori pada Atur blur. [Matriks QC](blur-qc.md).

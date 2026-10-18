@@ -106,6 +106,7 @@ module.exports = async ({ app, win, views, settings, handleAccountAction, blurCo
    await require('./whatsapp-media-blur-smoke.cjs')({ wc, save, move, hover, isBlurred });
   }
   await require('./media-blur-smoke.cjs')({wc,save,move,hover,isBlurred,service});
+  await require('./blur-new-service-smoke.cjs')({wc,save,move,hover,isBlurred,service});
   if (service === 'instagram') {
    await wc.loadURL('https://www.facebook.com/login'); await settled(wc);
    assert.equal(await isBlurred(wc, 'message'), false, 'Facebook login does not inherit Instagram CSS');
