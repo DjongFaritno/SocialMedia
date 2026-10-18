@@ -1,4 +1,8 @@
-DuoChat 0.4.0 — banyak akun, tetap santai.
+DuoChat 2.0.0 — banyak akun, tetap santai.
+
+Rilis publik 2.0 menyatukan fitur multiakun, privasi dan bahasa yang sudah tersedia di 0.4.0. Nomor versi diselaraskan ke 2.0.0; sesi akun dan pengaturan tetap memakai direktori data DuoChat yang sama.
+
+Gratis, tanpa iklan, tanpa langganan.
 
 - Pilihan Bahasa Indonesia dan English untuk UI aplikasi, menu, pengaturan, About, privasi, blur dan dialog pembaruan. Pilihan tersimpan, berubah langsung, dan tidak memuat ulang akun.
 - 13 pilihan layanan: WhatsApp, Telegram, Discord, X, Instagram, Threads, Messenger, Facebook, Google Chat, WeChat, Slack, Microsoft Teams, LinkedIn.

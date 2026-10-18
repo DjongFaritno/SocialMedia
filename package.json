@@ -1,6 +1,6 @@
 {
   "name": "duochat-desktop",
-  "version": "0.4.0",
+  "version": "2.0.0",
   "description": "Dua panel untuk multiakun chat dan sosial media, dengan privasi dan blur bersama",
   "main": "src/main.cjs",
   "author": "DuoChat",
