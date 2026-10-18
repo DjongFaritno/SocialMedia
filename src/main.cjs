@@ -178,7 +178,9 @@ function protect(contents, account) {
   contents.once('destroyed', () => blurControllers.delete(contents.id));
   protectNavigation(contents, {
     service, external: url => external(url, account.id), canOpen: () => !accountConcealed(account.id),
-    onBlocked: () => {
+    onBlocked: (_url, kind) => {
+      // Opening an ordinary external link leaves the loaded service usable.
+      if (kind !== 'redirect' && statuses[account.id]?.state !== 'loading') return;
       if (views[account.id]?.webContents === contents) {
         statuses[account.id] = { state: 'error', message: 'Pengalihan layanan diblokir. Coba Muat ulang atau buka layanan di browser.' }; send();
       }
