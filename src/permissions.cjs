@@ -1,10 +1,14 @@
 const { trusted } = require('./core.cjs');
 
 function servicePermitted(id, enabled, permission, requestingOrigin, contentsURL) {
-  if (enabled !== true || !['media', 'notifications'].includes(permission) || !trusted(id, requestingOrigin)) return false;
+  if (enabled !== true || !['media', 'notifications'].includes(permission)) return false;
+  let legacyChatOrigin = false;
+  try { const url = new URL(requestingOrigin); legacyChatOrigin = id === 'googlechat' && url.origin === 'https://mail.google.com' && !url.username && !url.password; } catch {}
+  if (!trusted(id, requestingOrigin) && !legacyChatOrigin) return false;
   // Notifications from a service worker have no document WebContents. The
   // isolated service session and exact requesting origin identify the caller.
-  if (permission === 'notifications' && contentsURL === null) return true;
+  // Legacy Chat shares mail.google.com; require a known Chat document there.
+  if (permission === 'notifications' && contentsURL === null) return !legacyChatOrigin;
   return trusted(id, contentsURL);
 }
 

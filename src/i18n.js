@@ -6,6 +6,7 @@
 })(typeof globalThis === 'object' ? globalThis : this, function () {
  'use strict';
  const english = Object.freeze({
+  "Pengalihan layanan diblokir. Coba Muat ulang atau buka layanan di browser.": "The service redirect was blocked. Try Reload or open the service in your browser.",
   "Dua ruang. Akunnya terserah kamu.": "Two spaces. Your choice of accounts.",
   "Lebar panel kiri": "Left panel width",
   "Ringkas": "Compact",

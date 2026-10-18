@@ -1,17 +1,10 @@
-DuoChat 2.0.0 — banyak akun, tetap santai.
+DuoChat 2.0.1 — Google Chat, lanjut ngobrol.
 
-Rilis publik 2.0 menyatukan fitur multiakun, privasi dan bahasa yang sudah tersedia di 0.4.0. Nomor versi diselaraskan ke 2.0.0; sesi akun dan pengaturan tetap memakai direktori data DuoChat yang sama.
+- Mendukung alamat Google Chat baru chat.google.com dan jalur Chat lama di mail.google.com/chat, termasuk alur login yang kembali ke alamat lama. Inbox Gmail dan domain Google lain tetap tidak diizinkan sebagai halaman Chat.
+- Aturan blur Google Chat mengikuti kedua alamat. Kamera, mikrofon, dan notifikasi tetap memerlukan opsi Izin akun; permintaan dari halaman login atau inbox Gmail tidak memperoleh izin. Worker pada origin mail.google.com tanpa dokumen Chat yang dapat dikenali ditolak.
+- Pengalihan layanan yang diblokir kini menampilkan status error. Halaman error lokal tidak lagi mengganti status gagal menjadi Memuat; muat ulang dapat memulihkan panel.
+- Pengujian terkemas meniru pengalihan lama/baru, login dengan sesi akun yang sama, isolasi cookie, blur, sandbox, visibilitas panel, pemblokiran inbox Gmail, fallback gagal memuat dan pemulihan. Tes memakai fixture lokal; login Google dan kebijakan Workspace akun nyata tetap dapat membatasi browser dalam aplikasi.
 
-Gratis, tanpa iklan, tanpa langganan.
-
-- Pilihan Bahasa Indonesia dan English untuk UI aplikasi, menu, pengaturan, About, privasi, blur dan dialog pembaruan. Pilihan tersimpan, berubah langsung, dan tidak memuat ulang akun.
-- 13 pilihan layanan: WhatsApp, Telegram, Discord, X, Instagram, Threads, Messenger, Facebook, Google Chat, WeChat, Slack, Microsoft Teams, LinkedIn.
-- Multiakun dengan sesi terpisah, dua panel bebas dipilih, sidebar hover dan mode ringkas/fullscreen.
-- Blur per panel dengan pengaturan elemen bersama. Tujuh adapter tambahan mencakup pesan/postingan, nama, avatar, media dan kolom ketik; preview mengikuti cakupan layanan. Preview daftar chat Google Chat belum tercakup.
-- Tutup sementara, password lokal, Windows Hello/Touch ID, tema White/Dark/Auto dan cek pembaruan tetap tersedia.
-
-Bahasa aplikasi tidak mengganti bahasa situs layanan atau dialog keamanan OS. Login Google/WeChat dan SSO organisasi mengikuti kebijakan penyedia. Adapter selain WhatsApp/Telegram memakai aturan awal: QC fixture bukan jaminan semua variasi akun nyata, panggilan atau notifikasi OS.
-
-Windows x64, macOS universal, Linux x64 AppImage/deb dan installer Fedora. Windows belum ditandatangani penerbit; macOS memakai ad-hoc signature, belum dinotarize. Windows/AppImage mendukung unduh update dengan konfirmasi pemasangan; macOS/deb/Fedora memakai pemasangan manual.
+Gratis, tanpa iklan, tanpa langganan. Windows x64, macOS universal, Linux AppImage/deb dan skrip Fedora. Unduh lewat website atau Cek pembaruan di aplikasi. Mac/deb/Fedora tetap memakai pemasangan manual; Windows dan AppImage mendukung unduh update dengan konfirmasi pemasangan.
 
 by Codex · prompt by TjongFaritno

@@ -50,3 +50,28 @@ test('workplace auth exceptions do not grant content permissions or cross-provid
  for(const url of ['https://login.microsoftonline.com.evil.test/','https://evil.test@login.live.com/','https://enterprise-idp.test/']) assert.equal(navigationAllowed('teams',url),false,url);
  assert.equal(popupAllowed('slack','about:blank','https://evil.test/'),false);
 });
+
+test('Google Chat supports both official Chat hosts without allowing Gmail inbox navigation', () => {
+ const {trusted}=require('../src/core.cjs'),{allowed}=require('../src/blur.cjs');
+ for(const url of ['https://chat.google.com/','https://mail.google.com/chat','https://mail.google.com/chat/u/0/#chat/home','https://mail.google.com/mail/u/2/chat/']) {
+  assert.equal(navigationAllowed('googlechat',url),true,url);
+  assert.equal(trusted('googlechat',url),true,url);
+  assert.equal(allowed('googlechat',url),true,url);
+  assert.equal(popupAllowed('googlechat',url,'https://chat.google.com/'),true);
+  for(const other of ['whatsapp','telegram','teams','slack'])assert.equal(navigationAllowed(other,url),false);
+ }
+ for(const url of ['https://mail.google.com/','https://mail.google.com/mail/u/0/','https://mail.google.com/mail/u/0/#chat/home','https://mail.google.com/chatty','https://mail.google.com/chat/../mail/','https://mail.google.com/chat/%2e%2e%2fmail/','https://mail.google.com.evil.test/chat/','https://user@mail.google.com/chat/','https://mail.google.com:8443/chat/','http://mail.google.com/chat/']) {
+  assert.equal(navigationAllowed('googlechat',url),false,url);
+  assert.equal(allowed('googlechat',url),false,url);
+ }
+});
+test('blocked redirects notify the panel once without opening an external browser', () => {
+ const {EventEmitter}=require('node:events'),{protectNavigation}=require('../src/navigation.cjs');
+ const contents=new EventEmitter();contents.setWindowOpenHandler=()=>{};
+ const blocked=[],external=[];protectNavigation(contents,{service:'googlechat',external:url=>external.push(url),onBlocked:(url,kind)=>blocked.push(kind),popupPreferences:()=>({}),onChild:()=>{}});
+ let prevented=false;
+ contents.emit('will-redirect',{preventDefault(){prevented=true;}},'https://mail.google.com/chat/u/0/',false,true);
+ assert.equal(prevented,false);assert.deepEqual(blocked,[]);
+ contents.emit('will-redirect',{preventDefault(){prevented=true;}},'https://mail.google.com/mail/u/0/',false,true);
+ assert.equal(prevented,true);assert.deepEqual(blocked,['redirect']);assert.deepEqual(external,[]);
+});

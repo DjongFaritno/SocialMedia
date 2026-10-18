@@ -1,5 +1,5 @@
 // Local CSS and isolated media hit testing; no message reads or remote bridge.
-const { SERVICES } = require('./accounts.cjs');
+const { SERVICES, servicePageAllowed } = require('./accounts.cjs');
 const ELEMENTS = Object.freeze(['messages', 'previews', 'names', 'avatars', 'media', 'composer']);
 // Metadata-based media coverage supplements legacy WhatsApp wrappers.
 // Avatar boundaries are reused to prevent Media from overriding the Avatar checkbox.
@@ -114,9 +114,7 @@ function accountBlur(settings, id) {
  // Hidden accounts have no panel. Their CSS is selected when they enter a slot.
  return { ...settings.blur, enabled: Boolean(side && settings.blurPanels[side]) };
 }
-function allowed(service, value) {
- try { const url = new URL(value); return url.protocol === 'https:' && !url.username && !url.password && SERVICES[service]?.origins.includes(url.origin) === true; } catch { return false; }
-}
+function allowed(service, value) { return servicePageAllowed(service, value); }
 function blurCSS(service, raw) {
  const config = cleanBlur(raw), adapter = ADAPTERS[service];
  if (!config.enabled || !adapter) return '';

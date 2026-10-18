@@ -14,6 +14,18 @@ const SERVICES = Object.freeze({
   teams: { name: 'Microsoft Teams', url: 'https://teams.cloud.microsoft/v2/', origins: ['https://teams.cloud.microsoft', 'https://teams.microsoft.com', 'https://teams.live.com'] },
   linkedin: { name: 'LinkedIn', url: 'https://www.linkedin.com/feed/', origins: ['https://www.linkedin.com', 'https://linkedin.com'] }
 });
+// During Google's domain migration, some accounts still use the legacy Chat URL.
+// Never trust the rest of Gmail or Google subdomains as Chat content.
+function servicePageAllowed(service, value) {
+ try {
+  const url = new URL(value);
+  if(url.protocol !== 'https:' || url.username || url.password) return false;
+  if(SERVICES[service]?.origins.includes(url.origin)) return true;
+  return service === 'googlechat' && url.origin === 'https://mail.google.com'
+   && !/%2f|%5c/i.test(url.pathname)
+   && (/^\/chat(?:\/|$)/.test(url.pathname) || /^\/mail\/u\/\d+\/chat(?:\/|$)/.test(url.pathname));
+ } catch { return false; }
+}
 const MAX_ACCOUNTS = 30;
 function validId(id) { return typeof id === 'string' && /^(whatsapp|telegram|account-[a-f0-9-]{36})$/.test(id); }
 function cleanAccount(raw) {
@@ -43,4 +55,4 @@ function switchAccount(settings, side, id) {
   settings.slots[side] = id; return true;
 }
 function liveAccounts(settings) { return settings.accounts.filter(item => Object.values(settings.slots).includes(item.id) || item.keepActive); }
-module.exports = { SERVICES, MAX_ACCOUNTS, validId, cleanAccount, accountState, partition, switchAccount, liveAccounts };
+module.exports = { servicePageAllowed, SERVICES, MAX_ACCOUNTS, validId, cleanAccount, accountState, partition, switchAccount, liveAccounts };

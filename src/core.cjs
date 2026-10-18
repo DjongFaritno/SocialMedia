@@ -1,8 +1,6 @@
 const { cleanBlurPreferences, cleanBlurPanels } = require('./blur.cjs');
-const { SERVICES, accountState } = require('./accounts.cjs');
-function trusted(id, value) {
-  try { const url = new URL(value); return SERVICES[id]?.origins.includes(url.origin) === true; } catch { return false; }
-}
+const { SERVICES, accountState, servicePageAllowed } = require('./accounts.cjs');
+function trusted(id, value) { return servicePageAllowed(id, value); }
 function ratio(value) { return Number.isFinite(value) ? Math.max(.3, Math.min(.75, value)) : .65; }
 function layout(width, height, value, headerHidden = false) {
   const top = headerHidden ? 56 : 136, bottom = 40, gap = 12, padding = 16, rail = headerHidden ? 0 : 76;
