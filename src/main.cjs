@@ -229,10 +229,9 @@ function addService(account) {
   let showingErrorPage = false;
   const serviceDocument = url => navigationAllowed(service, url) || (smoke && url.startsWith('data:text/html'));
   view.webContents.on('did-start-navigation', (_event, url, _inPlace, mainFrame) => {
-    if (mainFrame && serviceDocument(url)) { showingErrorPage = false; update('loading'); }
+    if (mainFrame && !_inPlace && serviceDocument(url)) { showingErrorPage = false; update('loading'); }
   });
-  view.webContents.on('did-start-loading', () => { if (!showingErrorPage) update('loading'); });
-  view.webContents.on('did-finish-load', () => { if (serviceDocument(view.webContents.getURL())) update('ready'); });
+  view.webContents.on('did-finish-load', () => { if (!showingErrorPage && statuses[id]?.state !== 'error' && serviceDocument(view.webContents.getURL())) update('ready'); });
   view.webContents.on('did-fail-load', (_e, code, _description, _url, mainFrame) => {
     if (mainFrame && code !== -3 && views[id] === view) {
       showingErrorPage = true;

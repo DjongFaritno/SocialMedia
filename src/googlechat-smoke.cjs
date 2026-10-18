@@ -36,6 +36,9 @@ module.exports=async({win,views,settings,state,handleAccountAction,blurControlle
    assert.equal(await wc.executeJavaScript('getComputedStyle(document.querySelector("#editor")).filter'),'none');
    await ui('window.duo.blurAction("set",{side:"left",enabled:false})');
   }
+  await wc.executeJavaScript('location.hash="chat-fixture";undefined');
+  await sleep(80);
+  assert.equal(state().statuses[account.id].state,'ready','same-document Chat navigation stays ready');
   assert.ok((await ses.cookies.get({url:'https://accounts.google.com/'})).some(c=>c.name==='duochat-gc-auth'));
   assert.equal((await session.fromPartition('persist:other-googlechat-fixture').cookies.get({url:'https://accounts.google.com/'})).length,0);
   await wc.loadURL('https://chat.google.com/blocked').catch(()=>{});
