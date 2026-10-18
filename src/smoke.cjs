@@ -57,23 +57,22 @@ module.exports = async ({ app, win, views, settings, state, overlay, showOverlay
  assert.equal(settings.accounts.length, 4); assert.equal(settings.accounts[3].service, 'instagram');
  assert.equal(await overlay.webContents.executeJavaScript("document.querySelectorAll('#account-settings img').length"), 0, 'Account labels are escaped');
  showOverlay(null); await ui("window.duo.windowAction('header')");
- for (const service of ['x', 'threads', 'discord', 'messenger', 'facebook', 'googlechat', 'wechat']) {
+ for (const service of ['x', 'threads', 'discord', 'messenger', 'facebook', 'googlechat', 'wechat', 'slack', 'teams', 'linkedin']) {
   const result = await handleAccountAction('add', { service, name: service }); await handleAccountAction('select', { side: 'right', id: result.id }); await ready();
   assert.equal(Object.keys(views).length, 2); assert.match(await views[result.id].webContents.executeJavaScript('document.body.textContent'), /smoke fixture/);
  }
 
  // Additional web services use the same sandbox/profile/cover infrastructure.
- for (const service of ['messenger','facebook','googlechat','wechat']) {
+ for (const service of ['messenger','facebook','googlechat','wechat','slack','teams','linkedin']) {
   const account = settings.accounts.find(item=>item.service===service);
   await handleAccountAction('select',{side:'left',id:account.id}); await ready(); await sleep(80);
   const wc = views[account.id].webContents;
   assert.equal(await wc.executeJavaScript('typeof window.duo'), 'undefined');
   assert.equal(await wc.executeJavaScript('typeof require'), 'undefined');
-  assert.equal(await ui("document.querySelector('[data-blur-toggle=left]').disabled"),true);
-  assert.match(await ui("document.querySelector('[data-blur-toggle=left]').textContent"),/belum tersedia/);
-  const flags=JSON.stringify(settings.blurPanels);
-  assert.equal((await ui('window.duo.blurAction("set",{side:"left",enabled:true})')).ok,false);
-  assert.equal(JSON.stringify(settings.blurPanels),flags);
+  assert.equal(await ui("document.querySelector('[data-blur-toggle=left]').disabled"),false);
+  assert.match(await ui("document.querySelector('[data-blur-toggle=left]').textContent"),/Blur (ON|OFF)/);
+  assert.equal((await ui('window.duo.blurAction("set",{side:"left",enabled:true})')).ok,true);
+  assert.equal((await ui('window.duo.blurAction("set",{side:"left",enabled:false})')).ok,true);
   await ui('window.duo.privacyAction("cover",{side:"left"})');
   assert.equal(views[account.id].getVisible(),false,service+' cover hides native content');
   await ui('window.duo.privacyAction("cover",{side:"left"})');
@@ -87,7 +86,7 @@ module.exports = async ({ app, win, views, settings, state, overlay, showOverlay
  assert.notEqual(messengerSession,facebookSession,'Facebook and Messenger account sessions remain independent despite shared origin');
  await messengerSession.cookies.set({url:'https://www.facebook.com/',name:'duochat-messenger-fixture',value:'isolated'});
  assert.equal((await facebookSession.cookies.get({name:'duochat-messenger-fixture'})).length,0);
- console.log('NEW SERVICE PASS: four providers, isolated Facebook/Messenger cookies, sandbox, explicit unsupported blur, native panel covers.');
+ console.log('NEW SERVICE PASS: seven added providers, isolated Facebook/Messenger cookies, sandbox, enabled blur controls, native panel covers.');
  await handleAccountAction('select', { side: 'left', id: 'whatsapp' }); await handleAccountAction('select', { side: 'right', id: 'telegram' }); await ready();
  assert.equal(views.whatsapp.webContents.session, oldSession); assert.equal((await oldSession.cookies.get({ name: 'duochat-fixture' }))[0].value, 'personal');
  assert.deepEqual(cleanSettings(JSON.parse(JSON.stringify(settings))).slots, settings.slots);

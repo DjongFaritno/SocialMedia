@@ -1,26 +1,21 @@
-# Dukungan layanan
+# Layanan DuoChat 0.4.0-beta.2
 
-Kandidat 0.4.0-beta.1 menyediakan sepuluh pilihan layanan. Ini pembungkus situs resmi, bukan implementasi protokol layanan.
+Tiga belas pilihan: WhatsApp, Telegram, Discord, X, Instagram, Threads, Messenger, Facebook, Google Chat, WeChat, Slack, Microsoft Teams, LinkedIn.
 
-| Layanan baru | Halaman | Batas dukungan |
+| Tambahan | Halaman awal | Batas login |
 | --- | --- | --- |
-| Messenger | https://www.facebook.com/messages/ | Halaman pesan Facebook; profil terpisah dari akun Facebook lain di DuoChat. |
-| Facebook | https://www.facebook.com/ | Feed dan fitur web yang disediakan Meta. |
-| Google Chat | https://chat.google.com/ | Eksperimental; Google dapat menolak autentikasi pada browser dalam aplikasi. |
-| WeChat | https://web.wechat.com/ | Eksperimental; scan QR dari ponsel, hanya jika akun diizinkan memakai versi web. |
+| Messenger | https://www.facebook.com/messages/ | Profil terpisah dari pilihan Facebook. |
+| Facebook | https://www.facebook.com/ | Login dan fitur mengikuti Meta. |
+| Google Chat | https://chat.google.com/ | Google dapat menolak browser dalam aplikasi. |
+| WeChat | https://web.wechat.com/ | QR dari ponsel; akses web bergantung akun. |
+| Slack | https://app.slack.com/client/ | Workspace Slack dibuka untuk autentikasi saja; IdP perusahaan eksternal belum diizinkan. |
+| Microsoft Teams | https://teams.cloud.microsoft/v2/ | Situs Teams kerja/pribadi didukung; kebijakan tenant bisa membatasi login/perangkat. |
+| LinkedIn | https://www.linkedin.com/feed/ | Feed dan pesan versi web; login pihak ketiga di luar origin LinkedIn tidak dipindahkan ke DuoChat. |
 
-Keempat layanan baru belum memiliki adapter blur elemen yang diverifikasi. Tombol panel menampilkan **Blur belum tersedia**; aktivasi via IPC juga ditolak. Gunakan **Tutup sementara** atau **Kunci DuoChat** untuk menyembunyikan seluruh tampilan. Pilihan blur bersama tersimpan dan kembali berlaku saat panel diganti ke layanan yang mendukungnya.
+Setiap akun punya sesi tersendiri. Akun tambahan dimuat saat dipilih, dua panel aktif, opsi Tetap aktif mempertahankan akun latar belakang. Login di browser luar tidak menyalin sesi ke DuoChat.
 
-Situs tetap berada dalam sandbox tanpa Node atau bridge DuoChat. Origin login Google hanya boleh dinavigasi oleh profil Google Chat dan tidak menerima izin mikrofon, kamera atau notifikasi Chat. Tautan keluar meminta konfirmasi. Browser luar memiliki sesi terpisah; DuoChat tidak menyalin cookies atau melewati kebijakan login penyedia. SSO perusahaan ke domain lain belum ditambahkan.
+Blur tersedia dengan adapter elemen pada ketiga belas layanan. ON/OFF tetap per panel; kategori, kekuatan dan hover satu pengaturan bersama. Google Chat belum memiliki selector preview daftar chat yang terverifikasi, sehingga kategori itu tidak diklaim didukung. Detail kategori tersedia pada Atur blur → Cakupan per layanan. [Referensi dan batas QC](blur-services.md).
 
-Panggilan, notifikasi OS, fitur media dan login akun nyata perlu dicoba di perangkat pengguna. Fixture lokal memverifikasi perilaku DuoChat, tidak membuktikan penyedia menerima login atau menyediakan seluruh fitur desktop/mobile.
+Auth Google/Microsoft/Slack workspace tidak menerima izin kamera/mikrofon/notifikasi dari layanan chat. Halaman layanan tetap sandbox tanpa Node atau bridge internal. Login, panggilan dan notifikasi akun nyata belum diverifikasi untuk semua penyedia/OS.
 
-Rujukan resmi:
-
-- [Pesan Facebook](https://www.facebook.com/help/1071984682876123).
-- [Perubahan Messenger web](https://www.facebook.com/help/messenger-app/804132271957789) (halaman bantuan dapat meminta login).
-- [Akses Google Chat](https://support.google.com/chat/answer/7653601?hl=en).
-- [Kebijakan Google tentang embedded webviews](https://developers.googleblog.com/upcoming-security-changes-to-googles-oauth-20-authorization-endpoint-in-embedded-webviews/).
-- [WeChat Web](https://web.wechat.com/). Portal tidak dapat diperiksa otomatis dalam sesi pengembangan ini; kelayakan akun belum dikonfirmasi.
-
-Prioritas berikutnya yang disarankan: Slack, Microsoft Teams, LinkedIn. Belum diimplementasikan dalam kandidat ini.
+Referensi: [Slack web login](https://slack.com/help/articles/212681477-Sign-in-to-Slack), [Teams web](https://support.microsoft.com/en-us/teams/meetings/use-microsoft-teams-on-the-web), [LinkedIn Messaging](https://www.linkedin.com/help/linkedin/answer/a564261), [Google Chat](https://support.google.com/chat/answer/7653601?hl=en), [Google embedded-browser policy](https://developers.googleblog.com/upcoming-security-changes-to-googles-oauth-20-authorization-endpoint-in-embedded-webviews/), [WeChat Web](https://web.wechat.com/).

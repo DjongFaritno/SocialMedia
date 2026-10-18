@@ -9,7 +9,10 @@ const SERVICES = Object.freeze({
   messenger: { name: 'Messenger', url: 'https://www.facebook.com/messages/', origins: ['https://www.facebook.com', 'https://facebook.com', 'https://m.facebook.com', 'https://web.facebook.com'] },
   facebook: { name: 'Facebook', url: 'https://www.facebook.com/', origins: ['https://www.facebook.com', 'https://facebook.com', 'https://m.facebook.com', 'https://web.facebook.com'] },
   googlechat: { name: 'Google Chat', url: 'https://chat.google.com/', origins: ['https://chat.google.com'] },
-  wechat: { name: 'WeChat', url: 'https://web.wechat.com/', origins: ['https://web.wechat.com', 'https://web2.wechat.com', 'https://wx.qq.com', 'https://wx2.qq.com', 'https://wx8.qq.com'] }
+  wechat: { name: 'WeChat', url: 'https://web.wechat.com/', origins: ['https://web.wechat.com', 'https://web2.wechat.com', 'https://wx.qq.com', 'https://wx2.qq.com', 'https://wx8.qq.com'] },
+  slack: { name: 'Slack', url: 'https://app.slack.com/client/', origins: ['https://app.slack.com'] },
+  teams: { name: 'Microsoft Teams', url: 'https://teams.cloud.microsoft/v2/', origins: ['https://teams.cloud.microsoft', 'https://teams.microsoft.com', 'https://teams.live.com'] },
+  linkedin: { name: 'LinkedIn', url: 'https://www.linkedin.com/feed/', origins: ['https://www.linkedin.com', 'https://linkedin.com'] }
 });
 const MAX_ACCOUNTS = 30;
 function validId(id) { return typeof id === 'string' && /^(whatsapp|telegram|account-[a-f0-9-]{36})$/.test(id); }

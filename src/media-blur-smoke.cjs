@@ -3,7 +3,7 @@ module.exports = async ({wc,save,move,hover,isBlurred,service}) => {
  const evaluate=code=>wc.executeJavaScript(code);
  await save({enabled:true});
  await evaluate(`(()=>{
- let root=document.querySelector('article,[data-pressable-container="true"]');
+ let root=document.querySelector('#media-host,article,[data-pressable-container="true"]');
  if(!root){root=document.createElement('div');
   if('${service}'==='whatsapp')root.setAttribute('data-testid','msg-container');
   if('${service}'==='telegram'){root.className='Message';root.innerHTML='<div class="media-inner"></div>'; }

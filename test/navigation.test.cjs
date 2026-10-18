@@ -37,3 +37,16 @@ test('new services keep exact origins and account-specific popup boundaries', ()
  assert.equal(navigationAllowed('wechat','https://wx.qq.com/'),true);
  for(const url of ['https://qq.com/','https://web.wechat.com.evil.test/','http://web.wechat.com/','https://accounts.google.com/']) assert.equal(navigationAllowed('wechat',url),false);
 });
+
+test('workplace auth exceptions do not grant content permissions or cross-provider access', () => {
+ const cases={slack:['https://slack.com/signin','https://my-team.slack.com/ssb/signin'],teams:['https://login.microsoftonline.com/common/oauth2/v2.0/authorize','https://login.live.com/','https://login.microsoft.com/','https://account.live.com/']};
+ for(const [service,urls] of Object.entries(cases)) for(const url of urls){
+  assert.equal(navigationAllowed(service,url),true,url);
+  for(const permission of ['media','notifications']) assert.equal(servicePermitted(service,true,permission,url,url),false);
+  for(const other of ['whatsapp','telegram','linkedin','googlechat']) assert.equal(navigationAllowed(other,url),false);
+  assert.equal(popupAllowed(service,'about:blank',url),true);
+ }
+ for(const url of ['http://workspace.slack.com/','https://workspace.slack.com.evil.test/','https://slack.com@evil.test/','https://evil.test@workspace.slack.com/','https://workspace.slack.com:8443/','https://enterprise-idp.test/']) assert.equal(navigationAllowed('slack',url),false,url);
+ for(const url of ['https://login.microsoftonline.com.evil.test/','https://evil.test@login.live.com/','https://enterprise-idp.test/']) assert.equal(navigationAllowed('teams',url),false,url);
+ assert.equal(popupAllowed('slack','about:blank','https://evil.test/'),false);
+});

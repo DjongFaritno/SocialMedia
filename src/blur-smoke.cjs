@@ -6,6 +6,7 @@ const { cleanBlur, ADAPTERS } = require('./blur.cjs');
 const image = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 const pic = attributes => '<img src="' + image + '" ' + attributes + '>';
 const fixtures = {
+ ...require('./blur-service-fixtures.cjs'),
  whatsapp: '<div id="pane-side"><div role="row"><span data-testid="cell-frame-title" id="person">Private contact</span><div data-testid="cell-frame-secondary" id="preview">Private preview</div>' + pic('id="avatar"') + '</div></div><div id="main"><div data-testid="msg-container" data-id="fixture-media"><span class="selectable-text" contenteditable="false" role="textbox" aria-readonly="true" id="message">Private message</span>' + pic('id="media"') + '</div><footer><div contenteditable="true" data-testid="conversation-compose-box-input" id="editor">Reply</div></footer></div>',
  telegram: '<div class="ChatInfo"><span class="title" id="person">Private contact</span></div><div class="ListItem Chat"><div class="subtitle" id="preview">Preview</div></div><div class="Avatar" id="avatar">AB</div><div class="Message"><span class="text-content" id="message">Private message</span>' + pic('class="full-media" id="media"') + '</div><div class="MessageInput"><div contenteditable="true" id="message-input-text"><span id="editor">Reply</span></div></div>',
  discord: '<span class="username_fixture" id="person">Private contact</span><span class="lastMessage_fixture" id="preview">Preview</span>' + pic('class="avatar_fixture" id="avatar"') + '<li id="chat-messages-1"><div id="message-content-1"><span id="message">Private message</span></div><div class="imageWrapper_fixture">' + pic('id="media"') + '</div></li><div data-slate-editor="true" role="textbox" contenteditable="true" id="editor">Reply</div>',
@@ -63,12 +64,12 @@ module.exports = async ({ app, win, views, settings, handleAccountAction, blurCo
  assert.deepEqual(JSON.parse(fs.readFileSync(path.join(app.getPath('userData'), 'settings.json'), 'utf8')).blur, settings.blur);
  await ui('window.duo.overlay(null)');
  await save(config);
- for (const service of Object.keys(ADAPTERS)) {
+ for (const service of Object.keys(SERVICES)) {
   console.log('BLUR FIXTURE mount',service);
   const account = settings.accounts.find(item => item.service === service);
   assert.ok(account, 'Fixture account exists for ' + service);
   const wc = await mount(account, service); console.log('BLUR FIXTURE ready',service);
-  for (const id of ['message', 'person', 'avatar', 'media', ...(service === 'threads' ? [] : ['preview'])]) assert.equal(await isBlurred(wc, id), true, service + ' blurs ' + id);
+  for (const id of ['message', 'person', 'avatar', 'media', ...(ADAPTERS[service].previews.length ? ['preview'] : [])]) assert.equal(await isBlurred(wc, id), true, service + ' blurs ' + id);
   assert.equal(await isBlurred(wc, 'editor'), false, service + ' keeps composer clear by default');
   assert.equal(await isBlurred(wc, 'plain-button'), false, service + ' keeps controls usable');
   assert.equal(await evaluate(wc, 'typeof window.duo'), 'undefined');
@@ -86,7 +87,7 @@ module.exports = async ({ app, win, views, settings, handleAccountAction, blurCo
   await hover(wc, 'message'); assert.equal(await isBlurred(wc, 'message'), true, service + ' honors reveal off');
   const ids = { messages: 'message', previews: 'preview', names: 'person', avatars: 'avatar', media: 'media' };
   for (const [category, id] of Object.entries(ids)) {
-   if (service === 'threads' && category === 'previews') continue;
+   if (!ADAPTERS[service][category].length) continue;
    await save({ enabled: true, revealOnHover: false, elements: { [category]: false } });
    assert.equal(await isBlurred(wc, id), false, service + ' independently disables ' + category);
   }
@@ -117,5 +118,5 @@ module.exports = async ({ app, win, views, settings, handleAccountAction, blurCo
  for (const side of ["left","right"]) await ui('window.duo.blurAction("set",'+JSON.stringify({side,enabled:originalPanels[side]})+')');
  await handleAccountAction('select', { side: 'left', id: originalSlots.left });
  await handleAccountAction('select', { side: 'right', id: originalSlots.right });
- console.log('INTERACTIVE BLUR PASS: shared configuration form/persistence, six service fixtures, selective categories, native Chromium hover/reblur and typing, original filters, no remote bridge, origin boundary and simultaneous panels. Real-account coverage still needs device testing.');
+ console.log('INTERACTIVE BLUR PASS: shared configuration form/persistence, thirteen service fixtures, selective categories, native Chromium hover/reblur and typing, original filters, no remote bridge, origin boundary and simultaneous panels. Real-account coverage still needs device testing.');
 };

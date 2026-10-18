@@ -1,14 +1,14 @@
-DuoChat 0.4.0-beta.1 — tambah ruang buat obrolanmu.
+DuoChat 0.4.0-beta.2 — lebih banyak tempat ngobrol, privasinya tetap bareng.
 
-- Tambah akun Messenger (halaman pesan Facebook), Facebook, Google Chat, dan WeChat.
-- Sepuluh pilihan layanan; akun baru tetap punya sesi sendiri, dimuat saat dipilih, dan bisa ditempatkan di kedua panel.
-- Messenger dan Facebook memakai sesi terpisah meskipun situsnya sama.
-- Catatan dukungan saat memilih layanan: Google bisa menolak login dalam aplikasi, Web WeChat bergantung akun dan kebijakan penyedia. Login akun nyata belum dikonfirmasi pada semua OS.
-- Empat layanan baru belum mendukung blur elemen. UI menampilkannya secara eksplisit dan menolak aktivasi blur yang menyesatkan. Tutup sementara dan Kunci tetap tersedia.
-- Enam adapter blur lama, pengaturan bersama, ON/OFF per panel, password, Windows Hello/Touch ID, dan sesi lama dipertahankan.
+- Tambah Slack, Microsoft Teams dan LinkedIn. Total 13 pilihan layanan, termasuk Messenger, Facebook, Google Chat dan WeChat dari beta sebelumnya.
+- Adapter blur untuk tujuh layanan tambahan: pesan/postingan, nama, avatar, media dan kolom ketik. Preview daftar chat mengikuti cakupan selector; Google Chat belum mengklaim kategori Preview.
+- Blur ON/OFF tetap per panel. Pilihan elemen, kekuatan dan hover berlaku bersama untuk semua panel/akun.
+- Pengujian Chromium diperluas ke 13 layanan, kedua sisi, kategori terpisah, hover/reblur, kontrol media overlay, media baru, swap dan reload.
+- Sesi akun, Tutup sementara, password dan Windows Hello/Touch ID dipertahankan.
+- Auth Slack/Microsoft dibuka dalam profil akun tanpa menerima izin chat. IdP perusahaan eksternal belum didukung.
 
-Build kandidat Windows x64, macOS universal, Linux AppImage/deb. Ini beta untuk pengujian, belum menggantikan rilis publik pada cek pembaruan. Windows belum ditandatangani penerbit; macOS masih ad-hoc, belum dinotarize.
+Ini kandidat beta. Login akun nyata, panggilan, notifikasi OS dan variasi DOM belum dikonfirmasi untuk semua layanan. Adapter baru memakai struktur yang dirujuk dan fixture lokal; bukan jaminan semua variasi UI situs. Periksa cakupan sebelum berbagi layar, atau gunakan Tutup sementara/Kunci.
 
-Panggilan, notifikasi, login dan DOM aktual mengikuti dukungan masing-masing situs. QC otomatis memakai fixture lokal, bukan akun pengguna.
+Windows x64, macOS universal dan Linux x64 AppImage/deb. Windows belum ditandatangani penerbit; macOS masih ad-hoc, belum dinotarize. Kandidat belum menggantikan rilis publik pada cek update.
 
 by Codex · prompt by TjongFaritno

@@ -93,7 +93,8 @@ const ADAPTERS = Object.freeze({
   avatars: ['a[href^="/@"]:not([href*="/post/"]) img'],
   media: ['[data-pressable-container="true"] img:not(a[href^="/@"]:not([href*="/post/"]) *)', '[data-pressable-container="true"] video', 'article img:not(a[href^="/@"]:not([href*="/post/"]) *)', 'article video'],
   composer: ['[role="main"] [contenteditable="true"][role="textbox"]', '[role="dialog"] [contenteditable="true"][role="textbox"]']
- }
+ },
+ ...require('./blur-adapters.cjs')
 });
 function cleanBlur(raw = {}) {
  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) raw = {};

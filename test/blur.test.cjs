@@ -91,7 +91,7 @@ test('Instagram media helper is isolated and removed when hover is disabled', as
 
 test('every provider installs and cleans isolated media hover when Media is toggled', async () => {
  const { SERVICES } = require('../src/accounts.cjs');
- for(const [service,provider] of Object.entries(SERVICES).filter(([service]) => ADAPTERS[service])){
+ for(const [service,provider] of Object.entries(SERVICES)){
   const wc=new Contents();wc.url=provider.url;const calls=[];
   wc.executeJavaScriptInIsolatedWorld=async(world,scripts)=>{assert.equal(world,42);calls.push(scripts[0].code);};
   let config={enabled:true};
@@ -105,10 +105,12 @@ test('every provider installs and cleans isolated media hover when Media is togg
  }
 });
 
-test('new web-service previews report no selective blur until verified adapters exist', () => {
- const { blurSupport } = require('../src/blur.cjs');
- for (const service of ['messenger', 'facebook', 'googlechat', 'wechat']) {
-  assert.deepEqual(blurSupport()[service].elements, []);
-  assert.equal(blurCSS(service, {enabled:true}), '');
+test('every registered service has real blur categories and unsupported preview categories are explicit', () => {
+ const { SERVICES } = require('../src/accounts.cjs'), { blurSupport } = require('../src/blur.cjs');
+ assert.deepEqual(Object.keys(blurSupport()).sort(),Object.keys(SERVICES).sort());
+ for(const service of Object.keys(SERVICES)) {
+  for(const key of ['messages','names','avatars','media','composer']) assert.ok(ADAPTERS[service][key].length,service+' '+key);
+  assert.ok(blurCSS(service,{enabled:true}).includes('filter:blur('),service);
  }
+ assert.deepEqual(ADAPTERS.googlechat.previews,[]);
 });
