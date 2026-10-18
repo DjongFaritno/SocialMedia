@@ -21,12 +21,12 @@ function navigationAllowed(service, value) {
 function popupAllowed(service, value, openerURL) {
   return navigationAllowed(service, value) || (['instagram', 'threads', 'messenger', 'facebook', 'googlechat', 'slack', 'teams'].includes(service) && value === 'about:blank' && navigationAllowed(service, openerURL));
 }
-function protectNavigation(contents, { service, external, popupPreferences, onChild, canOpen = () => true }) {
+function protectNavigation(contents, { service, external, popupPreferences, onChild, onBlocked = () => {}, canOpen = () => true }) {
   contents.on('will-navigate', (event, url) => {
-    if (!navigationAllowed(service, url)) { event.preventDefault(); void external(url); }
+    if (!navigationAllowed(service, url)) { event.preventDefault(); onBlocked(url, 'navigate'); void external(url); }
   });
-  contents.on('will-redirect', (event, url) => {
-    if (!navigationAllowed(service, url)) event.preventDefault();
+  contents.on('will-redirect', (event, url, _inPlace, mainFrame) => {
+    if (!navigationAllowed(service, url)) { event.preventDefault(); if (mainFrame !== false) onBlocked(url, 'redirect'); }
   });
   contents.setWindowOpenHandler(({ url }) => {
     if (!canOpen()) return { action: 'deny' };

@@ -78,6 +78,7 @@ module.exports = async ({ app, win, views, settings, state, overlay, showOverlay
   await ui('window.duo.privacyAction("cover",{side:"left"})');
   assert.equal(views[account.id].getVisible(),true,service+' cover restores native content');
  }
+ await require('./googlechat-smoke.cjs')({win,views,settings,state,handleAccountAction,blurControllers});
  const messenger=settings.accounts.find(item=>item.service==='messenger');
  const facebook=settings.accounts.find(item=>item.service==='facebook');
  await handleAccountAction('select',{side:'left',id:messenger.id});

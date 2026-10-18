@@ -33,6 +33,8 @@ function render(state) {
   const choices = state.accounts.map(item => `<option value="${item.id}">${escapeHTML(item.name)} · ${providerNames[item.service]}</option>`).join('');
   if (select.innerHTML !== choices) select.innerHTML = choices; select.value = account.id;
   const status = state.statuses?.[account.id]; document.querySelector(`#${side}-status`).textContent = state.blurPanels[side] && state.blurStatuses?.[account.id] === 'error' ? t('Blur gagal · muat ulang') : status?.state === 'ready' ? t('Web dimuat') : status?.state === 'error' ? t(status.message || 'Gagal memuat', status.values) : t('Memuat…');
+  const placeholder = document.querySelector('#' + side + '-panel .placeholder p');
+  placeholder.textContent = status?.state === 'error' ? t(status.message || 'Gagal memuat', status.values) : t('Memuat web resmi layanan…');
   const icon = document.querySelector(`#${side}-icon`); icon.className = 'provider-icon ' + account.service; icon.innerHTML = providerIcon(account.service);
   document.querySelector(`#${side}-name`).textContent = account.name;
   document.querySelector(`[data-side="${side}"][data-action="permissions"]`).textContent = account.permissions ? t('Izin aktif') : t('Izin');

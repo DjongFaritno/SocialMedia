@@ -178,6 +178,13 @@ function protect(contents, account) {
   contents.once('destroyed', () => blurControllers.delete(contents.id));
   protectNavigation(contents, {
     service, external: url => external(url, account.id), canOpen: () => !accountConcealed(account.id),
+    onBlocked: (_url, kind) => {
+      // Opening an ordinary external link leaves the loaded service usable.
+      if (kind !== 'redirect' && statuses[account.id]?.state !== 'loading') return;
+      if (views[account.id]?.webContents === contents) {
+        statuses[account.id] = { state: 'error', message: 'Pengalihan layanan diblokir. Coba Muat ulang atau buka layanan di browser.' }; send();
+      }
+    },
     popupPreferences: () => ({ width: 760, height: 680, autoHideMenuBar: true, webPreferences: { ...(service === 'telegram' ? { preload: path.join(__dirname, 'telegram-preload.cjs') } : {}), partition: partition(account), nodeIntegration: false, contextIsolation: true, sandbox: true } }),
     onChild: child => {
       child.setMenu(null); protect(child.webContents, account); shortcuts(child.webContents);
@@ -221,10 +228,15 @@ function addService(account) {
   views[id] = view; win.contentView.addChildView(view);
   protect(view.webContents, account); shortcuts(view.webContents);
   const update = (value, message = '', values = {}) => { if (views[id] === view) { statuses[id] = { state: value, message, values }; send(); } };
-  view.webContents.on('did-start-loading', () => update('loading'));
-  view.webContents.on('did-finish-load', () => { if (navigationAllowed(service, view.webContents.getURL()) || smoke) update('ready'); });
+  let showingErrorPage = false;
+  const serviceDocument = url => navigationAllowed(service, url) || (smoke && url.startsWith('data:text/html'));
+  view.webContents.on('did-start-navigation', (_event, url, _inPlace, mainFrame) => {
+    if (mainFrame && !_inPlace && serviceDocument(url)) { showingErrorPage = false; update('loading'); }
+  });
+  view.webContents.on('did-finish-load', () => { if (!showingErrorPage && statuses[id]?.state !== 'error' && serviceDocument(view.webContents.getURL())) update('ready'); });
   view.webContents.on('did-fail-load', (_e, code, _description, _url, mainFrame) => {
     if (mainFrame && code !== -3 && views[id] === view) {
+      showingErrorPage = true;
       update('error', 'Gagal memuat ({code}). Periksa koneksi, lalu muat ulang.', {code});
       void view.webContents.loadFile(path.join(__dirname, settings.language === 'en' ? 'offline-en.html' : 'offline.html')).catch(() => {});
     }
