@@ -1,0 +1,24 @@
+name: Google Chat anonymous redirect probe
+on:
+  push:
+    branches: [fix/googlechat-startup-redirect]
+    paths:
+      - 'scripts/googlechat-probe.cjs'
+      - '.github/workflows/googlechat-probe.yml'
+permissions:
+  contents: read
+jobs:
+  anonymous-probe:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: node node_modules/electron/install.js
+      - name: Trace only public anonymous Google sign-in redirects
+        timeout-minutes: 1
+        run: xvfb-run -a ./node_modules/electron/dist/electron scripts/googlechat-probe.cjs --no-sandbox --disable-gpu
