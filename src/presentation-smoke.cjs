@@ -16,8 +16,8 @@ module.exports=async({app,win,views,settings,overlay,state,showOverlay,about})=>
    for(const view of Object.values(views))assert.equal(view.getVisible(),false,'native chat surfaces hidden while '+mode+' is open');
    assert.equal(overlay.getVisible(),true);
    assert.equal(overlay.webContents.getBackgroundThrottling(),false);
-   const bounds=overlay.getBounds(),[width,height]=win.getContentSize();
-   assert.deepEqual(bounds,{x:0,y:0,width,height});
+   await until(()=>{const b=overlay.getBounds(),[width,height]=win.getContentSize();return b.x===0&&b.y===0&&b.width===width&&b.height===height;},'overlay matches resized content');
+   console.log('DIALOG OPEN: '+JSON.stringify({mode,compact,bounds:overlay.getBounds(),windowVisible:win.isVisible(),focused:overlay.webContents.isFocused(),visibility:await modal('document.visibilityState')}));
    let paintTimer;
    let frame;
    try { frame=await Promise.race([modal('new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve(true))))'),new Promise((_,reject)=>{paintTimer=setTimeout(()=>reject(Error('Dialog did not paint: '+mode)),6000);})]); }
@@ -36,7 +36,7 @@ module.exports=async({app,win,views,settings,overlay,state,showOverlay,about})=>
     overlay.webContents.sendInputEvent({type:'mouseDown',button:'left',clickCount:1,...point});
     overlay.webContents.sendInputEvent({type:'mouseUp',button:'left',clickCount:1,...point});
     await until(()=>modal('document.querySelector("#provider").value==="telegram"'),'provider mouse input');
-    await modal('document.querySelector("#account-name").focus()');await overlay.webContents.insertText('Dialog test');
+    await modal('document.querySelector("#account-name").value="";document.querySelector("#account-name").focus()');await overlay.webContents.insertText('Dialog test');
     assert.equal(await modal('document.querySelector("#account-name").value'),'Dialog test');
    }
    if(mode==='blur'){
@@ -57,7 +57,7 @@ module.exports=async({app,win,views,settings,overlay,state,showOverlay,about})=>
   await ui('window.duo.windowAction("about")');
   await until(()=>about()&&!about().webContents.isLoading(),'About opens');
   assert.equal(about().isVisible(),true,'About native window is visible');
-  assert.equal(await about().webContents.executeJavaScript('document.querySelector("#version").textContent'),app.getVersion());
+  await until(()=>about().webContents.executeJavaScript('document.querySelector("#version").textContent').then(value=>value===app.getVersion()),'About version renders');
   await about().webContents.executeJavaScript('document.querySelector("#close-about").click()').catch(()=>{});
   await until(()=>!about(),'About closes');
  }

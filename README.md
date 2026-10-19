@@ -103,10 +103,13 @@ QC media: foto WhatsApp berbasis metadata/data-id, canvas, background, kutipan, 
 
 ## Dialog di Fedora / Linux
 
-Pada sesi Wayland dengan DISPLAY tersedia, DuoChat memakai XWayland secara default untuk kompatibilitas fokus dan jendela. Pilihan eksplisit `--ozone-platform=wayland` atau `--ozone-platform=x11` tetap dihormati. Pada sistem tanpa server X, backend tidak dipaksa ke X11.
+Untuk membandingkan masalah driver atau fokus di Wayland, jalankan AppRun dengan `--ozone-platform=x11` jika XWayland tersedia. Backend layar tidak dipaksa oleh aplikasi; pilihan ini harus diberikan saat menjalankan proses, sebelum Electron menginisialisasi platform layar.
 
 Saat dialog Tambah akun, Kelola akun, Atur blur, atau Privasi terbuka, permukaan panel chat disembunyikan sementara tanpa menutup proses atau sesi. Permukaan overlay Linux memakai latar opak untuk menghindari ketergantungan pada penumpukan transparan antar native view. Sidebar tetap transparan dan tidak menyembunyikan dua panel. Setelah dialog ditutup, visibilitas mengikuti slot aktif dan Tutup sementara/Kunci.
 
-QC dialog mencakup screenshot hasil render, klik pilihan layanan, input nama, scroll pengaturan, Escape, buka/tutup About berulang, dan pemulihan proses panel. Matrix Linux menguji X11, native Wayland headless, serta default XWayland dengan GPU tidak dimatikan lewat flag. Runner memakai grafis virtual; hasil ini belum membuktikan seluruh kombinasi driver/GNOME Fedora di perangkat nyata.
+QC dialog mencakup screenshot hasil render, klik pilihan layanan, input nama, scroll pengaturan, Escape, buka/tutup About berulang, dan pemulihan proses panel. Matrix Linux menguji X11 dan native Wayland headless dengan GPU tidak dimatikan lewat flag. Runner memakai grafis virtual; hasil ini belum membuktikan seluruh kombinasi driver/GNOME Fedora di perangkat nyata.
 
 Referensi perilaku backend: [Electron BrowserWindow](https://www.electronjs.org/docs/latest/api/browser-window).
+
+
+Dialog diurutkan ke lapisan teratas tanpa remove/add ulang native view. Electron 44 memiliki [laporan regresi render Linux](https://github.com/electron/electron/issues/54626) pada pola detach/reattach; pemeriksaan frame dilakukan sebelum screenshot agar capturePage tidak menyamarkan kegagalan render.

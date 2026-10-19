@@ -172,7 +172,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        display: [x11, wayland, xwayland-default]
+        display: [x11, wayland]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -206,8 +206,6 @@ jobs:
             done
             test -S "$XDG_RUNTIME_DIR/duochat-wayland"
             env -u DISPLAY XDG_SESSION_TYPE=wayland WAYLAND_DISPLAY=duochat-wayland GDK_BACKEND=wayland ./node_modules/electron/dist/electron . --smoke-dialogs --ozone-platform=wayland --no-sandbox
-          elif [[ "$DUO_TEST_DISPLAY" == xwayland-default ]]; then
-            xvfb-run -a --server-args="-screen 0 1440x1000x24" env XDG_SESSION_TYPE=wayland ./node_modules/electron/dist/electron . --smoke-dialogs --no-sandbox
           else
             xvfb-run -a --server-args="-screen 0 1440x1000x24" ./node_modules/electron/dist/electron . --smoke-dialogs --ozone-platform=x11 --no-sandbox
           fi

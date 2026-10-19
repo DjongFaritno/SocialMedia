@@ -1,7 +1,5 @@
 const { app, BrowserWindow, WebContentsView, ipcMain, dialog, shell, Menu, session, nativeTheme, systemPreferences, nativeImage, net, webContents, powerMonitor } = require('electron');
-const { linuxDisplayBackend, overlayPresentation } = require('./presentation.cjs');
-const displayBackend = linuxDisplayBackend(process.platform, process.env, app.commandLine.hasSwitch('ozone-platform'));
-if (displayBackend) app.commandLine.appendSwitch('ozone-platform', displayBackend);
+const { overlayPresentation } = require('./presentation.cjs');
 const fs = require('node:fs');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
@@ -275,8 +273,9 @@ function showOverlay(mode, focus = false) {
   if (mode && !overlayMode) overlayReturnFocus = webContents.getFocusedWebContents();
   const hadOverlayFocus = overlay.webContents.isFocused();
   overlayMode = mode;
-  // Position and paint the trusted surface before it starts receiving input.
-  if (mode) { win.contentView.removeChildView(overlay); win.contentView.addChildView(overlay); }
+  // Reorder in place: detaching and reattaching can leave Electron 44 Linux views hidden.
+  // https://github.com/electron/electron/issues/54626
+  if (mode) win.contentView.addChildView(overlay);
   arrange(); overlay.setVisible(Boolean(mode)); send();
   if (mode && (mode !== 'rail' || focus)) overlay.webContents.focus();
   if (!mode && hadOverlayFocus) {
