@@ -2,12 +2,7 @@ const { trusted } = require('./core.cjs');
 // Navigation-only exceptions for Meta sign-in. These origins never inherit
 // Instagram's camera/microphone/notification permissions or the shell bridge.
 const META_LOGIN_ORIGINS = new Set(['https://www.facebook.com', 'https://facebook.com', 'https://m.facebook.com', 'https://web.facebook.com']);
-const MICROSOFT_LOGIN_ORIGINS = new Set(['https://login.microsoftonline.com', 'https://login.live.com', 'https://login.microsoft.com', 'https://account.live.com']);
 function authenticationOrigin(service, url) {
- if (service === 'googlechat') return url.origin === 'https://accounts.google.com'
-  || (url.origin === 'https://workspace.google.com'
-   && /^\/(?:intl\/[a-z]{2,3}(?:[-_][a-z0-9]{2,8})*\/)?products\/chat\/?$/i.test(url.pathname));
- if (service === 'teams') return MICROSOFT_LOGIN_ORIGINS.has(url.origin);
  // Workspace subdomains are navigation-only; media/notification grants remain
  // limited to app.slack.com. Custom enterprise IdP domains are not trusted.
  if (service === 'slack') return url.origin === 'https://slack.com' || (!url.port && /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.slack\.com$/.test(url.hostname));
@@ -21,7 +16,7 @@ function navigationAllowed(service, value) {
   } catch { return false; }
 }
 function popupAllowed(service, value, openerURL) {
-  return navigationAllowed(service, value) || (['instagram', 'threads', 'messenger', 'facebook', 'googlechat', 'slack', 'teams'].includes(service) && value === 'about:blank' && navigationAllowed(service, openerURL));
+  return navigationAllowed(service, value) || (['instagram', 'threads', 'messenger', 'facebook', 'slack'].includes(service) && value === 'about:blank' && navigationAllowed(service, openerURL));
 }
 function protectNavigation(contents, { service, external, popupPreferences, onChild, onBlocked = () => {}, canOpen = () => true }) {
   contents.on('will-navigate', (event, url) => {

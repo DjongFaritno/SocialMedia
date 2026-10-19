@@ -67,5 +67,5 @@ module.exports = async ({settings,views,handleAccountAction,waitForDocument,html
   for(const panel of panels){if(panel.wc.debugger.isAttached())panel.wc.debugger.detach();panel.wc.session.protocol.unhandle('https');}
  }
  assert.equal((await ui('window.duo.blurAction("toggle")')).ok,false,'panel side is required');
- console.log('BLUR PANEL MATRIX PASS: all thirteen services on both sides plus two isolated WhatsApp accounts; every category alone/none, shared strength and settings, all four activation combinations, new media, account swap and reload.');
+ console.log('BLUR PANEL MATRIX PASS: all eleven services on both sides plus two isolated WhatsApp accounts; every category alone/none, shared strength and settings, all four activation combinations, new media, account swap and reload.');
 };

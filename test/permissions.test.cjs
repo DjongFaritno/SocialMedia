@@ -110,13 +110,6 @@ test('both media devices are handled and non-macOS never invokes macOS APIs', as
   }
 });
 
-test('legacy Google Chat permissions require an opted-in Chat document, never Gmail or login', () => {
- for(const permission of ['media','notifications']){
-  assert.equal(servicePermitted('googlechat',true,permission,'https://mail.google.com','https://mail.google.com/chat/u/0/'),true);
-  assert.equal(servicePermitted('googlechat',false,permission,'https://mail.google.com','https://mail.google.com/chat/u/0/'),false);
-  for(const page of ['https://mail.google.com/','https://mail.google.com/mail/u/0/','https://accounts.google.com/'])assert.equal(servicePermitted('googlechat',true,permission,'https://mail.google.com',page),false);
-  assert.equal(servicePermitted('googlechat',true,permission,'https://evil.test','https://mail.google.com/chat/u/0/'),false);
- }
- assert.equal(servicePermitted('googlechat',true,'notifications','https://mail.google.com',null),false,'shared Gmail worker origin alone cannot identify a Chat document');
- assert.equal(servicePermitted('googlechat',true,'notifications','https://chat.google.com',null),true);
+test('withdrawn providers never receive media or worker notifications',()=>{
+ for(const service of ['googlechat','teams'])for(const origin of ['https://chat.google.com','https://mail.google.com','https://accounts.google.com','https://teams.cloud.microsoft','https://teams.microsoft.com','https://login.microsoftonline.com'])for(const permission of ['media','notifications'])for(const document of [null,origin+'/',origin+'/chat/u/0/'])assert.equal(servicePermitted(service,true,permission,origin,document),false);
 });

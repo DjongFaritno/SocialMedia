@@ -45,8 +45,8 @@ Uji F11/Esc saat fokus berada di setiap panel. Header/menu harus menghilang, pan
 | Tetap aktif | Notifikasi/panggilan tetap berjalan sesuai dukungan layanan saat tidak terlihat |
 | Hapus satu akun | Hanya profil terpilih dihapus, akun lain tetap login |
 | Hover sidebar | Ringkas menyembunyikan sidebar; hover menampilkan overlay tanpa menggeser panel; Esc menutupnya |
-| Layanan baru | Uji login/restart/upload/download/notifikasi Discord, X, Instagram, Threads, Messenger, Facebook, Google Chat, WeChat, Slack, Teams dan LinkedIn pada setiap OS |
+| Layanan baru | Uji login/restart/upload/download/notifikasi Discord, X, Instagram, Threads, Messenger, Facebook, WeChat, Slack dan LinkedIn pada setiap OS |
 
 Status akun nyata untuk skenario baru: belum diuji. Tes fixture tidak membuktikan panggilan atau notifikasi layanan baru.
 
-Blur: ulangi setiap kategori sendiri di panel kiri dan kanan, hover-off/on, pesan reply, nama, foto profil, foto/video, swap akun dan reload. Google Chat belum mencakup preview daftar chat; cek kategori pada Atur blur. [Matriks QC](blur-qc.md).
+Blur: ulangi setiap kategori sendiri di panel kiri dan kanan, hover-off/on, pesan reply, nama, foto profil, foto/video, swap akun dan reload. Cek kategori pada Atur blur. [Matriks QC](blur-qc.md).

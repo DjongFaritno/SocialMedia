@@ -35,26 +35,6 @@ const variants = {
       ]
     }
   },
-  "googlechat": {
-    "html": "<div data-topic-id=\"extra-topic\" class=\"nF6pT\"><span data-name=\"Sender\" id=\"extra-name\">Sender</span><img id=\"extra-avatar\" src=\"__IMAGE__\"><div jsname=\"bgckF\" id=\"extra-message\">First consecutive message</div><div jsname=\"bgckF\" id=\"extra-consecutive\">Second consecutive message</div><div jsname=\"bgckF\"><span id=\"extra-quote\">Quoted text</span><img id=\"extra-thumb\" src=\"__IMAGE__\"></div><div class=\"wdoEHc\"><img id=\"extra-media\" src=\"__IMAGE__\"></div></div>",
-    "targets": {
-      "messages": [
-        "extra-message",
-        "extra-consecutive",
-        "extra-quote"
-      ],
-      "names": [
-        "extra-name"
-      ],
-      "avatars": [
-        "extra-avatar"
-      ],
-      "media": [
-        "extra-media",
-        "extra-thumb"
-      ]
-    }
-  },
   "wechat": {
     "html": "<div class=\"chat_bd\"><span class=\"nickname\" id=\"extra-name\">Group sender</span><img class=\"avatar\" id=\"extra-avatar\" src=\"__IMAGE__\"><div class=\"bubble_cont\"><pre class=\"js_message_plain\" id=\"extra-message\">Alternate plain message</pre><div class=\"video\"><img id=\"extra-media\" src=\"__IMAGE__\"><video id=\"extra-video\"></video></div></div></div>",
     "targets": {
@@ -91,26 +71,6 @@ const variants = {
       ]
     }
   },
-  "teams": {
-    "html": "<div data-tid=\"channel-pane-message\"><span data-tid=\"message-author-name\" id=\"extra-name\">Channel author</span><div data-tid=\"post-message-header-avatar\" id=\"extra-avatar\"><img src=\"__IMAGE__\"></div><div id=\"message-body-extra\"><div id=\"content-extra\"><span id=\"extra-message\">Channel message</span><blockquote data-track-module-name=\"messageQuotedReply\"><span id=\"extra-quote\">Reply quote</span></blockquote></div><img id=\"extra-media\" src=\"__IMAGE__\"></div><div><img id=\"extra-attachment\" src=\"__IMAGE__\"><video id=\"extra-video\"></video></div><img itemtype=\"http://schema.skype.com/Emoji\" id=\"extra-emoji\" src=\"__IMAGE__\"></div>",
-    "targets": {
-      "messages": [
-        "extra-message",
-        "extra-quote"
-      ],
-      "names": [
-        "extra-name"
-      ],
-      "avatars": [
-        "extra-avatar"
-      ],
-      "media": [
-        "extra-media",
-        "extra-attachment",
-        "extra-video"
-      ]
-    }
-  },
   "linkedin": {
     "html": "<div class=\"feed-shared-update-v2\"><div class=\"update-components-actor__avatar\" id=\"extra-avatar\"><img src=\"__IMAGE__\"></div><span class=\"update-components-actor__name\" id=\"extra-name\">Feed author</span><div class=\"update-components-text\" id=\"extra-message\">Feed post</div><div class=\"update-components-image\"><img id=\"extra-media\" src=\"__IMAGE__\"></div><video id=\"extra-video\"></video></div>",
     "targets": {
@@ -141,7 +101,6 @@ module.exports = async ({wc,save,move,hover,isBlurred,service}) => {
   await save({enabled:true,revealOnHover:false,elements:{...empty,[category]:true}});
   await move(wc,2,2);
   for(const [key,ids] of Object.entries(variant.targets))for(const id of ids)assert.equal(await isBlurred(wc,id),key===category,service+' alternate '+category+' / '+id);
-  if(service==='teams')assert.equal(await isBlurred(wc,'extra-emoji'),false,'standalone emoji is not attachment media/avatar');
  }
  await save({enabled:true});
  await evaluate('document.getElementById("extra-message").scrollIntoView({block:"center"})');

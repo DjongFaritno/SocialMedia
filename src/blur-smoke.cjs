@@ -119,5 +119,5 @@ module.exports = async ({ app, win, views, settings, handleAccountAction, blurCo
  for (const side of ["left","right"]) await ui('window.duo.blurAction("set",'+JSON.stringify({side,enabled:originalPanels[side]})+')');
  await handleAccountAction('select', { side: 'left', id: originalSlots.left });
  await handleAccountAction('select', { side: 'right', id: originalSlots.right });
- console.log('INTERACTIVE BLUR PASS: shared configuration form/persistence, thirteen service fixtures, selective categories, native Chromium hover/reblur and typing, original filters, no remote bridge, origin boundary and simultaneous panels. Real-account coverage still needs device testing.');
+ console.log('INTERACTIVE BLUR PASS: shared configuration form/persistence, eleven service fixtures, selective categories, native Chromium hover/reblur and typing, original filters, no remote bridge, origin boundary and simultaneous panels. Real-account coverage still needs device testing.');
 };

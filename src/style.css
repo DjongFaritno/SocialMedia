@@ -17,9 +17,9 @@
 #blur-form .blur-switch{display:flex;gap:10px;align-items:center;font-size:12px;line-height:1.7}.blur-presets{display:flex;gap:8px;margin:12px 0 22px}#blur-strength{display:block;width:100%;accent-color:#4b9e79;margin:14px 0 22px}
 .blur-support{font-size:11px;margin:18px 0;color:var(--muted)}.blur-support summary{cursor:pointer;color:var(--ink)}#blur-support-list p{margin:13px 0;line-height:1.6}#blur-support-list strong,#blur-support-list span{display:block}#blur-support-list strong{color:var(--ink)}.blur-config-link{margin-top:18px;background:var(--mint)}[data-blur-toggle][aria-pressed=true]{background:var(--mint);border-color:#80bca3;color:var(--green)}
 
-.messenger.provider-icon,.facebook.provider-icon,#account-rail .messenger.rail-account,#account-rail .facebook.rail-account{background:var(--blue);color:#4b8be3}.googlechat.provider-icon,.wechat.provider-icon,#account-rail .googlechat.rail-account,#account-rail .wechat.rail-account{background:var(--mint);color:var(--green)}
+.messenger.provider-icon,.facebook.provider-icon,#account-rail .messenger.rail-account,#account-rail .facebook.rail-account{background:var(--blue);color:#4b8be3}.wechat.provider-icon,#account-rail .wechat.rail-account{background:var(--mint);color:var(--green)}
 
-.slack.provider-icon,#account-rail .slack.rail-account{background:var(--mint);color:var(--green)}.teams.provider-icon,#account-rail .teams.rail-account{background:#e8e4f4;color:#8172b4}.linkedin.provider-icon,#account-rail .linkedin.rail-account{background:var(--blue);color:#4b8be3}
+.slack.provider-icon,#account-rail .slack.rail-account{background:var(--mint);color:var(--green)}.linkedin.provider-icon,#account-rail .linkedin.rail-account{background:var(--blue);color:#4b8be3}
 
 /* Native popup options need their own paired colors on Windows/Linux. */
 select{color-scheme:inherit}select option,select optgroup{background-color:var(--paper);color:var(--ink)}

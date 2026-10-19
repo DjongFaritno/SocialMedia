@@ -7,6 +7,9 @@ module.exports = async ({ app, win, views, settings, state, overlay, showOverlay
  const ready = async () => { const deadline = Date.now() + 8000; while (Object.values(views).some(view => view.webContents.isLoading())) { if (Date.now() > deadline) throw Error('Views did not load'); await sleep(40); } await sleep(100); };
  const ui = code => win.webContents.executeJavaScript(code);
  await ready(); assert.equal(Object.keys(views).length, 2);
+ const withdrawnProfiles=[{id:'account-aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',service:'googlechat',name:'K-Team',keepActive:true,permissions:true},{id:'account-bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',service:'teams',name:'Office',keepActive:true,permissions:true}];
+ settings.retiredAccounts.push(...withdrawnProfiles);
+ for(const profile of withdrawnProfiles){assert.equal((await ui('window.duo.accountAction("select",'+JSON.stringify({side:'left',id:profile.id})+')')).ok,false);assert.equal(views[profile.id],undefined);}
  if (process.platform === 'win32' && app.isPackaged) {
   assert.equal(state().privacy.biometricLabel, 'Windows Hello');
   assert.ok(['Available','NotConfiguredForUser','DeviceNotPresent','DisabledByPolicy','DeviceBusy','UnknownError'].includes(state().privacy.biometricStatus), 'Native Windows Hello availability probe must load and run: ' + state().privacy.biometricStatus);
@@ -28,6 +31,9 @@ module.exports = async ({ app, win, views, settings, state, overlay, showOverlay
  const added = await ui("window.duo.accountAction('add',{service:'whatsapp',name:'Toko kedua'})"); assert.equal(added.ok, true);
  assert.equal(Object.keys(views).length, 2, 'Stored account is lazy, not a live page');
  assert.equal(settings.accounts.length, 3);
+ assert.deepEqual(JSON.parse(fs.readFileSync(path.join(app.getPath('userData'),'settings.json'),'utf8')).retiredAccounts,withdrawnProfiles,'unrelated account save preserves retired metadata');
+ for(const service of ['googlechat','teams'])assert.equal((await ui('window.duo.accountAction("add",'+JSON.stringify({service,name:'Retired'})+')')).ok,false,'withdrawn provider cannot be added');
+ assert.equal(await overlay.webContents.executeJavaScript('Boolean(document.querySelector("[data-provider=googlechat],[data-provider=teams]"))'),false,'withdrawn services absent from account picker');
  await ui(`window.duo.accountAction('select',{side:'right',id:${JSON.stringify(added.id)}})`); await ready();
  assert.equal(settings.slots.right, added.id); assert.equal(Object.keys(views).length, 2); assert.equal(views.telegram, undefined);
  const newSession = views[added.id].webContents.session; assert.notEqual(newSession, oldSession);
@@ -57,13 +63,13 @@ module.exports = async ({ app, win, views, settings, state, overlay, showOverlay
  assert.equal(settings.accounts.length, 4); assert.equal(settings.accounts[3].service, 'instagram');
  assert.equal(await overlay.webContents.executeJavaScript("document.querySelectorAll('#account-settings img').length"), 0, 'Account labels are escaped');
  showOverlay(null); await ui("window.duo.windowAction('header')");
- for (const service of ['x', 'threads', 'discord', 'messenger', 'facebook', 'googlechat', 'wechat', 'slack', 'teams', 'linkedin']) {
+ for (const service of ['x', 'threads', 'discord', 'messenger', 'facebook', 'wechat', 'slack', 'linkedin']) {
   const result = await handleAccountAction('add', { service, name: service }); await handleAccountAction('select', { side: 'right', id: result.id }); await ready();
   assert.equal(Object.keys(views).length, 2); assert.match(await views[result.id].webContents.executeJavaScript('document.body.textContent'), /smoke fixture/);
  }
 
  // Additional web services use the same sandbox/profile/cover infrastructure.
- for (const service of ['messenger','facebook','googlechat','wechat','slack','teams','linkedin']) {
+ for (const service of ['messenger','facebook','wechat','slack','linkedin']) {
   const account = settings.accounts.find(item=>item.service===service);
   await handleAccountAction('select',{side:'left',id:account.id}); await ready(); await sleep(80);
   const wc = views[account.id].webContents;
@@ -78,7 +84,6 @@ module.exports = async ({ app, win, views, settings, state, overlay, showOverlay
   await ui('window.duo.privacyAction("cover",{side:"left"})');
   assert.equal(views[account.id].getVisible(),true,service+' cover restores native content');
  }
- await require('./googlechat-smoke.cjs')({win,views,settings,state,handleAccountAction,blurControllers});
  const messenger=settings.accounts.find(item=>item.service==='messenger');
  const facebook=settings.accounts.find(item=>item.service==='facebook');
  await handleAccountAction('select',{side:'left',id:messenger.id});
@@ -87,7 +92,7 @@ module.exports = async ({ app, win, views, settings, state, overlay, showOverlay
  assert.notEqual(messengerSession,facebookSession,'Facebook and Messenger account sessions remain independent despite shared origin');
  await messengerSession.cookies.set({url:'https://www.facebook.com/',name:'duochat-messenger-fixture',value:'isolated'});
  assert.equal((await facebookSession.cookies.get({name:'duochat-messenger-fixture'})).length,0);
- console.log('NEW SERVICE PASS: seven added providers, isolated Facebook/Messenger cookies, sandbox, enabled blur controls, native panel covers.');
+ console.log('NEW SERVICE PASS: five added providers and inactive withdrawn profiles, isolated Facebook/Messenger cookies, sandbox, enabled blur controls, native panel covers.');
  await handleAccountAction('select', { side: 'left', id: 'whatsapp' }); await handleAccountAction('select', { side: 'right', id: 'telegram' }); await ready();
  assert.equal(views.whatsapp.webContents.session, oldSession); assert.equal((await oldSession.cookies.get({ name: 'duochat-fixture' }))[0].value, 'personal');
  assert.deepEqual(cleanSettings(JSON.parse(JSON.stringify(settings))).slots, settings.slots);
