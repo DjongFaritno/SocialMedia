@@ -35,7 +35,7 @@ function cleanAccount(raw) {
 }
 function accountState(raw) {
   const seen = new Set();
-  const accounts = (Array.isArray(raw.accounts) ? raw.accounts : []).map(cleanAccount).filter(item => item && !seen.has(item.id) && seen.add(item.id)).slice(0, MAX_ACCOUNTS);
+  const accounts = [...(Array.isArray(raw.accounts) ? raw.accounts : []), ...(Array.isArray(raw.retiredAccounts) ? raw.retiredAccounts : [])].map(cleanAccount).filter(item => item && !seen.has(item.id) && seen.add(item.id)).slice(0, MAX_ACCOUNTS);
   // Preserve the old partition names, so existing QR logins survive the upgrade.
   if (!accounts.length) for (const service of ['whatsapp', 'telegram']) accounts.push({ id: service, service, name: SERVICES[service].name, keepActive: false, permissions: raw.schema !== 2 && raw.permissions?.[service] === true });
   if (accounts.length === 1) accounts.push({ id: 'account-' + randomUUID(), service: 'telegram', name: 'Telegram', keepActive: false, permissions: false });
