@@ -4,7 +4,9 @@ const { trusted } = require('./core.cjs');
 const META_LOGIN_ORIGINS = new Set(['https://www.facebook.com', 'https://facebook.com', 'https://m.facebook.com', 'https://web.facebook.com']);
 const MICROSOFT_LOGIN_ORIGINS = new Set(['https://login.microsoftonline.com', 'https://login.live.com', 'https://login.microsoft.com', 'https://account.live.com']);
 function authenticationOrigin(service, url) {
- if (service === 'googlechat') return url.origin === 'https://accounts.google.com';
+ if (service === 'googlechat') return url.origin === 'https://accounts.google.com'
+  || (url.origin === 'https://workspace.google.com'
+   && /^\/(?:intl\/[a-z]{2,3}(?:[-_][a-z0-9]{2,8})*\/)?products\/chat\/?$/i.test(url.pathname));
  if (service === 'teams') return MICROSOFT_LOGIN_ORIGINS.has(url.origin);
  // Workspace subdomains are navigation-only; media/notification grants remain
  // limited to app.slack.com. Custom enterprise IdP domains are not trusted.
