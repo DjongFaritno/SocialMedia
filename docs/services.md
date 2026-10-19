@@ -1,4 +1,4 @@
-# Layanan DuoChat 2.0.4
+# Layanan DuoChat 2.0.5
 
 Tiga belas pilihan: WhatsApp, Telegram, Discord, X, Instagram, Threads, Messenger, Facebook, Google Chat, WeChat, Slack, Microsoft Teams, LinkedIn.
 
@@ -21,6 +21,6 @@ Auth Google/Microsoft/Slack workspace tidak menerima izin kamera/mikrofon/notifi
 Referensi: [Slack web login](https://slack.com/help/articles/212681477-Sign-in-to-Slack), [Teams web](https://support.microsoft.com/en-us/teams/meetings/use-microsoft-teams-on-the-web), [LinkedIn Messaging](https://www.linkedin.com/help/linkedin/answer/a564261), [Google Chat](https://support.google.com/chat/answer/7653601?hl=en), [Google embedded-browser policy](https://developers.googleblog.com/upcoming-security-changes-to-googles-oauth-20-authorization-endpoint-in-embedded-webviews/), [WeChat Web](https://web.wechat.com/).
 
 
-Google Chat 2.0.4: navigasi dan blur mendukung chat.google.com serta jalur legacy https://mail.google.com/chat/ dan /mail/u/<nomor>/chat/. Inbox Gmail tidak diizinkan. Izin pada origin mail.google.com memerlukan dokumen Chat yang dikenali; worker tanpa dokumen tidak diberi izin di origin bersama itu. Google dapat menolak login browser tertanam atau membatasi akun Workspace; login browser eksternal tidak menyalin sesi ke DuoChat. QC lokal tidak membuktikan login akun nyata.
+Google Chat 2.0.5: navigasi dan blur mendukung chat.google.com serta jalur legacy https://mail.google.com/chat/ dan /mail/u/<nomor>/chat/. Inbox Gmail tidak diizinkan. Izin pada origin mail.google.com memerlukan dokumen Chat yang dikenali; worker tanpa dokumen tidak diberi izin di origin bersama itu. Google dapat menolak login browser tertanam atau membatasi akun Workspace; login browser eksternal tidak menyalin sesi ke DuoChat. QC lokal tidak membuktikan login akun nyata.
 
 Referensi: [migrasi alamat Google Chat](https://workspaceupdates.googleblog.com/2025/12/a-new-web-address-for-google-chat.html).

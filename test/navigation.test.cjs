@@ -75,3 +75,16 @@ test('blocked redirects notify the panel once without opening an external browse
  contents.emit('will-redirect',{preventDefault(){prevented=true;}},'https://mail.google.com/mail/u/0/',false,true);
  assert.equal(prevented,true);assert.deepEqual(blocked,['redirect']);assert.deepEqual(external,[]);
 });
+
+test('Google Chat public Workspace landing is navigation-only and path scoped',()=>{
+ const {trusted}=require('../src/core.cjs'),{allowed}=require('../src/blur.cjs');
+ for(const url of ['https://workspace.google.com/products/chat/','https://workspace.google.com/products/chat','https://workspace.google.com/intl/en/products/chat/','https://workspace.google.com/intl/id/products/chat/','https://workspace.google.com/intl/en-US/products/chat/','https://workspace.google.com/intl/en_ie/products/chat/']){
+  assert.equal(navigationAllowed('googlechat',url),true,url);
+  assert.equal(popupAllowed('googlechat','about:blank',url),true);
+  assert.equal(trusted('googlechat',url),false,'landing never becomes Chat content');
+  assert.equal(allowed('googlechat',url),false,'no content blur injection on landing');
+  for(const permission of ['media','notifications'])assert.equal(servicePermitted('googlechat',true,permission,url,url),false);
+  for(const other of ['whatsapp','telegram','facebook','teams','slack'])assert.equal(navigationAllowed(other,url),false);
+ }
+ for(const url of ['https://workspace.google.com/','https://workspace.google.com/products/gmail/','https://workspace.google.com/products/chat/other','https://workspace.google.com/intl/en/products/chatty/','https://workspace.google.com/products/chat/%2f..','https://workspace.google.com/intl/en/products/%63hat/','https://workspace.google.com:8443/products/chat/','https://workspace.google.com.evil.test/products/chat/','https://evil.test@workspace.google.com/products/chat/','http://workspace.google.com/products/chat/'])assert.equal(navigationAllowed('googlechat',url),false,url);
+});
