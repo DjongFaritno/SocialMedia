@@ -42,7 +42,10 @@ function accountState(raw) {
   const ids = new Set(accounts.map(item => item.id));
   const left = ids.has(raw.slots?.left) ? raw.slots.left : accounts[0].id;
   const right = ids.has(raw.slots?.right) && raw.slots.right !== left ? raw.slots.right : accounts.find(item => item.id !== left).id;
-  return { schema: 2, accounts, slots: { left, right } };
+  const remainingIds = new Set(ids);
+  const retiredAccounts = (Array.isArray(raw.retiredAccounts)?raw.retiredAccounts:[]).map(cleanAccount)
+   .filter(item=>item&&!remainingIds.has(item.id)&&remainingIds.add(item.id)).slice(0,MAX_ACCOUNTS);
+  return { schema: 2, accounts, retiredAccounts, slots: { left, right } };
 }
 function partition(account) {
   if (!cleanAccount(account)) throw new Error('Invalid account');
