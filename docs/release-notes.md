@@ -1,10 +1,9 @@
-DuoChat 2.0.3 — pilihan akun tetap terbaca di dark mode.
+DuoChat 2.0.4 — daftar akun gelap, tulisannya terang.
 
-- Warna teks dan latar opsi dropdown kini ditentukan bersama sesuai tema. Memperbaiki daftar akun/layanan yang terlihat putih dengan teks terlalu terang pada Windows dan Linux.
-- Perbaikan berlaku untuk semua select di aplikasi, termasuk bahasa, tema, dan pilihan pengaturan. Native control mengikuti tema efektif dalam mode Dark, White, dan Auto.
-- QC Electron memeriksa warna opsi yang benar-benar diterapkan dan rasio kontras minimal 4.5:1 pada Windows, macOS, Linux X11 dan Wayland. Pengujian otomatis tidak menggantikan pemeriksaan visual popup native pada setiap versi OS.
-- Perbaikan dialog Linux dari 2.0.2 dan Google Chat tetap disertakan. Sesi login dipertahankan.
-
-Gratis, tanpa iklan, tanpa langganan.
+- Pemilih akun di kedua panel memakai popup yang dirender DuoChat, menggantikan dropdown bawaan OS yang masih dapat mengabaikan warna tema pada 2.0.3.
+- Dark memakai latar hampir hitam dengan teks putih. White memakai latar putih dengan teks gelap; Auto mengikuti tema efektif.
+- Popup tampil di atas panel chat, mendukung scroll, klik, ArrowUp/ArrowDown/Home/End, Enter, Escape, dan klik di luar. Nama akun tetap berupa teks, termasuk karakter khusus.
+- QC memeriksa piksel screenshot popup yang benar-benar dirender, visibilitas panel, posisi/lapisan native view, klik dan keyboard pada kedua panel, mode biasa/ringkas, Windows/macOS/Linux X11 dan Wayland. Pengujian otomatis tidak menggantikan konfirmasi di perangkat pengguna.
+- Perbaikan dialog Linux dan Google Chat tetap disertakan. Gratis, tanpa iklan, tanpa langganan.
 
 by Codex · prompt by TjongFaritno

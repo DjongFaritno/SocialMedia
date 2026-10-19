@@ -32,6 +32,7 @@ function render(state) {
   const account = state.accounts.find(item => item.id === state.slots[side]), select = document.querySelector(`#${side}-account`);
   const choices = state.accounts.map(item => `<option value="${item.id}">${escapeHTML(item.name)} · ${providerNames[item.service]}</option>`).join('');
   if (select.innerHTML !== choices) select.innerHTML = choices; select.value = account.id;
+  const picker = document.querySelector(`#${side}-account-picker`); picker.textContent = account.name + " · " + providerNames[account.service]; picker.title = picker.textContent; picker.setAttribute("aria-expanded", String(state.overlayMode === "pick-" + side));
   const status = state.statuses?.[account.id]; document.querySelector(`#${side}-status`).textContent = state.blurPanels[side] && state.blurStatuses?.[account.id] === 'error' ? t('Blur gagal · muat ulang') : status?.state === 'ready' ? t('Web dimuat') : status?.state === 'error' ? t(status.message || 'Gagal memuat', status.values) : t('Memuat…');
   const placeholder = document.querySelector('#' + side + '-panel .placeholder p');
   placeholder.textContent = status?.state === 'error' ? t(status.message || 'Gagal memuat', status.values) : t('Memuat web resmi layanan…');
@@ -63,3 +64,9 @@ document.querySelectorAll('[data-blur-toggle]').forEach(button => button.addEven
 }));
 
 document.querySelector('[data-language]').addEventListener('change', event => window.duo.setLanguage(event.target.value));
+
+document.querySelectorAll('[data-account-picker]').forEach(button => {
+ const open=()=>{const r=button.getBoundingClientRect();void window.duo.accountPicker(button.dataset.accountPicker,{x:r.x,y:r.y,width:r.width,height:r.height});};
+ button.addEventListener('click',open);
+ button.addEventListener('keydown',event=>{if(['ArrowDown','ArrowUp'].includes(event.key)){event.preventDefault();open();}});
+});
