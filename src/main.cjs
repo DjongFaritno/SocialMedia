@@ -22,7 +22,8 @@ if (smoke) app.setPath('userData', fs.mkdtempSync(path.join(require('node:os').t
 let win, aboutWindow, overlay, settings, settingsPath, saveTimer;
 const { translate } = require('./i18n.js');
 const t = (message, values) => translate(settings?.language, message, values);
-let overlayMode = null, overlayReturnFocus;
+let overlayMode = null, overlayReturnFocus, pickerAnchor;
+function pickingAccount() { return overlayMode === "pick-left" || overlayMode === "pick-right"; }
 const configuredSessions = new Set(), childWindows = new Map();
 // Use the same profile lock on every launch; never create a second pair of chats.
 const primaryInstance = app.requestSingleInstanceLock();
@@ -50,7 +51,7 @@ function state() {
   const fullscreen = win.isFullScreen();
   return { ...settings, blurSupport: blurSupport(), blurStatuses, privacy: privacy ? { ...privacy.snapshot(), ...biometrics.snapshot(), biometricStartupError } : undefined, updates: updates?.snapshot(), statuses, fullscreen, effectiveTheme: nativeTheme.shouldUseDarkColors ? 'dark' : 'light', headerHidden: fullscreen ? !fullscreenHeaderVisible : settings.hideHeader };
 }
-function send() { if (win && !win.isDestroyed()) win.webContents.send('state', state()); if (overlay && !overlay.webContents.isDestroyed()) overlay.webContents.send('state', { ...state(), overlayMode }); }
+function send() { if (win && !win.isDestroyed()) win.webContents.send('state', { ...state(), overlayMode }); if (overlay && !overlay.webContents.isDestroyed()) overlay.webContents.send('state', { ...state(), overlayMode }); }
 function updateColors() {
   const dark = nativeTheme.shouldUseDarkColors;
   win.setBackgroundColor(dark ? '#161e1b' : '#edf2f1');
@@ -117,6 +118,12 @@ function windowAction(action) {
   }
 }
 function shortcuts(contents) {
+  contents.on('before-mouse-event', (_event,input)=>{
+    if (!pickingAccount() || contents===overlay?.webContents || input.type!=='mouseDown') return;
+    if (contents===win.webContents && pickerAnchor && input.x>=pickerAnchor.x && input.x<=pickerAnchor.x+pickerAnchor.width && input.y>=pickerAnchor.y && input.y<=pickerAnchor.y+pickerAnchor.height) return;
+    showOverlay(null);
+  });
+
   contents.on('before-input-event', (event, input) => {
     if (input.type !== 'keyDown' || input.isAutoRepeat) return;
     const key = input.key.toLowerCase();
@@ -138,7 +145,7 @@ function arrange() {
   }
   if (overlay) {
     overlay.setBackgroundColor(presentation.background);
-    overlay.setBounds(overlayMode === 'rail' ? { x: 0, y: state().headerHidden ? 0 : 80, width: 88, height: Math.max(1, height - 40 - (state().headerHidden ? 0 : 80)) } : { x: 0, y: 0, width, height });
+    overlay.setBounds(pickingAccount() ? accountPickerBounds(width,height) : overlayMode === 'rail' ? { x: 0, y: state().headerHidden ? 0 : 80, width: 88, height: Math.max(1, height - 40 - (state().headerHidden ? 0 : 80)) } : { x: 0, y: 0, width, height });
   }
   if (!win.isMaximized() && !win.isFullScreen()) { const [w, h] = win.getSize(); settings.width = w; settings.height = h; }
   queueSave(); send();
@@ -268,11 +275,12 @@ function refreshBlur() { return Promise.allSettled([...blurControllers.values()]
 function showOverlay(mode, focus = false) {
   if (mode === 'privacy') void biometrics.refresh().then(send);
   if (privacy.snapshot().locked) mode = 'lock';
-  if (!['rail', 'add', 'manage', 'privacy', 'blur', 'lock', null].includes(mode)) return;
+  if (!['rail', 'add', 'manage', 'privacy', 'blur', 'lock', 'pick-left', 'pick-right', null].includes(mode)) return;
+  if (mode && mode.startsWith('pick-') && !pickerAnchor) return;
   if (mode === 'rail' && !state().headerHidden) return;
   if (mode && !overlayMode) overlayReturnFocus = webContents.getFocusedWebContents();
   const hadOverlayFocus = overlay.webContents.isFocused();
-  overlayMode = mode;
+  overlayMode = mode; if (!pickingAccount()) pickerAnchor = undefined;
   // Reorder in place: detaching and reattaching can leave Electron 44 Linux views hidden.
   // https://github.com/electron/electron/issues/54626
   if (mode) win.contentView.addChildView(overlay);
@@ -355,6 +363,21 @@ ipcMain.handle('service:action', async (event, id, action) => {
     }
   }
 });
+
+function accountPickerBounds(width,height) {
+ const a=pickerAnchor, w=Math.round(Math.min(360,Math.max(240,a.width))), h=Math.min(settings.accounts.length*42+12,360,height-16);
+ const x=Math.max(8,Math.min(width-w-8,Math.round(a.x)));
+ const below=a.y+a.height+5, y=below+h<=height-8?below:Math.max(8,a.y-h-5);
+ return {x,y:Math.round(y),width:w,height:h};
+}
+ipcMain.handle('ui:account-picker',(event,side,anchor)=>{
+ if (!editableUI(event) || event.sender!==win.webContents || !['left','right'].includes(side)) return {ok:false};
+ const [width,height]=win.getContentSize();
+ if (!anchor || !['x','y','width','height'].every(key=>Number.isFinite(anchor[key])) || anchor.width<=0 || anchor.height<=0 || anchor.x<0 || anchor.y<0 || anchor.x+anchor.width>width+1 || anchor.y+anchor.height>height+1) return {ok:false};
+ if (overlayMode==='pick-'+side) {showOverlay(null);return {ok:true};}
+ pickerAnchor=anchor;showOverlay('pick-'+side);return {ok:true};
+});
+
 ipcMain.handle('ui:overlay', (event, mode, focus) => { if (ownUI(event)) showOverlay(mode, focus === true); });
 let accountActions = Promise.resolve();
 ipcMain.handle('account:action', (event, action, input) => {
@@ -454,7 +477,8 @@ if (primaryInstance) app.whenReady().then(async () => {
   const unlockOnFirstFocus = () => { void startupUnlock().then(result => { if (!result.ok && !result.skipped) { biometricStartupError = result.error; send(); } }); };
   win.once('focus', unlockOnFirstFocus); win.show();
   if (win.isFocused()) unlockOnFirstFocus();
-  updatePresentation(); win.on('resize', arrange);
+  updatePresentation(); win.on('resize', () => { if (pickingAccount()) showOverlay(null); arrange(); });
+  win.on('blur', () => { if (pickingAccount()) showOverlay(null); });
   if (!smoke && app.isPackaged) updates.start();
   if (pendingFocus) focusExistingWindow();
   win.on('close', () => { save(); clearTimeout(saveTimer); for (const id of Object.keys(views)) closeAccount(id); if (overlay && !overlay.webContents.isDestroyed()) overlay.webContents.close(); });

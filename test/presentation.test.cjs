@@ -11,3 +11,5 @@ test('modal settings hide service surfaces; sidebar remains transparent with bot
   }
  }
 });
+
+test('account picker stays opaque without hiding services',()=>{for(const platform of ['linux','win32','darwin'])for(const mode of ['pick-left','pick-right'])for(const dark of [false,true])assert.deepEqual(overlayPresentation(mode,platform,dark),{hideServices:false,background:dark?'#161616':'#ffffff'});});

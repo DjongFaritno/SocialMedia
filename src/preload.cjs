@@ -3,6 +3,7 @@ contextBridge.exposeInMainWorld('duo', {
   blurAction: (action, input) => ipcRenderer.invoke('blur:action', action, input),
   privacyAction: (action, input) => ipcRenderer.invoke('privacy:action', action, input),
   accountAction: (action, input) => ipcRenderer.invoke('account:action', action, input),
+  accountPicker: (side, anchor) => ipcRenderer.invoke('ui:account-picker', side, anchor),
   overlay: (mode, focus = false) => ipcRenderer.invoke('ui:overlay', mode, focus),
   updateAction: action => ipcRenderer.invoke('update:action', action),
   windowAction: action => ipcRenderer.invoke('window:action', action),

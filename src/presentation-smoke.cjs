@@ -25,6 +25,62 @@ module.exports=async({app,win,views,settings,overlay,state,showOverlay,about})=>
  }
  await ui('window.duo.setTheme('+JSON.stringify(originalTheme)+')');
 
+
+ // Exercise the actual app-rendered popup; style inspection alone did not
+ // catch native select menus ignoring the theme on Windows and Linux.
+ const originalSlots={...settings.slots}, initialCompact=state().headerHidden;
+ const key=keyCode=>{overlay.webContents.sendInputEvent({type:'keyDown',keyCode});overlay.webContents.sendInputEvent({type:'keyUp',keyCode});};
+ const openPicker=async side=>{
+  await ui('document.querySelector("#'+side+'-account-picker").click()');
+  await until(()=>overlay.getVisible()&&modal('!document.querySelector("#account-picker-list").hidden'),'account popup opens');
+  await until(()=>modal('document.activeElement.matches("[data-pick-account]")'),'account option focused');
+  assert.equal(win.contentView.children.at(-1),overlay,'popup is above native chat surfaces');
+  for(const [slot,id]of Object.entries(settings.slots))assert.equal(views[id].getVisible(),!state().privacy.covered[slot],'chat visibility preserved behind picker');
+  const b=overlay.getBounds(),[w,h]=win.getContentSize();assert.ok(b.width>=240&&b.height>0&&b.x>=0&&b.y>=0&&b.x+b.width<=w&&b.y+b.height<=h,'popup stays within window');
+ };
+ fs.mkdirSync('artifacts',{recursive:true});
+ for(const compact of [false,true]){
+  if(state().headerHidden!==compact)await ui('window.duo.windowAction("header")');
+  for(const theme of ['dark','light','auto']){
+   await ui('window.duo.setTheme('+JSON.stringify(theme)+')');
+   for(const side of ['left','right']){
+    await openPicker(side);
+    let timer;try{await Promise.race([modal('new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)))'),new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('Account popup did not paint')),6000);})]);}finally{clearTimeout(timer);}
+    const image=await overlay.webContents.capturePage();assert.equal(image.isEmpty(),false);
+    const bytes=image.toBitmap();let black=0,white=0;
+    for(let i=0;i<bytes.length;i+=4){if(bytes[i]<75&&bytes[i+1]<75&&bytes[i+2]<75)black++;if(bytes[i]>220&&bytes[i+1]>220&&bytes[i+2]>220)white++;}
+    const total=bytes.length/4,dark=state().effectiveTheme==='dark';
+    assert.ok((dark?black:white)/total>.45,'popup has the actual '+(dark?'black':'white')+' rendered background');
+    assert.ok((dark?white:black)>20,'contrasting text pixels rendered');
+    assert.equal(await modal('getComputedStyle(document.querySelector(".account-option")).color'),dark?'rgb(255, 255, 255)':'rgb(23, 23, 23)');
+    if(!compact)fs.writeFileSync(path.join('artifacts','dialog-picker-'+side+'-'+theme+'.png'),image.toPNG());
+    const selected=settings.slots[side];
+    // Real mouse input selects the current row and closes the popup.
+    const point=await modal('(()=>{const r=document.querySelector("[aria-selected=true]").getBoundingClientRect();return {x:Math.round(r.x+r.width/2),y:Math.round(r.y+r.height/2)}})()');
+    overlay.webContents.sendInputEvent({type:'mouseDown',button:'left',clickCount:1,...point});overlay.webContents.sendInputEvent({type:'mouseUp',button:'left',clickCount:1,...point});
+    await until(()=>!overlay.getVisible(),'account mouse selection closes popup');assert.equal(settings.slots[side],selected);
+    await openPicker(side);key('Escape');await until(()=>!overlay.getVisible(),'account Escape closes popup');
+   }
+   console.log('ACCOUNT PICKER PIXELS PASS: '+JSON.stringify({platform:process.platform,compact,theme,effective:state().effectiveTheme}));
+  }
+ }
+ if(state().headerHidden!==initialCompact)await ui('window.duo.windowAction("header")');
+ await ui('window.duo.setTheme('+JSON.stringify(originalTheme)+')');
+ for(const side of ['left','right']){
+  await openPicker(side);
+  const next=await modal('(()=>{const b=Array.from(document.querySelectorAll("[data-pick-account]"));const i=b.indexOf(document.activeElement);return b[(i+1)%b.length].dataset.pickAccount})()');
+  key('ArrowDown');key('Enter');
+  await until(()=>!overlay.getVisible()&&settings.slots[side]===next,'keyboard account switch '+side);
+ }
+ for(const side of ['left','right'])await ui('window.duo.accountAction("select",'+JSON.stringify({side,id:originalSlots[side]})+')');
+ await until(()=>Object.values(views).every(v=>!v.webContents.isLoading()),'service fixtures settle after switching');
+ await openPicker('left');
+ const outside=views[settings.slots.right].webContents;
+ outside.sendInputEvent({type:'mouseDown',button:'left',clickCount:1,x:100,y:100});outside.sendInputEvent({type:'mouseUp',button:'left',clickCount:1,x:100,y:100});
+ await until(()=>!overlay.getVisible(),'outside chat click dismisses picker');
+ assert.equal(await ui('window.duo.accountPicker("left",{x:-1,y:0,width:100,height:20})').then(r=>r.ok),false,'invalid popup anchor rejected');
+ console.log('ACCOUNT PICKER INPUT PASS: both panels, pointer/Escape/ArrowDown/Enter, outside click, compact mode, actual popup pixels and visible service surfaces.');
+
  const ids=Object.values(views).map(v=>v.webContents.id);
  await until(()=>Object.values(views).every(v=>!v.webContents.isLoading()),'initial fixtures');
  fs.mkdirSync('artifacts',{recursive:true});
