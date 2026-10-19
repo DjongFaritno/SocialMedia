@@ -139,7 +139,15 @@ module.exports=async({app,win,views,settings,overlay,state,showOverlay,about})=>
   await until(()=>about()&&!about().webContents.isLoading(),'About opens');
   assert.equal(about().isVisible(),true,'About native window is visible');
   await until(()=>about().webContents.executeJavaScript('document.querySelector("#version").textContent').then(value=>value===app.getVersion()),'About version renders');
-  await about().webContents.executeJavaScript('document.querySelector("#close-about").click()').catch(()=>{});
+  // The renderer may be destroyed before executeJavaScript returns. Observe
+  // the native close event instead of awaiting a reply from a closed window.
+  const aboutToClose=about();
+  await new Promise((resolve,reject)=>{
+   const timer=setTimeout(()=>reject(Error('Dialog QC: About close timed out')),5000);
+   aboutToClose.once('closed',()=>{clearTimeout(timer);resolve();});
+   void aboutToClose.webContents.executeJavaScript('document.querySelector("#close-about").click()').catch(()=>{});
+  });
+  console.log('ABOUT CLOSE PASS: '+(count+1));
   await until(()=>!about(),'About closes');
  }
  showOverlay(null);
