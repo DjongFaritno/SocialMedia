@@ -110,7 +110,10 @@ module.exports=async({app,win,views,settings,overlay,state,showOverlay,about})=>
     if(!compact)fs.writeFileSync(path.join('artifacts','dialog-'+mode+'.png'),image.toPNG());
    }
    if(mode==='add'){
+    await modal('document.querySelector("[data-provider=telegram]").scrollIntoView({block:"center"})');
+    await modal('new Promise(r=>requestAnimationFrame(r))');
     const point=await modal('(()=>{const r=document.querySelector("[data-provider=telegram]").getBoundingClientRect();return {x:Math.round(r.x+r.width/2),y:Math.round(r.y+r.height/2)}})()');
+    assert.ok(point.x>0&&point.y>0&&point.y<win.getContentSize()[1],'provider mouse target is scrolled into view');
     overlay.webContents.sendInputEvent({type:'mouseDown',button:'left',clickCount:1,...point});
     overlay.webContents.sendInputEvent({type:'mouseUp',button:'left',clickCount:1,...point});
     await until(()=>modal('document.querySelector("#provider").value==="telegram"'),'provider mouse input');
