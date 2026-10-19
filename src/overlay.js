@@ -64,6 +64,7 @@ function renderAccountPicker(state) {
 }
 document.querySelector('#account-picker-list').addEventListener('keydown',event=>{
  const buttons=Array.from(event.currentTarget.querySelectorAll('button'));
+ if(event.key==='Enter'||event.key===' '){event.preventDefault();document.activeElement?.closest('[data-pick-account]')?.click();return;}
  const index=buttons.indexOf(document.activeElement);let next;
  if(event.key==='ArrowDown'||event.key==='Tab'&&!event.shiftKey)next=(index+1)%buttons.length;
  if(event.key==='ArrowUp'||event.key==='Tab'&&event.shiftKey)next=(index-1+buttons.length)%buttons.length;

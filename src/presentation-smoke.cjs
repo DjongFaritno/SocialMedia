@@ -69,7 +69,9 @@ module.exports=async({app,win,views,settings,overlay,state,showOverlay,about})=>
  for(const side of ['left','right']){
   await openPicker(side);
   const next=await modal('(()=>{const b=Array.from(document.querySelectorAll("[data-pick-account]"));const i=b.indexOf(document.activeElement);return b[(i+1)%b.length].dataset.pickAccount})()');
-  key('ArrowDown');key('Enter');
+  key('ArrowDown');
+  await until(()=>modal('document.activeElement.dataset.pickAccount').then(id=>id===next),'ArrowDown moves option focus');
+  key('Enter');
   await until(()=>!overlay.getVisible()&&settings.slots[side]===next,'keyboard account switch '+side);
  }
  for(const side of ['left','right'])await ui('window.duo.accountAction("select",'+JSON.stringify({side,id:originalSlots[side]})+')');
