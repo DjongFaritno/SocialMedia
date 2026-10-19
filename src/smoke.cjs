@@ -98,6 +98,7 @@ module.exports = async ({ app, win, views, settings, state, overlay, showOverlay
  await ui("window.duo.setTheme('auto')");
  fs.mkdirSync(path.join(process.cwd(), 'artifacts'), { recursive: true });
  if (!process.argv.includes('--skip-capture')) fs.writeFileSync(path.join(process.cwd(), 'artifacts', 'big-update.png'), (await win.capturePage()).toPNG());
+ await require('./presentation-smoke.cjs')({app,win,views,settings,state,overlay,showOverlay,about});
  await require('./language-smoke.cjs')({app,win,views,settings,overlay,showOverlay,handleAccountAction,about});
  await ui("window.duo.windowAction('about')"); const aboutWindow = about(); if (aboutWindow.webContents.isLoading()) await new Promise(resolve => aboutWindow.webContents.once('did-finish-load', resolve)); await sleep(100);
  assert.equal(await aboutWindow.webContents.executeJavaScript("document.querySelector('#version').textContent"), app.getVersion());

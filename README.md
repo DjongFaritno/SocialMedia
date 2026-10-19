@@ -2,7 +2,7 @@
 
 Dua ruang. Akunnya terserah kamu.
 
-DuoChat membuka dua akun layanan web berdampingan dalam satu aplikasi desktop. Versi **2.0.1** mendukung Messenger, Facebook, Google Chat, WeChat, Slack, Microsoft Teams, dan LinkedIn ke pilihan WhatsApp, Telegram, Discord, X, Instagram, dan Threads. Panel memakai tampilan web resmi masing-masing layanan.
+DuoChat membuka dua akun layanan web berdampingan dalam satu aplikasi desktop. Versi **2.0.2** mendukung Messenger, Facebook, Google Chat, WeChat, Slack, Microsoft Teams, dan LinkedIn ke pilihan WhatsApp, Telegram, Discord, X, Instagram, dan Threads. Panel memakai tampilan web resmi masing-masing layanan.
 
 ## Coba dan jalankan
 
@@ -99,3 +99,14 @@ Nama kontak, grup, dan Saved Messages di daftar chat Telegram Web A kini mengiku
 
 
 QC media: foto WhatsApp berbasis metadata/data-id, canvas, background, kutipan, stiker, thumbnail, galeri dan viewer mendapat cakupan tambahan. Avatar (termasuk placeholder) tetap terpisah dari Media; emoji bukan foto profil. Hover media melalui kontrol overlay diuji pada ketiga belas layanan. Threads membedakan tautan profil dari foto yang menaut ke postingan. Pengujian terkemas mencakup tiap kategori sendiri, kedua sisi panel, dua akun WhatsApp, empat kombinasi ON/OFF, pengaturan bersama, swap akun, reload dan media baru. Cakupan otomatis memakai fixture lokal; perubahan DOM layanan atau variasi akun nyata tetap dapat memerlukan penyesuaian.
+
+
+## Dialog di Fedora / Linux
+
+Pada sesi Wayland dengan DISPLAY tersedia, DuoChat memakai XWayland secara default untuk kompatibilitas fokus dan jendela. Pilihan eksplisit `--ozone-platform=wayland` atau `--ozone-platform=x11` tetap dihormati. Pada sistem tanpa server X, backend tidak dipaksa ke X11.
+
+Saat dialog Tambah akun, Kelola akun, Atur blur, atau Privasi terbuka, permukaan panel chat disembunyikan sementara tanpa menutup proses atau sesi. Permukaan overlay Linux memakai latar opak untuk menghindari ketergantungan pada penumpukan transparan antar native view. Sidebar tetap transparan dan tidak menyembunyikan dua panel. Setelah dialog ditutup, visibilitas mengikuti slot aktif dan Tutup sementara/Kunci.
+
+QC dialog mencakup screenshot hasil render, klik pilihan layanan, input nama, scroll pengaturan, Escape, buka/tutup About berulang, dan pemulihan proses panel. Matrix Linux menguji X11, native Wayland headless, serta default XWayland dengan GPU tidak dimatikan lewat flag. Runner memakai grafis virtual; hasil ini belum membuktikan seluruh kombinasi driver/GNOME Fedora di perangkat nyata.
+
+Referensi perilaku backend: [Electron BrowserWindow](https://www.electronjs.org/docs/latest/api/browser-window).
