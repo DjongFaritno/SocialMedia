@@ -12,16 +12,28 @@ module.exports=async({win,views,settings,state,handleAccountAction,blurControlle
   const url=new URL(request.url),reply=(body,status=200,headers={})=>new Response(body,{status,headers:{'Content-Type':'text/html',...headers}});
   if(url.origin==='https://chat.google.com'){
    if(url.pathname==='/legacy')return reply('',302,{Location:'https://mail.google.com/chat/u/0/'});
+   if(url.pathname==='/landing')return reply('',302,{Location:'https://accounts.google.com/passive'});
    if(url.pathname==='/signin')return reply('',302,{Location:'https://accounts.google.com/ServiceLogin'});
    if(url.pathname==='/blocked')return reply('',302,{Location:'https://mail.google.com/mail/u/0/'});
    if(url.pathname==='/offline')return Response.error();
    return reply(html);
   }
+  if(url.origin==='https://accounts.google.com'&&url.pathname==='/passive')return reply('',302,{Location:'https://workspace.google.com/products/chat/'});
+  if(url.origin==='https://workspace.google.com')return reply('<!doctype html><title>Chat landing fixture</title><a id="signin" href="https://accounts.google.com/ServiceLogin">Sign in</a><div id="message">Public landing content</div>');
   if(url.origin==='https://accounts.google.com')return reply('<!doctype html><title>Login fixture</title><script>document.cookie="duochat-gc-auth=fixture; Secure; Path=/";location.href="https://mail.google.com/chat/u/0/";</script>');
   if(url.origin==='https://mail.google.com'&&url.pathname.startsWith('/chat/'))return reply(html);
   return Response.error(); // Never use real Google accounts or network.
  });
  try{
+  await wc.loadURL('https://chat.google.com/landing');
+  await until(()=>!wc.isLoading()&&wc.getURL()==='https://workspace.google.com/products/chat/'&&state().statuses[account.id]?.state==='ready','official landing reaches ready');
+  assert.equal(views[account.id].getVisible(),true,'landing stays visible in the panel');
+  assert.equal(await wc.executeJavaScript('typeof window.duo'),'undefined','landing has no shell bridge');
+  await ui('window.duo.blurAction("set",{side:"left",enabled:true})');await blurControllers.get(wc.id).refresh();
+  assert.equal(await wc.executeJavaScript('getComputedStyle(document.querySelector("#message")).filter'),'none','landing is navigation-only, not Chat content');
+  await ui('window.duo.blurAction("set",{side:"left",enabled:false})');
+  await wc.executeJavaScript('document.querySelector("#signin").click();undefined');
+  await until(()=>!wc.isLoading()&&wc.getURL()==='https://mail.google.com/chat/u/0/'&&state().statuses[account.id]?.state==='ready','landing Sign in returns to Chat in same session');
   for(const endpoint of ['legacy','signin','modern']){
    await wc.loadURL('https://chat.google.com/'+endpoint);
    const expected=endpoint==='modern'?'https://chat.google.com/modern':'https://mail.google.com/chat/u/0/';
@@ -50,6 +62,6 @@ module.exports=async({win,views,settings,state,handleAccountAction,blurControlle
   assert.equal(state().statuses[account.id].state,'error','fallback must not reset to loading/ready');
   await wc.loadURL('https://chat.google.com/retry');
   await until(()=>!wc.isLoading()&&state().statuses[account.id]?.state==='ready','retry recovers');
-  console.log('GOOGLE CHAT LOAD PASS: legacy/modern redirects, same-session sign-in, native view visibility/bounds, isolated cookies, blur/editor guard on both hosts, blocked Gmail status, failed-load fallback and retry. Local fixtures, no real Google login.');
+  console.log('GOOGLE CHAT LOAD PASS: public Workspace landing and Sign in return, legacy/modern redirects, same-session sign-in, native view visibility/bounds, isolated cookies, blur/editor guard on both hosts, blocked Gmail status, failed-load fallback and retry. Local fixtures, no real Google login.');
  }finally{ses.protocol.unhandle('https');}
 };
