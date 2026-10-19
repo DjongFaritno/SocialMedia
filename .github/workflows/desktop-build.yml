@@ -165,10 +165,62 @@ jobs:
           compression-level: 0
           retention-days: 14
 
+  linux-dialogs:
+    name: Linux dialogs (${{ matrix.display }}, GPU enabled)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        display: [x11, wayland]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - name: Install Electron test runtime
+        run: node node_modules/electron/install.js
+      - name: Install headless Wayland compositor
+        if: matrix.display == 'wayland'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y weston
+      - name: Exercise painted dialogs and input with GPU enabled
+        timeout-minutes: 3
+        env:
+          DUO_TEST_DISPLAY: ${{ matrix.display }}
+        shell: bash
+        run: |
+          if [[ "$DUO_TEST_DISPLAY" == wayland ]]; then
+            export XDG_RUNTIME_DIR="$RUNNER_TEMP/duochat-wayland"
+            mkdir -p "$XDG_RUNTIME_DIR"
+            chmod 700 "$XDG_RUNTIME_DIR"
+            weston --backend=headless-backend.so --renderer=pixman --width=1440 --height=1000 --socket=duochat-wayland --idle-time=0 --log="$RUNNER_TEMP/duochat-weston.log" &
+            duo_weston_pid=$!
+            trap 'kill "$duo_weston_pid" 2>/dev/null || true' EXIT
+            for attempt in {1..100}; do
+              [[ -S "$XDG_RUNTIME_DIR/duochat-wayland" ]] && break
+              sleep 0.1
+            done
+            test -S "$XDG_RUNTIME_DIR/duochat-wayland"
+            env -u DISPLAY XDG_SESSION_TYPE=wayland WAYLAND_DISPLAY=duochat-wayland GDK_BACKEND=wayland ./node_modules/electron/dist/electron . --smoke-dialogs --ozone-platform=wayland --no-sandbox
+          else
+            xvfb-run -a --server-args="-screen 0 1440x1000x24" ./node_modules/electron/dist/electron . --smoke-dialogs --ozone-platform=x11 --no-sandbox
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: duochat-dialogs-${{ matrix.display }}
+          path: artifacts/dialog-*.png
+          if-no-files-found: ignore
+          retention-days: 7
+
   release:
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     name: Publish verified desktop release
-    needs: [windows, macos, linux]
+    needs: [windows, macos, linux, linux-dialogs]
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:

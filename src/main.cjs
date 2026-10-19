@@ -1,4 +1,5 @@
 const { app, BrowserWindow, WebContentsView, ipcMain, dialog, shell, Menu, session, nativeTheme, systemPreferences, nativeImage, net, webContents, powerMonitor } = require('electron');
+const { overlayPresentation } = require('./presentation.cjs');
 const fs = require('node:fs');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
@@ -15,7 +16,8 @@ const blurControllers = new Map(), blurStatuses = {};
 let updates, privacy, idleTimer, biometrics, biometricStartupError;
 const privacyHiddenChildren = new Set();
 const mediaGate = nativeMediaGate(process.platform, systemPreferences);
-const smoke = process.argv.includes('--smoke');
+const dialogSmoke = process.argv.includes('--smoke-dialogs');
+const smoke = process.argv.includes('--smoke') || dialogSmoke;
 if (smoke) app.setPath('userData', fs.mkdtempSync(path.join(require('node:os').tmpdir(), 'duochat-smoke-')));
 let win, aboutWindow, overlay, settings, settingsPath, saveTimer;
 const { translate } = require('./i18n.js');
@@ -53,6 +55,7 @@ function updateColors() {
   const dark = nativeTheme.shouldUseDarkColors;
   win.setBackgroundColor(dark ? '#161e1b' : '#edf2f1');
   for (const view of Object.values(views)) view.setBackgroundColor(dark ? '#1c2622' : '#ffffff');
+  if (overlay) overlay.setBackgroundColor(overlayPresentation(overlayMode, process.platform, dark).background);
   send();
 }
 function buildMenu() {
@@ -127,12 +130,14 @@ function shortcuts(contents) {
 function arrange() {
   const [width, height] = win.getContentSize();
   const bounds = layout(width, height, settings.ratio, state().headerHidden);
+  const presentation = overlayPresentation(overlayMode, process.platform, nativeTheme.shouldUseDarkColors);
   for (const [id, view] of Object.entries(views)) {
     const side = Object.entries(settings.slots).find(([, accountId]) => accountId === id)?.[0];
-    view.setVisible(Boolean(side) && !privacy.concealed(side));
+    view.setVisible(Boolean(side) && !privacy.concealed(side) && !presentation.hideServices);
     if (side) view.setBounds(bounds[side === 'left' ? 'whatsapp' : 'telegram']);
   }
   if (overlay) {
+    overlay.setBackgroundColor(presentation.background);
     overlay.setBounds(overlayMode === 'rail' ? { x: 0, y: state().headerHidden ? 0 : 80, width: 88, height: Math.max(1, height - 40 - (state().headerHidden ? 0 : 80)) } : { x: 0, y: 0, width, height });
   }
   if (!win.isMaximized() && !win.isFullScreen()) { const [w, h] = win.getSize(); settings.width = w; settings.height = h; }
@@ -255,7 +260,7 @@ async function syncAccounts() {
   for (const id of Object.keys(views)) if (!live.has(id)) closeAccount(id);
   for (const account of liveAccounts(settings)) if (!views[account.id]) addService(account);
   // Native child views cover the HTML shell. Keep our trusted overlay above them.
-  if (overlay) { win.contentView.removeChildView(overlay); win.contentView.addChildView(overlay); }
+  if (overlay) win.contentView.addChildView(overlay);
   arrange();
   await refreshBlur();
 }
@@ -268,7 +273,10 @@ function showOverlay(mode, focus = false) {
   if (mode && !overlayMode) overlayReturnFocus = webContents.getFocusedWebContents();
   const hadOverlayFocus = overlay.webContents.isFocused();
   overlayMode = mode;
-  overlay.setVisible(Boolean(mode)); arrange(); send();
+  // Reorder in place: detaching and reattaching can leave Electron 44 Linux views hidden.
+  // https://github.com/electron/electron/issues/54626
+  if (mode) win.contentView.addChildView(overlay);
+  arrange(); overlay.setVisible(Boolean(mode)); send();
   if (mode && (mode !== 'rail' || focus)) overlay.webContents.focus();
   if (!mode && hadOverlayFocus) {
     const target = overlayReturnFocus && !overlayReturnFocus.isDestroyed() ? overlayReturnFocus : win.webContents;
@@ -435,7 +443,7 @@ if (primaryInstance) app.whenReady().then(async () => {
   win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
   win.webContents.on('will-navigate', event => event.preventDefault());
   await win.loadFile(path.join(__dirname, 'index.html'));
-  overlay = new WebContentsView({ webPreferences: { preload: path.join(__dirname, 'preload.cjs'), sandbox: true, contextIsolation: true, nodeIntegration: false } });
+  overlay = new WebContentsView({ webPreferences: { preload: path.join(__dirname, 'preload.cjs'), sandbox: true, contextIsolation: true, nodeIntegration: false, backgroundThrottling: false } });
   overlay.setBackgroundColor('#00000000'); overlay.setVisible(false); win.contentView.addChildView(overlay);
   overlay.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
   overlay.webContents.on('will-navigate', event => event.preventDefault()); shortcuts(overlay.webContents);
@@ -450,7 +458,7 @@ if (primaryInstance) app.whenReady().then(async () => {
   if (!smoke && app.isPackaged) updates.start();
   if (pendingFocus) focusExistingWindow();
   win.on('close', () => { save(); clearTimeout(saveTimer); for (const id of Object.keys(views)) closeAccount(id); if (overlay && !overlay.webContents.isDestroyed()) overlay.webContents.close(); });
-  if (smoke) setTimeout(() => require('./smoke.cjs')({ app, win, views, settings, state, overlay, showOverlay, handleAccountAction, privacy, childWindows, powerMonitor, blurControllers, mediaGate, about: () => aboutWindow }).then(() => app.exit(0)).catch(error => { console.error(error); app.exit(1); }), 1600);
+  if (smoke) setTimeout(() => require(dialogSmoke ? './presentation-smoke.cjs' : './smoke.cjs')({ app, win, views, settings, state, overlay, showOverlay, handleAccountAction, privacy, childWindows, powerMonitor, blurControllers, mediaGate, about: () => aboutWindow }).then(() => app.exit(0)).catch(error => { console.error(error); app.exit(1); }), 1600);
 });
 app.on('before-quit', () => { clearInterval(idleTimer); updates?.stop(); });
 app.on('window-all-closed', () => app.quit());
