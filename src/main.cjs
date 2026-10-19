@@ -260,7 +260,7 @@ async function syncAccounts() {
   for (const id of Object.keys(views)) if (!live.has(id)) closeAccount(id);
   for (const account of liveAccounts(settings)) if (!views[account.id]) addService(account);
   // Native child views cover the HTML shell. Keep our trusted overlay above them.
-  if (overlay) { win.contentView.removeChildView(overlay); win.contentView.addChildView(overlay); }
+  if (overlay) win.contentView.addChildView(overlay);
   arrange();
   await refreshBlur();
 }
