@@ -20,3 +20,6 @@
 .messenger.provider-icon,.facebook.provider-icon,#account-rail .messenger.rail-account,#account-rail .facebook.rail-account{background:var(--blue);color:#4b8be3}.googlechat.provider-icon,.wechat.provider-icon,#account-rail .googlechat.rail-account,#account-rail .wechat.rail-account{background:var(--mint);color:var(--green)}
 
 .slack.provider-icon,#account-rail .slack.rail-account{background:var(--mint);color:var(--green)}.teams.provider-icon,#account-rail .teams.rail-account{background:#e8e4f4;color:#8172b4}.linkedin.provider-icon,#account-rail .linkedin.rail-account{background:var(--blue);color:#4b8be3}
+
+/* Native popup options need their own paired colors on Windows/Linux. */
+select{color-scheme:inherit}select option,select optgroup{background-color:var(--paper);color:var(--ink)}

@@ -1,9 +1,10 @@
-DuoChat 2.0.2 — pengaturan kembali kelihatan.
+DuoChat 2.0.3 — pilihan akun tetap terbaca di dark mode.
 
-- Dialog Tambah akun, Kelola akun, Atur blur dan Privasi menyembunyikan permukaan panel chat sementara tanpa memutus sesi. Latar overlay Linux dibuat opak; posisi/lapisan overlay disiapkan sebelum menerima input tanpa melepas native view dari jendela, dan rendering overlay tidak ditunda saat tersembunyi.
-- Menutup dialog memulihkan hanya panel yang aktif dan tidak ditutup oleh pengaturan privasi. Sidebar ringkas tetap menampilkan kedua chat.
-- QC baru menguji hasil render dan screenshot dialog, klik/input/scroll/Escape, About berulang, serta proses panel yang tetap sama. Matrix Linux menguji X11 dan native Wayland headless tanpa flag disable-gpu. Pengujian otomatis memakai grafis virtual; perbaikan pada driver/GNOME Fedora pengguna masih perlu dikonfirmasi.
+- Warna teks dan latar opsi dropdown kini ditentukan bersama sesuai tema. Memperbaiki daftar akun/layanan yang terlihat putih dengan teks terlalu terang pada Windows dan Linux.
+- Perbaikan berlaku untuk semua select di aplikasi, termasuk bahasa, tema, dan pilihan pengaturan. Native control mengikuti tema efektif dalam mode Dark, White, dan Auto.
+- QC Electron memeriksa warna opsi yang benar-benar diterapkan dan rasio kontras minimal 4.5:1 pada Windows, macOS, Linux X11 dan Wayland. Pengujian otomatis tidak menggantikan pemeriksaan visual popup native pada setiap versi OS.
+- Perbaikan dialog Linux dari 2.0.2 dan Google Chat tetap disertakan. Sesi login dipertahankan.
 
-Perbaikan Google Chat 2.0.1 tetap disertakan. Gratis, tanpa iklan, tanpa langganan. Paket Windows x64, macOS universal, Linux AppImage/deb dan installer Fedora. Status signing dan cara update tiap OS tetap mengikuti rilis sebelumnya.
+Gratis, tanpa iklan, tanpa langganan.
 
 by Codex · prompt by TjongFaritno

@@ -5,6 +5,26 @@ module.exports=async({app,win,views,settings,overlay,state,showOverlay,about})=>
  const ui=code=>win.webContents.executeJavaScript(code),modal=code=>overlay.webContents.executeJavaScript(code);
  async function until(check,label){const end=Date.now()+6000;while(!await check()){if(Date.now()>end)throw Error('Dialog QC: '+label);await sleep(30);}}
  console.log('DIALOG RUNTIME: '+JSON.stringify({platform:process.platform,ozone:app.commandLine.getSwitchValue('ozone-platform'),disabledGPU:app.commandLine.hasSwitch('disable-gpu'),hardwareAcceleration:app.isHardwareAccelerationEnabled()}));
+
+ // Verify resolved option colors in each actual Electron renderer. A transparent
+ // option background can leave light text on a white OS popup (Windows/Linux).
+ const originalTheme=settings.theme;
+ const checkOptions=async(wc,label)=>{
+  const options=await wc.executeJavaScript('Array.from(document.querySelectorAll("select option")).map(o=>{const c=getComputedStyle(o);return {text:o.textContent,fg:c.color,bg:c.backgroundColor,scheme:getComputedStyle(o.closest("select")).colorScheme}})');
+  assert.ok(options.length>0,label+' has options');
+  const rgb=color=>{const m=/^rgba?\(([\d.]+),\s*([\d.]+),\s*([\d.]+)(?:,\s*([\d.]+))?\)$/.exec(color);assert.ok(m,'resolved color '+color);assert.ok(m[4]===undefined||Number(m[4])===1,'opaque option background');return m.slice(1,4).map(Number);};
+  const luminance=color=>rgb(color).map(v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4;}).reduce((sum,v,i)=>sum+v*[.2126,.7152,.0722][i],0);
+  for(const option of options){const a=luminance(option.fg),b=luminance(option.bg);assert.ok((Math.max(a,b)+.05)/(Math.min(a,b)+.05)>=4.5,label+' readable option: '+option.text);assert.equal(option.scheme,state().effectiveTheme,'native control follows effective theme');}
+  return options.length;
+ };
+ for(const theme of ['dark','light','auto']){
+  await ui('window.duo.setTheme('+JSON.stringify(theme)+')');
+  await until(()=>modal('document.documentElement.dataset.theme').then(value=>value===state().effectiveTheme),'overlay theme applied');
+  const count=await checkOptions(win.webContents,'shell')+await checkOptions(overlay.webContents,'settings');
+  console.log('SELECT CONTRAST PASS: '+JSON.stringify({platform:process.platform,theme,effective:state().effectiveTheme,options:count}));
+ }
+ await ui('window.duo.setTheme('+JSON.stringify(originalTheme)+')');
+
  const ids=Object.values(views).map(v=>v.webContents.id);
  await until(()=>Object.values(views).every(v=>!v.webContents.isLoading()),'initial fixtures');
  fs.mkdirSync('artifacts',{recursive:true});
