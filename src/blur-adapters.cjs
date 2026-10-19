@@ -56,39 +56,6 @@ const adapters = {
       "[role=\"dialog\"] [contenteditable=\"true\"][role=\"textbox\"]"
     ]
   },
-  "googlechat": {
-    "messages": [
-      "[jsname=\"bgckF\"]:not(:has(img,video,canvas))",
-      ".Zc1Emd:not(:has(img,video,canvas))",
-      "[jsname=\"bgckF\"] :is(span,a):not(:has(img,video,canvas))",
-      ".FMTudf"
-    ],
-    "previews": [],
-    "names": [
-      "[data-topic-id] [data-name]",
-      ".Z4BnXb",
-      ".t5F5nf",
-      ".wR3Nid"
-    ],
-    "avatars": [
-      "[data-topic-id] img:not([jsname=\"bgckF\"] *):not(.Zc1Emd *):not(.rogmqd *):not(.wdoEHc *)",
-      ".nF6pT img:not([jsname=\"bgckF\"] *):not(.Zc1Emd *):not(.rogmqd *):not(.rogmqd *):not(.wdoEHc *)"
-    ],
-    "media": [
-      "[jsname=\"bgckF\"] img",
-      "[jsname=\"bgckF\"] video",
-      "[jsname=\"bgckF\"] canvas",
-      ".Zc1Emd img",
-      ".nF6pT .rogmqd img",
-      ".nF6pT video",
-      ".nF6pT .wdoEHc img",
-      ".nF6pT .rogmqd canvas",
-      ".nF6pT .wdoEHc canvas"
-    ],
-    "composer": [
-      "[role=\"textbox\"][contenteditable=\"true\"]"
-    ]
-  },
   "wechat": {
     "messages": [
       ".bubble_cont .plain",
@@ -148,38 +115,6 @@ const adapters = {
     "composer": [
       "[data-slate-editor=\"true\"][contenteditable=\"true\"]",
       ".ql-editor[contenteditable=\"true\"]"
-    ]
-  },
-  "teams": {
-    "messages": [
-      "[id^=\"message-body-\"] [id^=\"content-\"]:not(:has(img:not([itemtype*=\"Emoji\"]),video,canvas))",
-      "[data-tid=\"message-body\"]:not(:has(img:not([itemtype*=\"Emoji\"]),video,canvas))",
-      "[data-tid=\"message-content\"]:not(:has(img:not([itemtype*=\"Emoji\"]),video,canvas))"
-    ],
-    "previews": [
-      "[data-testid=\"comfy-message\"]"
-    ],
-    "names": [
-      "[data-tid=\"message-author-name\"]",
-      "[data-tid=\"chat-title\"]",
-      "[id^=\"title-chat-list-item_\"]"
-    ],
-    "avatars": [
-      "[data-tid=\"message-avatar\"]",
-      "[data-tid=\"post-message-header-avatar\"]",
-      ".fui-Avatar"
-    ],
-    "media": [
-      "[id^=\"message-body-\"] img:not([itemtype*=\"Emoji\"]):not(.fui-Avatar *)",
-      "[data-tid=\"chat-pane-message\"] video",
-      "[data-tid=\"channel-pane-message\"] video",
-      "[data-tid=\"chat-pane-message\"] canvas",
-      "[data-tid=\"chat-pane-message\"] img:not([itemtype*=\"Emoji\"]):not(.fui-Avatar *):not([data-tid=\"message-avatar\"] *)",
-      "[data-tid=\"channel-pane-message\"] img:not([itemtype*=\"Emoji\"]):not(.fui-Avatar *):not([data-tid=\"post-message-header-avatar\"] *)"
-    ],
-    "composer": [
-      "[contenteditable=\"true\"][role=\"textbox\"]",
-      "[data-tid=\"ckeditor\"] [contenteditable=\"true\"]"
     ]
   },
   "linkedin": {

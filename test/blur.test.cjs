@@ -112,5 +112,6 @@ test('every registered service has real blur categories and unsupported preview 
   for(const key of ['messages','names','avatars','media','composer']) assert.ok(ADAPTERS[service][key].length,service+' '+key);
   assert.ok(blurCSS(service,{enabled:true}).includes('filter:blur('),service);
  }
- assert.deepEqual(ADAPTERS.googlechat.previews,[]);
+ assert.equal(ADAPTERS.googlechat,undefined);
+ assert.equal(ADAPTERS.teams,undefined);
 });

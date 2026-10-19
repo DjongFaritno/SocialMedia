@@ -39,11 +39,35 @@ test('every provider trusts only its declared HTTPS navigation origins', () => {
 });
 
 test('four additional services persist independent profiles without altering legacy sessions', () => {
- const profiles=['messenger','facebook','googlechat','wechat'].map((service,i)=>({id:'account-00000000-0000-4000-8000-00000000000'+i,service,name:service}));
+ const profiles=['messenger','facebook','wechat','slack'].map((service,i)=>({id:'account-00000000-0000-4000-8000-00000000000'+i,service,name:service}));
  const state=accountState({schema:2,accounts:profiles,slots:{left:profiles[0].id,right:profiles[1].id}});
  assert.equal(state.accounts.length,4);
  assert.deepEqual(accountState(JSON.parse(JSON.stringify(state))),state);
  assert.equal(new Set(state.accounts.map(partition)).size,4);
  assert.equal(SERVICES.messenger.url,'https://www.facebook.com/messages/');
- assert.equal(SERVICES.googlechat.url,'https://chat.google.com/');
+ assert.equal(SERVICES.wechat.url,'https://web.wechat.com/');
+});
+
+const retired = [
+ {id:'account-aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',service:'googlechat',name:'K-Team',keepActive:true,permissions:true},
+ {id:'account-bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',service:'teams',name:'Office',keepActive:true,permissions:true}
+];
+test('withdrawal archives both occupied services and supplies valid active panels',()=>{
+ const migrated=cleanSettings({schema:2,accounts:retired,slots:{left:retired[0].id,right:retired[1].id}});
+ assert.deepEqual(migrated.retiredAccounts,retired);
+ assert.deepEqual(migrated.slots,{left:'whatsapp',right:'telegram'});
+ assert.deepEqual(migrated.accounts.map(a=>a.service),['whatsapp','telegram']);
+ assert.deepEqual(cleanSettings(JSON.parse(JSON.stringify(migrated))),migrated,'archive survives save/reload');
+ assert.equal(SERVICES.googlechat,undefined);assert.equal(SERVICES.teams,undefined);
+ for(const account of retired){assert.throws(()=>partition(account));assert.equal(switchAccount(migrated,'left',account.id),false);}
+ assert.deepEqual(liveAccounts(migrated).map(a=>a.service),['whatsapp','telegram'],'archived keepActive cannot load pages');
+});
+test('withdrawal keeps supported IDs, sessions, names and existing archive stable',()=>{
+ const raw={schema:2,accounts:[{id:'whatsapp',service:'whatsapp',name:'Personal',permissions:true},...retired],retiredAccounts:[...retired,null,{id:'../bad',service:'teams'},{id:second,service:'unknown'}],slots:{left:'whatsapp',right:retired[1].id}};
+ const migrated=cleanSettings(raw);
+ assert.equal(migrated.slots.left,'whatsapp');assert.notEqual(migrated.slots.right,migrated.slots.left);
+ assert.equal(partition(migrated.accounts[0]),'persist:whatsapp');
+ assert.equal(migrated.accounts[0].name,'Personal');assert.equal(migrated.accounts[0].permissions,true);
+ assert.deepEqual(migrated.retiredAccounts,retired);
+ assert.deepEqual(cleanSettings(JSON.parse(JSON.stringify(migrated))),migrated);
 });

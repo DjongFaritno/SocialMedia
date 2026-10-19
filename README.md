@@ -2,7 +2,7 @@
 
 Dua ruang. Akunnya terserah kamu.
 
-DuoChat membuka dua akun layanan web berdampingan dalam satu aplikasi desktop. Versi **2.0.5** mendukung Messenger, Facebook, Google Chat, WeChat, Slack, Microsoft Teams, dan LinkedIn ke pilihan WhatsApp, Telegram, Discord, X, Instagram, dan Threads. Panel memakai tampilan web resmi masing-masing layanan.
+DuoChat membuka dua akun layanan web berdampingan dalam satu aplikasi desktop. Versi **2.0.6** mendukung Messenger, Facebook, WeChat, Slack, dan LinkedIn ke pilihan WhatsApp, Telegram, Discord, X, Instagram, dan Threads. Panel memakai tampilan web resmi masing-masing layanan.
 
 ## Coba dan jalankan
 
@@ -17,11 +17,11 @@ npm start
 
 ## Layanan tambahan
 
-Slack, Microsoft Teams dan LinkedIn kini tersedia. Login workspace/tenant mengikuti kebijakan penyedia; IdP perusahaan pada domain lain belum diizinkan. [Cakupan blur dan QC](docs/blur-services.md).
+Slack dan LinkedIn kini tersedia. Login workspace/tenant mengikuti kebijakan penyedia; IdP perusahaan pada domain lain belum diizinkan. [Cakupan blur dan QC](docs/blur-services.md).
 
-Messenger membuka `facebook.com/messages/`; Facebook membuka feed. Keduanya punya profil terpisah, sehingga login pada satu akun tidak otomatis masuk di akun lainnya. Google Chat dan WeChat bersifat eksperimental: login Google bisa ditolak pada browser dalam aplikasi; akses Web WeChat bergantung akun/kebijakan penyedia. Login di browser luar tidak memindahkan sesi ke DuoChat.
+Messenger membuka `facebook.com/messages/`; Facebook membuka feed. Keduanya punya profil terpisah, sehingga login pada satu akun tidak otomatis masuk di akun lainnya. WeChat bersifat eksperimental: akses Web WeChat bergantung akun/kebijakan penyedia. Login di browser luar tidak memindahkan sesi ke DuoChat.
 
-Ketiga belas layanan memiliki adapter blur elemen. Pengaturan kategori tetap bersama dan ON/OFF per panel. Google Chat belum mendukung kategori preview daftar chat; kategori lainnya mengikuti struktur yang dikenali. Adapter tambahan diuji pada fixture Chromium, sedangkan variasi akun nyata tetap perlu diperiksa. Gunakan **Tutup sementara** atau **Kunci** untuk menutup seluruh tampilan. Lihat [dukungan layanan](docs/services.md).
+Kesebelas layanan memiliki adapter blur elemen. Pengaturan kategori tetap bersama dan ON/OFF per panel. Kategori mengikuti struktur yang dikenali. Adapter tambahan diuji pada fixture Chromium, sedangkan variasi akun nyata tetap perlu diperiksa. Gunakan **Tutup sementara** atau **Kunci** untuk menutup seluruh tampilan. Lihat [dukungan layanan](docs/services.md).
 
 ## Akun dan dua panel
 
@@ -98,7 +98,7 @@ Kutipan reply Telegram Web A dan K di dalam pesan masuk/keluar kini mengikuti ka
 Nama kontak, grup, dan Saved Messages di daftar chat Telegram Web A kini mengikuti checklist **Nama kontak, grup & pengguna**. Ringkasan nama chat dalam arsip juga mengikuti kategori Nama, terpisah dari preview pesan dan foto profil. Label arsip, waktu, dan kontrol tetap jelas saat hanya nama dipilih. Hover membuka bagian yang ditunjuk, lalu blur kembali saat pointer pergi. Baris chat yang muncul tanpa reload ikut terlindungi.
 
 
-QC media: foto WhatsApp berbasis metadata/data-id, canvas, background, kutipan, stiker, thumbnail, galeri dan viewer mendapat cakupan tambahan. Avatar (termasuk placeholder) tetap terpisah dari Media; emoji bukan foto profil. Hover media melalui kontrol overlay diuji pada ketiga belas layanan. Threads membedakan tautan profil dari foto yang menaut ke postingan. Pengujian terkemas mencakup tiap kategori sendiri, kedua sisi panel, dua akun WhatsApp, empat kombinasi ON/OFF, pengaturan bersama, swap akun, reload dan media baru. Cakupan otomatis memakai fixture lokal; perubahan DOM layanan atau variasi akun nyata tetap dapat memerlukan penyesuaian.
+QC media: foto WhatsApp berbasis metadata/data-id, canvas, background, kutipan, stiker, thumbnail, galeri dan viewer mendapat cakupan tambahan. Avatar (termasuk placeholder) tetap terpisah dari Media; emoji bukan foto profil. Hover media melalui kontrol overlay diuji pada kesebelas layanan. Threads membedakan tautan profil dari foto yang menaut ke postingan. Pengujian terkemas mencakup tiap kategori sendiri, kedua sisi panel, dua akun WhatsApp, empat kombinasi ON/OFF, pengaturan bersama, swap akun, reload dan media baru. Cakupan otomatis memakai fixture lokal; perubahan DOM layanan atau variasi akun nyata tetap dapat memerlukan penyesuaian.
 
 
 ## Dialog di Fedora / Linux
@@ -113,3 +113,6 @@ Referensi perilaku backend: [Electron BrowserWindow](https://www.electronjs.org/
 
 
 Dialog diurutkan ke lapisan teratas tanpa remove/add ulang native view. Electron 44 memiliki [laporan regresi render Linux](https://github.com/electron/electron/issues/54626) pada pola detach/reattach; pemeriksaan frame dilakukan sebelum screenshot agar capturePage tidak menyamarkan kegagalan render.
+
+
+Google Chat dan Microsoft Teams sementara ditarik dari rilis publik. Implementasi dan rencana riset disimpan di [branch research/google-chat-ms-teams](https://github.com/DjongFaritno/SocialMedia/tree/research/google-chat-ms-teams). Metadata akun lama disimpan dalam `settings.retiredAccounts`; kedua layanan tidak dibuka, tidak menerima izin layanan, dan tidak dipilih di panel. Folder sesi lokal tidak dihapus. Panel lama dialihkan ke akun yang masih didukung.

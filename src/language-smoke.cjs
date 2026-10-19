@@ -31,7 +31,7 @@ module.exports = async ({app,win,views,settings,overlay,showOverlay,handleAccoun
  showOverlay('add');await pause(80);
  assert.equal(await overlay.webContents.executeJavaScript('document.documentElement.lang'),'en');
  assert.equal(await overlay.webContents.executeJavaScript('document.querySelector("#add-dialog h1").textContent'),'Add another account.');
- await overlay.webContents.executeJavaScript('document.querySelector("[data-provider=googlechat]").click()');
+ await overlay.webContents.executeJavaScript('document.querySelector("[data-provider=wechat]").click()');
  assert.match(await overlay.webContents.executeJavaScript('document.querySelector("#provider-note").textContent'),/Experimental/);
  showOverlay('blur');await pause(80);
  assert.equal(await overlay.webContents.executeJavaScript('document.querySelector("#blur-heading").textContent'),'Keep private things blurry.');
