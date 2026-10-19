@@ -15,7 +15,7 @@ module.exports=async({app,win,views,settings,overlay,state,showOverlay,about})=>
    await until(()=>modal('document.querySelector("#'+mode+'-dialog").open'),'open '+mode);
    for(const view of Object.values(views))assert.equal(view.getVisible(),false,'native chat surfaces hidden while '+mode+' is open');
    assert.equal(overlay.getVisible(),true);
-   assert.equal(overlay.webContents.getLastWebPreferences().backgroundThrottling,false);
+   assert.equal(overlay.webContents.getBackgroundThrottling(),false);
    const bounds=overlay.getBounds(),[width,height]=win.getContentSize();
    assert.deepEqual(bounds,{x:0,y:0,width,height});
    let paintTimer;
