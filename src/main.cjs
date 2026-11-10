@@ -399,14 +399,7 @@ async function handleAccountAction(action, input = {}) {
   if (!account) return { ok: false, error: t('Akun tidak ditemukan.') };
   if (action === 'select') {
     if (!['left', 'right'].includes(input.side)) return { ok: false, error: t('Panel tidak valid.') };
-    const previous = accountById(settings.slots[input.side]);
-    // Never silently terminate an account when it leaves a panel. The user
-    // can keep its connection (including calls) alive or explicitly pause it.
-    if (previous.id !== account.id && !previous.keepActive && !Object.values(settings.slots).includes(account.id) && !smoke) {
-      const result = await dialog.showMessageBox(win, { type: 'question', message: t('Ganti panel {side}?',{side:t(input.side === 'left' ? 'kiri' : 'kanan')}), detail: t('{name} akan keluar dari panel. Menjeda akun menghentikan halaman, panggilan, dan notifikasinya. Pilih Tetap aktif jika masih ingin terhubung.',{name:previous.name}), buttons: [t('Batal'), t('Tetap aktif'), t('Jeda akun lama')], defaultId: 1, cancelId: 0 });
-      if (result.response === 0 || privacy.snapshot().locked) return { ok: false, error: t('Pergantian akun dibatalkan.') };
-      if (result.response === 1) previous.keepActive = true;
-    }
+    // syncAccounts applies the saved keepActive preference after switching panels.
     switchAccount(settings, input.side, account.id);
   } else if (action === 'rename') {
     const name = typeof input.name === 'string' ? input.name.trim().slice(0, 40) : '';
